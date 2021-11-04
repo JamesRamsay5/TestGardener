@@ -1,0 +1,17 @@
+q()
+K = 1
+for (k in 1:K) print(k)
+K = 0
+for (k in 1:K) print(k)
+q()
+library(fda)
+help("fRegress")
+source("/Users/jimramsay/Documents/R/SpatialDA_Laura/FEMr/man/plot.FEM.Rd")
+q()
+getwd()
+q()
+wdnow <- "/Users/jamesramsay/Documents/R/TestGardener/R"#
+setwd(wdnow)
+q()
+getwd()
+setwd("Documents/R/TestGardener/R")
