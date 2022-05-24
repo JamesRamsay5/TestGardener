@@ -1,14 +1,21 @@
 Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=FALSE) {
   
-  # Last modified 29 October 2021 by Jim Ramsay
+  # Last modified 9 March 2022 by Jim Ramsay
 
   parList   <- vector("list",ncycle)  
   meanHsave <- rep(0,ncycle)
   
-  # logdensbasis <- dataList$WfdPar$fd$basis
   logdensbasis <- create.bspline.basis(c(0,100), 15)
   
   WfdList <- dataList$WfdList
+  
+  n = length(WfdList)
+  
+  Wdim = 0
+  for (i in 1:n) {
+    WStri = WfdList[[i]]
+    Wdim  = Wdim + WStri$M
+  }
   
   parList <- vector("list", ncycle)
   
@@ -16,19 +23,16 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
   
   for (icycle in 1:ncycle) {
     
-    print(paste('Cycle ',icycle))
+    if (verbose) print(paste('----------  Cycle ',icycle,'-----------'))
     
     #  ----------------------------------------------------------
     #  Step 1:  Bin the data, and smooth the binned data
     #  ----------------------------------------------------------
-    
+    # print("step 1")
     if (verbose) print("Wbinsmth:")
     
     WfdResult <- Wbinsmth(theta, dataList, WfdList, thetaQnt)
     WfdList   <- WfdResult$WfdList
-    binctr    <- WfdResult$aves
-    bdry      <- WfdResult$bdry
-    freq      <- WfdResult$freq
     
     #  compute current mean value of objective function H
     
@@ -37,15 +41,17 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     H <- Hfun(theta, WfdList, U)
     meanH <- mean(H)
     meanHsave[icycle] <- meanH
-    print(paste('Mean surprisal = ', round(meanH,3)))
+    
+    if (verbose) print(paste('Mean surprisal = ', round(meanH,3)))
     
     #  ----------------------------------------------------------
     #  Step 2:  Compute optimal score index values
     #  ----------------------------------------------------------
+    # print("step 2")
     
     if (verbose) print("thetafun:")
 
-    thetafunList <- thetafun(theta, WfdList, U, 20, 1e-3, itdisp)
+    thetafunList <- thetafun(theta, WfdList, U, 20, 1e-3, itdisp=itdisp)
     theta    <- thetafunList$theta_out
     Hval     <- thetafunList$Hval
     DHval    <- thetafunList$DHval
@@ -55,63 +61,68 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     #  ----------------------------------------------------------
     #  Step 3:  Estimate the score density for score index values
     #  ----------------------------------------------------------
+    # print("step 3")
     
     if (verbose) print("theta.distn:")
     
     thetadens <- theta[0 < theta & theta < 100]
     theta.distnList <- theta.distn(thetadens, logdensbasis)
     
+    # cdf_fd    <- theta.distnList$cdf_fd
+    pdf_fd    <- theta.distnList$pdf_fd
     logdensfd <- theta.distnList$logdensfd
-    denscdf   <- as.numeric(theta.distnList$denscdf)
+    cdffine   <- theta.distnList$cdffine
     C         <- theta.distnList$C
-    densfine  <- theta.distnList$densfine
-    
-    denscdfi <- unique(denscdf)
-    indfinei <- seq(0,100,len=length(denscdfi))
-    Qvec     <- pracma::interp1(denscdfi, indfinei, dataList$PcntMarkers/100)
-    nbin     <- dataList$nbin
-    thetaQnt <- pracma::interp1(denscdfi, indfinei, seq(0,2*nbin,1)/(2*nbin))
-    thetaQnt[2*nbin+1] <- 100
+    indfine   <- seq(0,100,len=101)
+    denscdf   <- as.numeric(cdffine)
+    markers   <- dataList$PcntMarkers/100
+    Qvec      <- pracma::interp1(denscdf, indfine, markers)
+    nbin      <- dataList$nbin
+    bdry      <- seq(0,2*nbin,1)/(2*nbin)
+    thetaQnt  <- pracma::interp1(denscdf, indfine, bdry)
     
     #  ----------------------------------------------------------
     #  Step 4.  Compute arc length and its measures
     #  ----------------------------------------------------------
-      
-    if (verbose) print("theta2arclen:")
     
-    theta2arclenList <- theta2arclen(theta, WfdList, dataList$Wdim);
-    theta_al      <- theta2arclenList$theta_al 
-    arclength     <- theta2arclenList$arclength 
-    arclengthfine <- theta2arclenList$arclengthfine
-    Qvec_al       <- theta2arclenList$Qvec_al
-    print(paste('arclength in bits = ',round(arclength,1)))
+   if (verbose) print("step 4")
+    
+    DWfine = matrix(0,101,Wdim)
+    m2 = 0
+    for (i in 1:n) {
+      WListi = WfdList[[i]]
+      Mi     = WListi$M
+      m1 = m2 + 1
+      m2 = m2 + Mi
+      DWfine[,m1:m2] = WListi$DWmatfine
+    }
+    arclength = max(pracma::cumtrapz(sqrt(apply(DWfine^2,1,sum))))
+    
+    if (verbose)  print(paste('arclength in bits = ',round(arclength,1)))
     
     #  ----------------------------------------------------------
     #  Step 5:  set up ParameterCell arrays
     #  ----------------------------------------------------------
+    # print("step 5")
     
     if (verbose) print("parList:")
     
     parListi <- list(
       theta      = theta,
       thetaQnt   = thetaQnt,
-      WfdList    = WfdList,
+      WfdList    = WfdResult$WfdList,
+      binctr     = WfdResult$aves,
+      bdry       = WfdResult$bdry,
+      freq       = WfdResult$freq,
+      pdf_fd     = pdf_fd,
       logdensfd  = logdensfd,
       C          = C,
-      densfine   = densfine,
-      denscdf    = denscdf,
       Qvec       = Qvec,
-      binctr     = binctr,
-      bdry       = bdry,
-      freq       = freq,
       Hval       = Hval,
       DHval      = DHval,
       D2Hval     = D2Hval,
       active     = active,
-      arclength  = arclength,
-      alfine     = arclengthfine,
-      Qvec_al    = Qvec_al,
-      theta_al   = theta_al
+      arclength  = arclength
     )
     
     parList[[icycle]] <- parListi

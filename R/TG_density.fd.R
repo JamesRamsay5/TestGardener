@@ -1,6 +1,7 @@
 TG_density.fd <- function(thetadens, logdensfdPar, conv=0.0001, iterlim=20,
                       active=1:nbasis, dbglev=0) {
-# DENSITYFD estimates the density of a sample of scalar observations.
+# DENSITYFD estimates the density and log-density of a sample of scalar 
+# observations.
 
 #  These observations may be one of two forms:
 #   1.  a vector of observatons thetadens_i

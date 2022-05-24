@@ -9,7 +9,7 @@ mu.plot <- function(mufine, scrrng, titlestr=NULL) {
     xlab("Percentile Index") + ylab("Expected Test Score") +
     labs(title=titlestr) +
     theme(axis.title=element_text(size=16,face="bold"))
-  print(p)
+  # print(p)
   return(p)
 }
   

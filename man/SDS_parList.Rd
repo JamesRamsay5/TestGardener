@@ -1,18 +1,18 @@
 \name{SDS_parList}
 \alias{SDS_parList}
-%- Also NEED an '\alias' for EACH other topic documented here.
 \title{
-  List of objects essential for an analysis of the Symptom Distress Scale.
+  Parameter list for the Symptom Distress Scale.
 }
 \description{
-  The data are for 473 respondents to the Symptom Distress Scale.  Each question has
-  rating scores 0, 1, 2, 3, and 4.
+  The data are for 473 respondents to the Symptom Distress Scale.  
+  Each question has options with rating scores 0, 1, 2, 3, and 4.
+  The analysis results are 10 cycles of alternating between estimating 
+  surprisal curves and estimating percentile score index values.
 }
 \usage{SDS_parList}
 \format{A named list.}
 \value{
-  The object \code{SDS_dataList} is a list vector with length equal to the number of analysis cycles.  
-  Each member is a named list with these members:
+  The object \code{SDS_dataList} is a list is a named list with these members:
   \describe{
     \item{theta:}{A vector of length N of estimated values of the percentile rank score index.}
     \item{thetaQnt:}{A vector of length 2*nbin + 1 containing bin boundaries alternating with

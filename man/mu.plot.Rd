@@ -16,9 +16,11 @@ mu.plot(mufine, scrrng, titlestr)
   \item{titlestr}{A string containing the title of the data.}
 }
 \value{
-A \code{gg} or \code{ggplot} object defining the plot of the expected test score \code{mu} as a function of the score index \code{theta}.  This is displayed by the \code{print} command. 
-The plot is automatically displayed as a side value even if no return object is specified in 
-the calling statement.
+  A \code{gg} or \code{ggplot} object defining the plot of the expected test score 
+  \code{mu} as a function of   the score index \code{theta}.  This is displayed by 
+  the \code{print} command. 
+  The plot is automatically displayed as a side value even if no return object is 
+  specified in the calling statement.
 }
 \references{
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 

@@ -1,45 +1,6 @@
 \name{thetafun}
 \alias{thetafun}
 \title{Compute optimal scores}
-\usage{
-  thetafun(theta, WfdList, U, itermax = 20, crit = 0.001, 
-           itdisp = FALSE)
-}
-\arguments{
-  \item{theta}{A vector of size \code{N} containing initial values for score 
-  indices in the interval [0,100].}
-  \item{WfdList}{
-    A numbered list object produced by a TestGardener analysis of a test.  
-    Its length is equal to the number of items in the test or questions in the 
-    scale.  Each member of \code{WfdList} is a named list containing information 
-    computed during the analysis.
-    The named list in each member contains these objects:
-    \describe{
-      \item{Wfd:}{A functional data object containing the \code{M} 
-      surprisal curves for a question.}
-      \item{M:}{The number of options.}
-      \item{Pbin:}{A matrix containing proportions at each bin.}
-      \item{Wbin:}{A matrix containing surprisal values at each bin.}
-      \item{Pmatfine:}{A matrix of probabilities over a fine mesh.}
-      \item{Wmatfine:}{A matrix of surprisal values over a fine mesh.}
-      \item{DWmatfine:}{A matrix of the values of the first derivative of 
-      surprisal curves over fine mesh.}
-      \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
-      surprisal curves over fine mesh.}
-      \item{chartList:}{A list vector of length \code{n}.  Each list contains 
-      the \code{K} by \code{M-1} matrix of initial values for the surprisal 
-      curves for the corresponding item.}
-    }
-  }
-  \item{U}{A matrix number of rows equal to the number of examinees or 
-  respondents, and number of columns equal to number of items.  The 
-  values in the matrix are indices of choices made by each respondent
-  to each question.}
-  \item{itermax}{Maximum number of iterations for computing the optimal
-  theta values.  Default is 20.}
-  \item{crit}{Criterion for convergence of optimization.  Default is 1e-8.}
-  \item{itdisp}{If TRUE, results are displayed for each iteration.}
-}
 \description{
 The percentile score index values are estimated for each person.  The estimates
 minimize the negative log likelihoods, which are a type of surprisal.  The
@@ -58,6 +19,42 @@ either non-positive second derivatives or values that exceed
 
 If \code{itdisp} is positive, the number of values to be estimated
 are printed for each iteration.
+}
+\usage{
+  thetafun(theta, WfdList, U, itermax = 20, crit = 0.001, 
+           itdisp = FALSE)
+}
+\arguments{
+  \item{theta}{A vector of size \code{N} containing initial values for score 
+    indices in the interval [0,100].}
+  \item{WfdList}{
+    A numbered list object produced by a TestGardener analysis of a test.  
+    Its length is equal to the number of items in the test or questions in the 
+    scale.  Each member of \code{WfdList} is a named list containing information 
+    computed during the analysis.
+    The named list in each member contains these objects:
+    \itemize{
+      \item{Wfd:} {A functional data object containing the \code{M} 
+        surprisal curves for a question.}
+      \item{M:} {The number of options.}
+      \item{Pbin:} {A matrix containing proportions at each bin.}
+      \item{Wbin:} {A matrix containing surprisal values at each bin.}
+      \item{Pmatfine:} {A matrix of probabilities over a fine mesh.}
+      \item{Wmatfine:} {A matrix of surprisal values over a fine mesh.}
+      \item{DWmatfine:} {A matrix of the values of the first derivative of 
+        surprisal curves over fine mesh.}
+      \item{D2Wmatfine:} {A matrix of the values of the second derivative of 
+        surprisal curves over fine mesh.}
+    }
+  }
+  \item{U}{A matrix number of rows equal to the number of examinees or 
+    respondents, and number of columns equal to number of items.  The 
+    values in the matrix are indices of choices made by each respondent
+    to each question.}
+  \item{itermax}{Maximum number of iterations for computing the optimal
+    theta values.  Default is 20.}
+  \item{crit}{Criterion for convergence of optimization.  Default is 1e-8.}
+  \item{itdisp}{If TRUE, results are displayed for each iteration.}
 }
 \value{
 A named list with these members:
@@ -86,22 +83,4 @@ http://testgardener.azurewebsites.net
   \code{\link{theta2arclen}},
   \code{\link{testscore}},
   \code{\link{scoreDensity}}
-}
-\examples{
-\donttest{
-#  Example 1.  Compute score index values theta for the 
-#  short SweSAT multiple choice test with 24 items and 1000 examinees
-theta_in  <- Quant_dataList$percntrnk
-oldpar <- par(no.readonly = TRUE)
-par(mfrow=c(2,1))
-hist(theta_in,11)
-WfdList   <- Quant_parList$WfdList
-thetafunResult <- thetafun(theta_in, WfdList, Quant_dataList)
-theta_out      <- thetafunResult$theta_out
-hist(theta_out,11)
-par(oldpar)
-#  Example 2.  Compute score index values theta for the 
-#  Symptom Distress Scale with 13 items and 473 respondents
-#  Proceed as above changing "Quant" to "SDS".
-}
 }

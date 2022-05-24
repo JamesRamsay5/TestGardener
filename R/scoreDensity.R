@@ -1,6 +1,6 @@
 scoreDensity <- function(scrvec, scrrng, ndensbasis=15, ttlstr=NULL, pltmax=0) {
 
-# Last modified 18 February 2021 by Jim Ramsay
+# Last modified 10 February 2022 by Jim Ramsay
 
   #  define a fine mesh of score values for plotting
   
@@ -14,27 +14,22 @@ scoreDensity <- function(scrvec, scrrng, ndensbasis=15, ttlstr=NULL, pltmax=0) {
   # call theta.distn to get the smooth density function
   
   tdList       <- theta.distn(scrvec, logdensbasis, nfine)
-    
+  
+  denscdf      <- tdList$cdffine
   logdensfd    <- tdList$logdensfd
-  denscdf      <- as.vector(tdList$denscdf)
-  C            <- tdList$C
   logdensvec   <- fda::eval.fd(scrfine, logdensfd)
-  densfine     <- exp(logdensvec)/C
+  densfine     <- exp(logdensvec)/tdList$C
   pvec         <- c(0.05,0.25,0.50,0.75,0.95)
   denscdfi     <- unique(denscdf)
   scrfinei     <- seq(scrrng[1],scrrng[2],length.out=length(denscdfi))
-  Qvec         <- pracma::interp1(denscdfi, scrfinei, pvec)
+  Qvec         <- pracma::interp1(as.numeric(denscdfi), as.numeric(scrfinei), as.numeric(pvec))
   
   #  plot using thetaPlot below
   
   dens.plot  <- thetadensity.plot(scrvec, scrrng, scrfine, densfine, Qvec, 
                                   ttlstr, TRUE, pltmax)
 
-  print(dens.plot)
-  # #  the histogram is different, and the plot of densfine
-  # return(list(thetaPlot=thetaPlot, logdensbasis=logdensbasis, logdensfd=logdensfd, 
-  #             scrfine=scrfine, scrvec=scrvec, densfine=densfine, denscdf=denscdf, 
-  #             Qvec=Qvec))
+  return(dens.plot)
 }
 
 #  ----------------------------------------------------------------------------

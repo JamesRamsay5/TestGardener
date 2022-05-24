@@ -4,44 +4,44 @@
 Plot item power curves for selected items or questions.
 }
 \description{
-Item surprisal power curves are the square root of the sum over options of the squared surprisal sensitivity curves.}
+  Item surprisal power curves are the square root of the sum over options of the squared 
+  surprisal sensitivity curves.}
 \usage{
-  Power.plot(WfdList, Qvec, dataList, plotindex=1:n, height=0.5, value=0, 
-             saveplot=FALSE, ttlsz=NULL, axisttl=NULL, axistxt=NULL)
+  Power.plot(scrfine, WfdList, Qvec, dataList, plotindex=1:n, 
+             plotrange=c(min(scrfine),max(scrfine)), height=0.5,  
+             value=0, ttlsz=NULL, axisttl=NULL, axistxt=NULL)
 }
 \arguments{
+  \item{scrfine}{A vector of length nfine (usually 101) containing equally spaced
+  	points spanning the plotrange.  Used for plotting.}
   \item{WfdList}{
-  A numbered list object produced by a TestGardener analysis of a test.  Its length
-  is equal to the number of items in the test or questions in the scale.  
-  Each member of \code{WfdList} is a named list containing information computed during the analysis.
-  These named lists contain these objects:
+    A numbered list object produced by a TestGardener analysis of a test.  Its length
+    is equal to the number of items in the test or questions in the scale.  
+    Each member of \code{WfdList} is a named list containing information computed during the analysis.
+    These named lists contain these objects:
     \describe{
       \item{Wfd:}{A functional data object containing the \code{M} surprisal curves
-      for a question.}
+        for a question.}
       \item{M:}{The number of options.}
       \item{Pbin:}{A matrix containing proportions at each bin.}
       \item{Wbin:}{A matrix containing surprisal values at each bin.}
       \item{Pmatfine:}{A matrix of probabilities over a fine mesh.}
       \item{Wmatfine:}{A matrix of surprisal values over a fine mesh.}
       \item{DWmatfine:}{A matrix of the values of the first derivative of 
-      surprisal curves over fine mesh.}
+        surprisal curves over fine mesh.}
       \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
-      surprisal curves over fine mesh.}
-      \item{chartList:}{A list vector of length \code{n}.  Each list contains the
-      \code{K} by \code{M-1} matrix of initial values for the surprisal curves for
-      the corresponding item.}
+        surprisal curves over fine mesh.}
     }
   }
   \item{Qvec}{The five marker percentile values.}
   \item{dataList}{A list vector containing objects essential to an analysis.}
-  \item{plotindex}{
-  A set of integers specifying the numbers of the items or questions to be displayed.
-  }
-  \item{height}{
-  A positive real number defining the upper limit on the ordinate for the plots.
-  }
+  \item{plotindex}{A set of integers specifying the numbers of the items or questions to 
+    be displayed.}
+  \item{plotrange}{A vector of length 2 containing the plot boundaries within or
+    over the score index interval c(0,100).}
+  \item{height}{A positive real number defining the upper limit on the ordinate 
+  	for the plots.}
   \item{value}{Number required by ggplot2.  Defaults to 0.}
-  \item{saveplot}{A logical value indicating whether the plot should be saved to a pdf file.}
   \item{ttlsz}{Title font size.}
   \item{axisttl}{Axis title font size.}
   \item{axistxt}{Axis text(tick label) font size.}
@@ -53,11 +53,12 @@ Item surprisal power curves are the square root of the sum over options of the s
   the curve is high value.  Values of power curves typically range over [0,0.5].
 }
 \value{
-The plots of the power curves specified in \code{plotindex} are produced as a side
-effect.
-If \code{saveplot} is TRUE, the plots of item power curves specified in \code{plotindex} are bundled into a single postscript or .pdf file and the file name is defined by 
-\code{paste(dataList$titlestr,i,'-power.pdf',sep="")}.  The file is then output
-as a returned value.
+  The plots of the power curves specified in \code{plotindex} are produced as a side
+  effect.
+  If \code{saveplot} is TRUE, the plots of item power curves specified in 
+  \code{plotindex} are bundled into a single postscript or .pdf file and the 
+  file name is defined by \code{paste(dataList$titlestr,i,'-power.pdf',sep="")}.  
+  The file is then outputas a returned value.
 }
 \references{
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -72,7 +73,6 @@ http://testgardener.azurewebsites.net
 \seealso{
   \code{\link{Sensitivity.plot}},
   \code{\link{Entropy.plot}},
-  \code{\link{Item.plot}},
   \code{\link{Hfuns.plot}},
   \code{\link{Wbinsmth.plot}}
 }
@@ -80,9 +80,10 @@ http://testgardener.azurewebsites.net
 #  Example 1.  Display the item power curves for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 #  plot the power curve for the first item
-WfdList <- Quant_parList$WfdList
-Qvec    <- Quant_parList$Qvec
-Power.plot(WfdList, Qvec, Quant_dataList, plotindex=1)
+WfdList <- Quantshort_parList$WfdList
+Qvec    <- Quantshort_parList$Qvec
+scrfine <- seq(0,100,len=101)
+Power.plot(scrfine, WfdList, Qvec, Quantshort_dataList, plotindex=1)
 #  Example 2.  Display the item power curves for the 
 #  Symptom Distress Scale with 13 items and 473 respondents
 #  Proceed as above changing "Quant" to "SDS".

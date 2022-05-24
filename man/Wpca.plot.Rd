@@ -33,9 +33,6 @@ Plot the test information or scale curve in either two or three dimensions.
       surprisal curves over fine mesh.}
       \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
       surprisal curves over fine mesh.}
-      \item{chartList:}{A list vector of length \code{n}.  Each list contains the
-      \code{K} by \code{M-1} matrix of initial values for the surprisal curves for
-      the corresponding item.}
     }
   }
   \item{Wdim}{The total number of options in the test or scale.}
@@ -73,18 +70,18 @@ http://testgardener.azurewebsites.net
 #  Example 1.  Display the test information curve for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 #  plot a two-dimension version of manifold curve
-WfdList    <- Quant_parList$WfdList
-theta      <- Quant_parList$theta
-arclength  <- Quant_parList$arclength 
-Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quant_dataList$Wdim)
+WfdList    <- Quantshort_parList$WfdList
+theta      <- Quantshort_parList$theta
+arclength  <- Quantshort_parList$arclength 
+Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim)
 varprop <- Wpca.plotResults$varpropvarmx
 print("Proportions of variance accounted for and their sum:")
 print(round(c(varprop,sum(varprop)),3))
 #  plot a three-dimension version of manifold curve
-WfdList    <- Quant_parList$WfdList
-theta      <- Quant_parList$theta
-arclength  <- Quant_parList$arclength 
-Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quant_dataList$Wdim, nharm=3)
+WfdList    <- Quantshort_parList$WfdList
+theta      <- Quantshort_parList$theta
+arclength  <- Quantshort_parList$arclength 
+Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim, nharm=3)
 varprop <- Wpca.plotResults$varpropvarmx
 print("Proportions of variance accounted for and their sum:")
 print(round(c(varprop,sum(varprop)),3))

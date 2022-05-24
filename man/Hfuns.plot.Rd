@@ -15,22 +15,22 @@ minimum value of score index theta to re-estimate the value of theta.}
 \arguments{
   \item{theta}{The entire vector of estimated values of theta.}
   \item{WfdList}{The list vector of length \code{n} containing the 
-  estimated surprisal curves.}
+    estimated surprisal curves.}
   \item{U}{The entire N by n matrix of choice indices.}
   \item{plotindex}{A subset of the integers \code{1:N}.}
 }
 \details{
-The curves are displayed in three vertically organized panels along with 
-values of theta and the values and first two derivative values of the 
-fit criterion.  If more than one index value is used, a press of the Enter 
-or Return key moves to the next index value.
+  The curves are displayed in three vertically organized panels along with 
+  values of theta and the values and first two derivative values of the 
+  fit criterion.  If more than one index value is used, a press of the Enter 
+   or Return key moves to the next index value.
 }
 \value{
-A list vector is returned which is of the length of argument \code{plotindex}.  Each
-member of the vector is a \code{gg} or \code{ggplot} object for the associated
-\code{plotindex value}.  Each plot can be displayed using the \code{print} command.
-The plots of item power are produced as a side value even if no output object is
-specified in the call to the function.
+  A list vector is returned which is of the length of argument \code{plotindex}.  Each
+  member of the vector is a \code{gg} or \code{ggplot} object for the associated
+  \code{plotindex value}.  Each plot can be displayed using the \code{print} command.
+  The plots of item power are produced as a side value even if no output object is
+  specified in the call to the function.
 }
 \references{
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -51,9 +51,9 @@ http://testgardener.azurewebsites.net
 #  Example 1.  Display fit criterion values and derivatives for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 index <- 1
-theta    <- Quant_parList$theta
-WfdList  <- Quant_parList$WfdList
-U        <- Quant_dataList$U
+theta    <- Quantshort_parList$theta
+WfdList  <- Quantshort_parList$WfdList
+U        <- Quantshort_dataList$U
 Hval     <-  Hfun(theta[index], WfdList, U[index,])
 DHResult <- DHfun(theta[index], WfdList, U[index,])
 DHval    <- DHResult$DH

@@ -1,5 +1,5 @@
-\name{Quant_key}
-\alias{Quant_key}
+\name{Quantshort_key}
+\alias{Quantshort_key}
 \docType{data}
 \title{
   Option information for the short form of the SweSAT Quantitative test.
@@ -9,6 +9,6 @@
   for the 24 questions
 }
 \usage{
-  Quant_key
+  Quantshort_key
 }
 \keyword{datasets}

@@ -1,30 +1,42 @@
-Power.plot <- function(WfdList, Qvec, dataList, plotindex=1:n, height=0.5,  
-                       value=0, saveplot=FALSE, 
+Power.plot <- function(scrfine, WfdList, Qvec, dataList, plotindex=1:n, 
+                       plotrange=c(min(scrfine),max(scrfine)),   
+                       height=0.5, value=0,
                        ttlsz=NULL, axisttl=NULL, axistxt=NULL) {
+  
+  #  Last modified 20 May 2022 by Jim Ramsay
+  
   n          <- length(WfdList)
-  indfine    <- seq(0,100,len=101)
   optionList <- dataList$optList 
   ItemTitle  <- optionList$itemLab
   titlestr   <- dataList$titlestr
-  nfine      <- length(indfine)
+  nfine      <- length(scrfine)
   linesize   <- 1
-  powermat   <- matrix(0,nfine,n)
-  powermatQ  <- matrix(0,n,5)
-  plot_list  <- list()
+  powermatQ  <- matrix(0,    5,n)
+  
   for (i in plotindex) {
-    WListi <- WfdList[[i]]
-    Wfdi   <- WListi$Wfd
-    Mi     <- WListi$M
-    for (k in 1:Mi) {
-      powermat[,i] <- powermat[,i] + WListi$DWmatfine[,k]^2
-    }
-    powermat[,i] <- sqrt(powermat[,i])
+    WListi     <- WfdList[[i]]
+    Wfdi       <- WListi$Wfd
+    Mi         <- WListi$M
+    DWmatfinei <- WListi$DWmatfine
     
-    DWmatQ <- eval.surp(Qvec,Wfdi,1)
-    for (k in 1:k) {
-      powermatQ[i,] <- powermatQ[i,] + DWmatQ[,k]^2
+    #  compute power curve values over fine mesh
+    
+    powervec <- rep(0,nfine)
+    for (m in 1:Mi) {
+      powervec <- powervec + DWmatfinei[,m]^2
     }
-    powermatQ[i,] <- sqrt(powermatQ[i,])
+    powervec <- sqrt(powervec)
+    
+    powervecQ <- rep(0,5)
+    DWvecQ <- rep(0,5)
+    for (m in 1:Mi) {
+      for (k in 1:5) {
+        DWvecQ[k] <- pracma::interp1(as.numeric(scrfine), as.numeric(DWmatfinei[,m]), 
+                                    as.numeric(Qvec[k]))
+      }
+      powervecQ <- powervecQ + DWvecQ^2
+    }
+    powervecQ <- sqrt(powervecQ)
     
     # ggplot version
     
@@ -36,20 +48,20 @@ Power.plot <- function(WfdList, Qvec, dataList, plotindex=1:n, height=0.5,
       axis.title = ggplot2::element_text(size = ifelse(is.null(axisttl),default_size1,axisttl)),
       axis.text  = ggplot2::element_text(size = ifelse(is.null(axistxt),default_size2,axistxt)))
     
-    df <- data.frame(value=powermat[,i], indfine=indfine)
-    pp <- ggplot2::ggplot(df, ggplot2::aes(indfine, powermat[,i])) +
+    df <- data.frame(value=powervec, scrfine=scrfine)
+    pp <- ggplot2::ggplot(df, ggplot2::aes(scrfine, powervec)) +
       ggplot2::geom_line(size=linesize, na.rm=TRUE) +
-      ggplot2::xlim(c(0,100)) + ggplot2::ylim(c(0,height)) +
+      ggplot2::xlim(plotrange) + ggplot2::ylim(c(0,height)) +
       ggplot2::geom_vline(xintercept = Qvec, color="black", linetype = "dashed") +
-      ggplot2::annotate("point", x = Qvec[1], y = powermatQ[i,1], 
+      ggplot2::annotate("point", x = Qvec[1], y = powervecQ[1], 
                         colour = "red", size = 1.5) +
-      ggplot2::annotate("point", x = Qvec[2], y = powermatQ[i,2], 
+      ggplot2::annotate("point", x = Qvec[2], y = powervecQ[2], 
                         colour = "red", size = 1.5) +
-      ggplot2::annotate("point", x = Qvec[3], y = powermatQ[i,3], 
+      ggplot2::annotate("point", x = Qvec[3], y = powervecQ[3], 
                         colour = "red", size = 1.5) +
-      ggplot2::annotate("point", x = Qvec[4], y = powermatQ[i,4], 
+      ggplot2::annotate("point", x = Qvec[4], y = powervecQ[4], 
                         colour = "red", size = 1.5) +
-      ggplot2::annotate("point", x = Qvec[5], y = powermatQ[i,5], 
+      ggplot2::annotate("point", x = Qvec[5], y = powervecQ[5], 
                         colour = "red", size = 1.5) +
       ggplot2::labs(title = paste("Question",i))+
       ggplot2::ylab(paste('Question power (',Mi,'-bits)',sep='')) +
@@ -61,22 +73,21 @@ Power.plot <- function(WfdList, Qvec, dataList, plotindex=1:n, height=0.5,
     {
       if (is.null(ItemTitle)) {
         ttllab <- paste('Question ', i, ", total power = ", 
-                        round(pracma::trapz(indfine, powermat[,i]),2), sep="")
+                        round(pracma::trapz(scrfine, powervec),2), sep="")
       } else 
       {
         ttllab <- paste('Question ', i,': ',ItemTitle[i], ", total power = ", 
-                        round(pracma::trapz(indfine, powermat[,i]),2), sep="") 
+                        round(pracma::trapz(scrfine, powervec),2), sep="") 
         
       }
-    } else
-    {
+    } else {
       if (is.null(ItemTitle)) {
         ttllab <- paste('Question ', i, ", total power = ", 
-                        round(pracma::trapz(indfine, powermat[,i]),2), sep="")
+                        round(pracma::trapz(scrfine, powervec),2), sep="")
       } else 
       {
         ttllab <- paste('Question ', i, ': ',ItemTitle[i], ", total power = ", 
-                        round(pracma::trapz(indfine, powermat[,i]),2), sep="") 
+                        round(pracma::trapz(scrfine, powervec),2), sep="") 
         
       }
     }
@@ -86,22 +97,33 @@ Power.plot <- function(WfdList, Qvec, dataList, plotindex=1:n, height=0.5,
     
     pp <- pp + ggplot2::labs(title = ttllab)
     
-    plot_list[[i]] <- pp
     print(pp)
+    
     if (length(plotindex) > 1)
-        readline(prompt = paste('Question', i, ". Press [enter] to continue"))
-  }
-  
-  #  If required, a pdf file is set up containing all of the plots.  
-  #  The file name is the string titlestr combined with "-power.pdf".  
-  
-  if (saveplot) {
-    pdf(paste(titlestr,i,'-power.pdf',sep=""))
-    for (i in plotindex) {
-      print(plot_list[[i]])
+    {
+      n1<-readline(prompt=
+                     paste("Press [N/n/enter] to next item;",
+                           "[P/p] to previous item; or item index to that item: "))
+      if (n1 == "N" | n1 == "n" | n1 == "")
+      {
+        i = i + 1
+      } else if (n1 == "P" | n1 == "p")
+      {
+        i = i - 1
+      } else
+      {
+        n1 <- suppressWarnings(as.integer(n1))
+        if (!is.na(n1) & (n1 >= plotindex[1] & n1 <= plotindex[length(plotindex)]))
+        {
+          i <- n1
+        } else
+        {
+          break
+        }
+      }
     }
-    dev.off()
+    gc() # to  free up memory from the previous run
+    
   }
   
 }
-

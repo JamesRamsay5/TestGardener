@@ -36,7 +36,7 @@ ntheta  <- length(theta.pop)
 #  corresponding to nfine equally spaced values of theta.
 
 mu.pop        <- testscore(theta.pop, WfdList, dataList$optList)
-result        <- theta2arclen(theta.pop, WfdList, Wdim)
+result        <- theta2arclen(theta.pop, WfdList)
 al.pop        <- result$theta_al 
 arclength     <- result$arclength 
 arclength1001 <- result$arclength1001 

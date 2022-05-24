@@ -1,13 +1,12 @@
 Package: TestGardener
 Type: Package
-Date: 2021-11-04
+Date: 2022-03-09
 Title: Optimal Analysis of Test and Rating Scale Data
-Version: 2.0.0
+Version: 2.0.3
 Author: James Ramsay [aut,cre],
   Juan Li [aut,cre]
 Maintainer: James Ramsay <james.ramsay@mcgill.ca>
-Depends: R (>= 3.5), fda, ggplot2, rgl, knitr, rmarkdown
-Suggests: markdown
+Depends: R (>= 3.5), fda, ggplot2, rgl
 Description: Develop, evaluate, and score multiple choice examinations, 
     psychological scales, questionnaires, and similar types of data involving
     sequences of choices among one or more sets of answers.
@@ -30,6 +29,9 @@ Imports:
   stringr, 
   tidyr,
   pracma,
-  utf8
+  utf8,
+  knitr,
+  rmarkdown
 VignetteBuilder: knitr, rmarkdown
+BuildVignettes: no
 Language: en-US

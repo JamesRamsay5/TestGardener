@@ -12,11 +12,10 @@ The analysis is within the closed interval [0,100].
 }
 \arguments{
   \item{theta}{Initial values for score indices in [0,n]/[0,100]. Vector of size N.}
-  \item{WfdList}{
-  A numbered list object produced by a TestGardener analysis of a test.  Its length
-  is equal to the number of items in the test or questions in the scale.  
-  Each member of \code{WfdList} is a named list containing information computed during the analysis.
-  These named lists contain these objects:
+  \item{WfdList}{A numbered list object produced by a TestGardener analysis of a test.  Its length
+    is equal to the number of items in the test or questions in the scale.  
+     Each member of \code{WfdList} is a named list containing information computed during the analysis.
+    These named lists contain these objects:
     \describe{
       \item{Wfd:}{A functional data object containing the \code{M} surprisal curves
       for a question.}
@@ -29,9 +28,6 @@ The analysis is within the closed interval [0,100].
       surprisal curves over fine mesh.}
       \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
       surprisal curves over fine mesh.}
-      \item{chartList:}{A list vector of length \code{n}.  Each list contains the
-      \code{K} by \code{M-1} matrix of initial values for the surprisal curves for
-      the corresponding item.}
     }
   }
   \item{Umat}{An \code{N} by \code{n} matrix of responses.  If \code{N} = 1, it 
@@ -41,9 +37,9 @@ The analysis is within the closed interval [0,100].
 A named list for results \code{DH} and \code{D2H}:
   \describe{
     \item{DH:}{ First derivatives of the negative log likelihood values, 
-    vector of size N}
+      vector of size N}
     \item{D2H:}{Second derivatives of the negative log likelihood values, 
-    vector of size N}
+      vector of size N}
   }
 }
 \references{
@@ -67,9 +63,9 @@ http://testgardener.azurewebsites.net
 #  Compute the first and second derivative values of the objective function for 
 #  locating each examinee for the 24-item short form of the SweSAT quantitative  
 #  test on thepercentile score index continuum.
-WfdList <- Quant_parList$WfdList
-theta   <- Quant_parList$theta
-U       <- Quant_dataList$U
+WfdList <- Quantshort_parList$WfdList
+theta   <- Quantshort_parList$theta
+U       <- Quantshort_dataList$U
 DHfunResult <- DHfun(theta, WfdList, U)
 DHval  <- DHfunResult$DH
 D2Hval <- DHfunResult$D2H

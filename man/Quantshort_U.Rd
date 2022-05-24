@@ -1,5 +1,5 @@
-\name{Quant_U}
-\alias{Quant_U}
+\name{Quantshort_U}
+\alias{Quantshort_U}
 \docType{data}
 \title{
    Test data for 24 math calculation questions from the SweSAT Quantitative data.
@@ -8,7 +8,7 @@
    These data are for a randomly selected subset of 1000 examinees.
 }
 \usage{
-  Quant_U
+  Quantshort_U
 }
 \format{
   A matrix object with 1000 rows and 24 columns.  The

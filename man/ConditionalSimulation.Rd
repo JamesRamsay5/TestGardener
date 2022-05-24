@@ -19,15 +19,7 @@ ConditionalSimulation(dataList, parList, theta.pop=seq(0,100,len=101), nsample=1
   \item{nsample}{The number of simulated samples.  Defaults to 1000.}
 }
 \value{
-A named list with named members as follows:
-  sumscr  = sumscrsave,
-  theta   = thetasave,
-  mu      = musave,
-  al      = alsave,
-  thepop  = theta.pop,
-  mupop   = mu.pop,
-  alpop   = al.pop,
-  Qvec    = Qvec
+  A named list with named members as follows:
   \describe{
     \item{sumscrsave:}{A 101 by nsample matrix of sum scores.}
     \item{thetasave:}{A 101 by nsample matrix of estimated score index values.}
@@ -52,15 +44,4 @@ http://testgardener.azurewebsites.net
 \seealso{
   \code{\link{scorePerformance}},
   \code{\link{Usimulate}}
-}
-\examples{
-\donttest{
-#  Use of dataSimulations() presumes that make.data() has already been executed
-#  to set up the analysis, Analyze() has been run with the desired number of
-#  iterations and its two objects extracted.
-#  Example 1:  analysis of multiple choice test, 24 items, 1000 examinees
-Quant_simulateResult <- ConditionalSimulation(Quant_dataList, Quant_parList, nsample=10)
-#  Example 2:  analysis of 13-item Symptom Distress Scale with 473 respondents
-SDS_simulateResult <- ConditionalSimulation(SDS_dataList, SDS_parList, nsample=10)
-}
 }

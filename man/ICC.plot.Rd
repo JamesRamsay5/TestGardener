@@ -1,63 +1,57 @@
-\name{Wbinsmth.plot}
-\alias{Wbinsmth.plot}
+\name{ICC.plot}
+\alias{ICC.plot}
 \title{Plot probability and surprisal curves for a selection of test or scale 
        items.}
+\usage{
+  ICC.plot(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P", 
+           plotindex=1:n, plotrange=c(min(scrfine),max(scrfine)), 
+           shaderange = NULL, Wrng=c(0,5), DWrng=c(-0.2, 0.2), 
+           data_point = FALSE, ci = FALSE, 
+           titlestr = NULL, autoplot = FALSE, ttlsz = NULL, 
+           axisttl = NULL, axistxt = NULL, lgdlab = NULL)
+}
 \description{
-Wbinsmth.plots plots each item in argument \code{plotindex} in turn after 
+ICC.plots plots each item in argument \code{plotindex} in turn after 
 function\code{Wbinsmth()} has used spline smoothing to estimate item and 
 option characteristic curves.
 }
-\usage{
-  Wbinsmth.plot(scrfine, plotindex=1:n, 
-                plotrange=c(min(scrfine),max(scrfine)), binctr,  
-                Qvec, dataList,  WfdList, twoplot=TRUE, ptsplot=TRUE, 
-                alltype=TRUE, landscape=FALSE, Wrng=c(0, 5), cnfplot=FALSE, 
-                ttlsz=NULL, axisttl=NULL, axistxt=NULL, lgdlab=NULL)
-}
 \arguments{
-  \item{scrfine}{A vector of 101 score values.  Typically these are either
-    the score index values computed by \code{seq(0,100,len=101)} or the 
-    101 arclength or information values in \code{parList$alfine} for a 
-    plot over the information continuum.}
-  \item{plotindex}{A set of positive integers specifying the items to be
-    plotted.}
-  \item{plotrange}{A vector of length 2 containing the limits over which
-    the plot is defined.  This is useful if only a limited interval is
-    interesting.}
-  \item{binctr}{A vector of bin center values.  If the plot is over
-    arc length or information, \code{binctr} is modified before calling
-    \code{Wbinsth.plot} by the command
-    \code{binctr_al = pracma::interp1(indfine, alfine, binctr)}, and
-    argument \code{binctr} is replaced by \code{binctr_al}.}
-  \item{Qvec}{A vector of five marker percentile values.  For
-    plotting over information, this is replaced by Qvec_al returned
-    as parList$Qvec_al.}
-  \item{WfdList}{
-    A numbered list object produced by a TestGardener analysis of a test.  Its length
-    is equal to the number of items in the test or questions in the scale.  
-    Each member of \code{WfdList} is a named list containing information computed during the analysis.
+  \item{scrfine}{A vector of 101 plotting points.}
+  \item{WfdList}{A numbered list object produced by a TestGardener analysis of 
+    a test.  Its length is equal to the number of items in the test or questions 
+    in the scale.  Each member of \code{WfdList} is a named list containing 
+    information computed during the analysis.
     These named lists contain these objects:
     \describe{
-      \item{Wfd:}{A functional data object containing the \code{M} surprisal curves
-       for a question.}
+      \item{scrfine:}{A vector of length 101 containing plotting points.}
+      \item{Wfd:}{A functional data object containing the \code{M} surprisal 
+        curves for a question.}
       \item{M:}{The number of options.}
       \item{Pbin:}{A matrix containing proportions at each bin.}
       \item{Wbin:}{A matrix containing surprisal values at each bin.}
+      \item{indfine:}{A vector of length 101 with equally spaced score values used
+      	for plotting.}
       \item{Pmatfine:}{A matrix of probabilities over a fine mesh.}
       \item{Wmatfine:}{A matrix of surprisal values over a fine mesh.}
       \item{DWmatfine:}{A matrix of the values of the first derivative of 
-       surprisal curves over fine mesh.}
+        surprisal curves over fine mesh.}
       \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
-       surprisal curves over fine mesh.}
+        surprisal curves over fine mesh.}
+      \item{PStdErr:}{A matrix of the values of the standard error of 
+        probability curves at each bin.}
+      \item{WStdErr:}{A matrix of the values of the standard error of 
+        surprisal curves at each bin.}
     }
   }
   \item{dataList}{A list that contains the objects needed to analyse the test or 
     rating scale with the following fields:
     \describe{
       \item{U:}{A matrix of response data with N rows and n columns where
-        N is the number of examinees or respondents and n is the number of items.
-        Entries in the matrices are the indices of the options chosen.
-        Column i of U is expected to contain only the integers \code{1,...,noption}.}  
+             N is the number of examinees or respondents and
+             n is the number of items.
+             Entries in the matrices are the indices of the options chosen.
+             Column i of U is expected to contain only the integers 
+             \code{1,...,noption}.}  
       \item{optList:}{A list vector containing the numerical score values 
         assigned to the options for this question.}
       \item{key:}{If the data are from a test of the multiple choices type
@@ -85,13 +79,30 @@ option characteristic curves.
         5, 25, 50, 75 and 95.}
     }
   }
-  \item{twoplot}{logical, if true plot both P and W curves.}
-  \item{ptsplot}{logical, if true plot observed proportions.}
-  \item{alltype}{logical, if true, plot right and wrong P curves.}
-  \item{landscape}{logical, if true plots are side by side.}
-  \item{Wrng}{A vector of length 2 specifing the plotting range for 
-        surprisal values.}
-  \item{cnfplot}{logical, if true, plot 95 percent pointwise confdence limits.}
+  \item{Qvec}{A vector of five marker percentile values.  For
+    plotting over information, this is replaced by Qvec_al returned
+    as parList$Qvec_al.}
+  \item{binctr}{A vector of bin center values.  If the plot is over
+    arc length or information, \code{binctr} is modified before calling
+  \code{Wbinsth.plot} by the command
+  \code{binctr_al = pracma::interp1(indfine, alfine, binctr)}, and
+    argument \code{binctr} is replaced by \code{binctr_al}.}
+  \item{plotType}{Type(s) of plot, default as "P" for probability, 
+    can also be "W" for surprisal, 
+    "DW" for sensitivity, and any combination of the three}
+  \item{plotindex}{A vector of indices of items to be plotted.}
+  \item{plotrange}{A vector of length 2 containing the plot boundaries of
+  	 the score index interval.}
+  \item{shaderange}{a list of length 2 vector(s); set if users want to gray 
+    out specific score range(s)}      
+  \item{Wrng}{A vector of length 2 specifing the plotting range for surprisal 
+    values.}
+  \item{DWrng}{A vector of length 2 specifing the plotting range for 
+    sensitivity values.}
+  \item{titlestr}{plot title}
+  \item{autoplot}{in Vignette, plot all items in a batch}
+  \item{data_point}{A logical value indicating whether to plot the data points.}
+  \item{ci}{A logical value indicating whether to plot the confidence limits.}
   \item{ttlsz}{Title font size.}
   \item{axisttl}{Axis title font size.}
   \item{axistxt}{Axis text(tick label) font size.}
@@ -101,8 +112,9 @@ option characteristic curves.
   A list vector is returned which is of the length of argument \code{plotindex}.  
   Each member of the vector is a \code{gg} or \code{ggplot} object for the 
   associated \code{plotindex value}.  Each plot can be displayed using the 
-  \code{print} command. The plots of item power are produced as a side value 
-  even if no output object is specified in the call to the function.
+  \code{print} command.
+  The plots of item power are produced as a side value even if no output object 
+  is specified in the call to the function.
 }
 \references{
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -128,11 +140,8 @@ Qvec     <- Quantshort_parList$Qvec
 binctr   <- Quantshort_parList$binctr
 titlestr <- NULL
 #  plot the curves for the first question
-scrfine = seq(0,100,len=101)
-plotindex <- 1
-plotrange <- c(0,100)
-Wbinsmth.plot(scrfine, plotindex, plotrange, binctr, Qvec, 
-              Quantshort_dataList, WfdList)
+scrfine <- seq(0,100,len=101)
+ICC.plot(scrfine, WfdList, Quantshort_dataList, Qvec, binctr, plotindex=1:2)
 #  Example 2.  Display the item proability and surprisal curves for the 
 # Symptom Distress Scale with 13 items and 473 respondents.
 # Proceed as above changing "Quant" to "SDS"

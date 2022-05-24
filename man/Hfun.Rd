@@ -17,26 +17,23 @@ at a single value theta.
   These named lists contain these objects:
     \describe{
       \item{Wfd:}{A functional data object containing the \code{M} surprisal curves
-      for a question.}
+        for a question.}
       \item{M:}{The number of options.}
       \item{Pbin:}{A matrix containing proportions at each bin.}
       \item{Wbin:}{A matrix containing surprisal values at each bin.}
       \item{Pmatfine:}{A matrix of probabilities over a fine mesh.}
       \item{Wmatfine:}{A matrix of surprisal values over a fine mesh.}
       \item{DWmatfine:}{A matrix of the values of the first derivative of 
-      surprisal curves over fine mesh.}
+        surprisal curves over fine mesh.}
       \item{D2Wmatfine:}{A matrix of the values of the second derivative of 
-      surprisal curves over fine mesh.}
-      \item{chartList:}{A list vector of length \code{n}.  Each list contains the
-      \code{K} by \code{M-1} matrix of initial values for the surprisal curves for
-      the corresponding item.}
+        surprisal curves over fine mesh.}
     }
   }
   \item{Umat}{An \code{N} by \code{n} matrix of responses or, for a single examinee,
-  a vector of length \code{n}.}
+    a vector of length \code{n}.}
 }
 \value{
-  Vector of length \code{N} of negative log likelihood values.
+  A vector of length \code{N} of negative log likelihood values.
 }
 \references{
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -58,9 +55,9 @@ http://testgardener.azurewebsites.net
 #  Example 1:  Compute the values of the objective function for locating each  
 #  examinee or respondent for the 24-item short form of the SweSAT quantitative  
 # test on the percentile score index continuum [0,100].
-WfdList <- Quant_parList$WfdList
-theta   <- Quant_parList$theta
-U       <- Quant_dataList$U
+WfdList <- Quantshort_parList$WfdList
+theta   <- Quantshort_parList$theta
+U       <- Quantshort_dataList$U
 Hval    <- Hfun(theta, WfdList, U)
 print(paste("Mean               of objective function =",round(mean(Hval),2)))
 print(paste("Standard deviation of objective function =",round(sqrt(var(Hval)),2)))

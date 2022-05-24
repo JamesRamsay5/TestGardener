@@ -37,6 +37,5 @@ Hfuns.plot <- function(theta, WfdList, U, plotindex=1) {
     if (nindex > 1)  
       readline(prompt = paste("theta", indexj, ". Press [enter] to continue"))
   }
-  return(plot_list)
 }
 
