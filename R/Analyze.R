@@ -2,8 +2,9 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
   
   # Last modified 9 March 2022 by Jim Ramsay
 
-  parList   <- vector("list",ncycle)  
-  meanHsave <- rep(0,ncycle)
+  parList       <- vector("list",ncycle)  
+  meanHsave     <- rep(0,ncycle)
+  arclengthsave <- rep(0,ncycle)
   
   logdensbasis <- create.bspline.basis(c(0,100), 15)
   
@@ -97,6 +98,7 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
       DWfine[,m1:m2] = WListi$DWmatfine
     }
     arclength = max(pracma::cumtrapz(sqrt(apply(DWfine^2,1,sum))))
+    arclengthsave[icycle] <- arclength
     
     if (verbose)  print(paste('arclength in bits = ',round(arclength,1)))
     
@@ -129,6 +131,6 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     
   }
   
-  return(list(parList=parList, meanHsave=meanHsave))
+  return(list(parList=parList, meanHsave=meanHsave, arclengthsave=arclengthsave))
   
 } 

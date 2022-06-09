@@ -1,16 +1,38 @@
 Wbinsmth.plot <- function(scrfine, plotindex=1:n, 
+                          binctr, Qvec, dataList, WfdList, 
                           plotrange=c(min(scrfine),max(scrfine)), 
-                          binctr, Qvec, dataList, WfdList, twoplot=TRUE, 
-                          ptsplot=TRUE, alltype=TRUE, landscape=FALSE,  
+                          twoplot=TRUE, ptsplot=TRUE, alltype=TRUE, landscape=FALSE,  
                           Wrng=c(0,5), cnfplot=FALSE, ttlsz=NULL, 
                           axisttl=NULL, axistxt=NULL, lgdlab=NULL) {
   
-  # Last modified 18 May 2022 by Jim Ramsay
+  # Last modified 7 June 2022 by Jim Ramsay
   
   n <- length(WfdList)
   if (is.null(plotindex)) plotindex <- 1:n
   
+  #  extract objects from dataList
+  
   optionList <- dataList$optList # Juan Li 2021-02-18
+  key        <- dataList$key # Juan Li 2021-02-18
+  titlestr   <- dataList$titlestr
+  
+  #  extract values to be plotted if plot range is less than
+  #  range of scrfine
+  
+  plotwidth <- plotrange[2] - plotrange[1]
+  nbin       <- dataList$nbin
+  nfine      <- length(dataList$scrfine)
+  if (plotwidth < diff(range(scrfine)))
+  {
+    indexfine <- (1:nfine)[scrfine >= plotrange[1] & scrfine <= plotrange[2]]
+    indexbin  <- (1:nbin )[binctr  >= plotrange[1] & binctr  <= plotrange[2]]
+    indexQvec <- (1:5    )[Qvec    >= plotrange[1] & Qvec    <= plotrange[2]]
+  } else {
+    indexfine <- 1:nfine
+    indexbin  <- 1:nbin
+    indexQvec <- 1:5
+  }
+  
   plot_list  <- list()
   
   for (iplot in plotindex)
@@ -23,8 +45,8 @@ Wbinsmth.plot <- function(scrfine, plotindex=1:n,
     Wbini     <- WListi$Wbin
     Pfitfinei <- WListi$Pmatfine
     Wfitfinei <- WListi$Wmatfine
-    itemStri  <- optionList$itemLab[iplot]  # Juan Li 2021-02-18
-    optStri   <- optionList$optLab[[iplot]] # Juan Li 2021-02-18
+    itemListi  <- optionList$itemLab[iplot]  # Juan Li 2021-02-18
+    optListi   <- optionList$optLab[[iplot]] # Juan Li 2021-02-18
     
     if (is.null(dataList$key))
     {
@@ -34,18 +56,18 @@ Wbinsmth.plot <- function(scrfine, plotindex=1:n,
       keyi <- dataList$key[iplot]
     }
     
-    if (!is.null(itemStri))
+    if (!is.null(itemListi))
     {
-      ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,sep="") 
+      ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemListi,sep="") 
     } else
     {
       ttllab <- paste(dataList$titlestr,': ','Question ', iplot,sep="")
     }
      
     # ----------- Juan Li 2021-02-17 ---------
-    if (!is.null(optStri)) 
+    if (!is.null(optListi)) 
     {
-      optionVec <- optStri
+      optionVec <- optListi
     } else
     {
       optionVec <- NULL
@@ -54,26 +76,36 @@ Wbinsmth.plot <- function(scrfine, plotindex=1:n,
     
     if (!twoplot) {  
      # One-panel plot
-      p <-  plotP(Mi, binctr, scrfine,
-                  Pbini, Pfitfinei, Qvec, keyi, ptsplot, alltype, 
+      p <-  plotP(Mi, binctr[indexbin], scrfine[indexfine],
+                  Pbini[indexbin,], Pfitfinei[indexfine,], Qvec[indexQvec],
+                  keyi, ptsplot, alltype,
                   twoplot, landscape, optVec=optionVec)
+      # p <-  plotW(Mi, binctr[indexbin], scrfine[indexfine],
+      #             Wbini[indexbin,], Wfitfinei[indexfine,], Qvec[indexQvec], 
+      #             keyi, ptsplot, alltype, 
+      #             twoplot, landscape, optVec=optionVec, Wrng)
     } else {  
      # Two-panel plot
-      pp <- plotP(Mi, binctr, scrfine,
-                  Pbini, Pfitfinei, Qvec, keyi, ptsplot, alltype, 
+      # print("entering plotP")
+      pp <- plotP(Mi, binctr[indexbin], scrfine[indexfine],
+                  Pbini[indexbin,], Pfitfinei[indexfine,], Qvec[indexQvec], 
+                  keyi, ptsplot, alltype, 
                   twoplot, landscape, optVec=optionVec)
-      wp <- plotW(Mi, binctr, scrfine,
-                  Wbini, Wfitfinei, Qvec, keyi, ptsplot, alltype, 
+      # print("entering plotW")
+      wp <- plotW(Mi, binctr[indexbin], scrfine[indexfine],
+                  Wbini[indexbin,], Wfitfinei[indexfine,], Qvec[indexQvec], 
+                  keyi, ptsplot, alltype, 
                   twoplot, landscape, optVec=optionVec, Wrng)
 
       if (landscape) # plots are side by side
       {
         p <- ggpubr::ggarrange(pp, wp, ncol = 2, nrow = 1, legend = "right", 
                                common.legend = TRUE)
-      } else
-      {
+      } else {
+        # print("line 104")
         p <- ggpubr::ggarrange(pp, wp, ncol = 1, nrow = 2,  legend = "right", 
                                common.legend = TRUE)
+        # print("line 107")
       }
     }
     
@@ -107,7 +139,7 @@ plotP   <- function(Mi, binctr, scrfine, Pbini, Pfitfinei,
   linesize <- 1
   ptssize  <- 2
   ind      <- 1:Mi 
-  if (is.null(keyi)) indW <- NULL  else indW  <- ind[ind!=keyi] 
+  if (is.null(keyi)) indW <- NULL  else indW  <- ind[ind != keyi] 
   
   # ----------- Juan Li 2021-02-17 ---------
   if (is.null(optVec)) 
@@ -134,7 +166,7 @@ plotP   <- function(Mi, binctr, scrfine, Pbini, Pfitfinei,
     
     # plot the curve of right option
     dffine_r <- data.frame(scrfine=scrfine,
-                           Pfitfinei_r= Pfitfinei[,keyi])
+                           Pfitfinei_r=Pfitfinei[,keyi])
     pp <- ggplot2::ggplot(
       data=dffine_r, ggplot2::aes(scrfine,Pfitfinei[,keyi])) +
       ggplot2::geom_line(ggplot2::aes(lty=optVec[keyi]),
@@ -198,8 +230,7 @@ plotP   <- function(Mi, binctr, scrfine, Pbini, Pfitfinei,
       
       pp <- pp + ggplot2::geom_point(data=dfpts_r, 
                  ggplot2::aes(binctr,Pbini[,keyi]), shape = 21, 
-                          fill = "blue", size = ptssize, 
-        na.rm = TRUE)
+                          fill = "blue", size = ptssize, na.rm = TRUE)
       
       if (alltype) # plot data points of wrong options
       {
@@ -215,7 +246,7 @@ plotP   <- function(Mi, binctr, scrfine, Pbini, Pfitfinei,
                                            shape = 21, size = ptssize, 
                                            na.rm = TRUE) +
           ggplot2::scale_fill_hue(guide = "none")
-          # palette=sggplot2::cales::hue_pal(direction = -1)
+        # palette=sggplot2::cales::hue_pal(direction = -1)
       }
     } else {
       
@@ -242,7 +273,7 @@ plotP   <- function(Mi, binctr, scrfine, Pbini, Pfitfinei,
   # pp <- pp + ggplot2::labs(title = ttllab)
   pp <- pp +
     ggplot2::ylim(0,1) +
-    ggplot2::xlim(0,max(scrfine)) +
+    ggplot2::xlim(min(scrfine),max(scrfine)) +
     ggplot2::xlab("Score Index") +
     ggplot2::ylab("Proportion/Probability")
   
@@ -280,8 +311,8 @@ plotW   <- function(Mi, binctr, scrfine,
   linesize <- 1
   ptssize  <- 2
   ind  <- 1:Mi 
-  if (is.null(keyi)) indW <- NULL
-  else indW  <- ind[ind!=keyi] # indices of wrong options
+  # indices of wrong options
+  if (is.null(keyi)) indW <- NULL else indW  <- ind[ind!=keyi] 
   
   # ----------- Juan Li 2021-02-17 ---------
   if (is.null(optVec)) 
@@ -301,6 +332,7 @@ plotW   <- function(Mi, binctr, scrfine,
     legend.text = ggplot2::element_text(size = default_size2))
   
   # Plot ICC curve(s)
+  # print("line 331")
   if (!is.null(keyi))
   {
     # plot the curve of right option
@@ -317,21 +349,22 @@ plotW   <- function(Mi, binctr, scrfine,
     
     if (alltype)# also plot curves of wrong options
     {
+      # print("line 347")
       dffine_w <- data.frame(scrfine=scrfine,
                              Wfitfinei_w= Wfitfinei[,indW])
       names(dffine_w)[2:ncol(dffine_w)] <- optVec[indW]
       dffine_w <- tidyr::gather(dffine_w, key = "variable", 
                                 value = "value", -scrfine)
-      
+      # print("line 354")
       wp <- wp +
         ggplot2::geom_line(data = dffine_w, 
                            ggplot2::aes(scrfine,value,color=variable), 
                                         size=linesize, na.rm = TRUE) +
         ggplot2::scale_colour_hue(name="Wrong")
+      # print("line 362")
         # palette=scales::hue_pal(direction = -1)
     }
-  } else
-  {
+  } else {
     dffine <- data.frame(scrfine=scrfine, Wfitfinei=Wfitfinei[,ind])
     names(dffine)[2:ncol(dffine)] <- optVec[ind]
     dffine <- tidyr::gather(dffine, key ="variable", 
@@ -354,6 +387,7 @@ plotW   <- function(Mi, binctr, scrfine,
     if (!is.null(keyi))
     {
       # plot data points of right option
+      # print("line 388")
       dfpts_r <- data.frame(binctr=binctr,
                           Wbini_r= Wbini[,keyi])
       
@@ -363,14 +397,15 @@ plotW   <- function(Mi, binctr, scrfine,
                                      shape = 21, fill = "blue", 
                                      size = ptssize, na.rm = TRUE)
       
-      if (alltype)# plot right and wrong P curves
+      if (alltype) # plot right and wrong P curves
       {
+        # print("line 400")
         dfpts_w <- data.frame(binctr=binctr,
                               Wbini_w= Wbini[,indW]) 
         names(dfpts_w)[2:ncol(dfpts_w)]<- optVec[indW]
         dfpts_w <-   tidyr::gather(dfpts_w, key = "variable", 
                                    value = "value", -binctr)
-        
+        # print("line 406")
         wp <- wp +
           ggplot2::geom_point(data=dfpts_w, 
                               ggplot2::aes(binctr,value,fill=variable), 
@@ -378,9 +413,9 @@ plotW   <- function(Mi, binctr, scrfine,
                                            na.rm = TRUE) +
           ggplot2::scale_fill_hue(guide = "none")
           # palette=scales::hue_pal(direction = -1)
+        # print("line 414")
       }
-    } else
-    {
+    } else {
       dfpts <- data.frame(binctr=binctr,
                           Wbini= Wbini[,ind])
       names(dfpts)[2:ncol(dfpts)]<- optVec[ind]
@@ -403,13 +438,13 @@ plotW   <- function(Mi, binctr, scrfine,
   }
   
   ystr <- paste("Surprisal (",Mi,"-bits)",sep="")
-  
+  # print("line 439")
   wp <- wp +
     ggplot2::xlim(min(scrfine),max(scrfine)) +
     ggplot2::xlab("Score index") +
     ggplot2::ylab(ystr)+
     ggplot2::theme(axis.title=ggplot2::element_text(size=12,face="bold"))
-  
+  # print("line 445")
   if (twoplot)
   {
     if (landscape)
@@ -419,6 +454,7 @@ plotW   <- function(Mi, binctr, scrfine,
     }
   }
   # remove legend title
+  # print("line 455")
   wp <- wp + ggplot2::theme(legend.title=ggplot2::element_blank()) 
   wp <- wp + My_Theme
   return(wp)

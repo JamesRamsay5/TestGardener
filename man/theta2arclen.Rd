@@ -1,7 +1,7 @@
 \name{theta2arclen}
 \alias{theta2arclen}
 \title{
-  Compute arc length and positions along the test information or scale curve
+  Compute results using arc length or information as the abscissa.
 }
 \description{The one-dimensional psychometric model defines a space curve within the vector space
   defined by the total collection of option surprisal curves.  This curve is a valuable
@@ -16,7 +16,7 @@
   of the score index \code{theta}, and is also a metric, it is an ideal 
   choice for the abscissa in all plots.}
 \usage{
-   theta2arclen(theta, Qvec, WfdList, itemindex=1:n, plotrng=c(0,100))
+   theta2arclen(theta, Qvec, WfdList, binctr, itemindex=1:n, plotrng=c(0,100))
 }
 \arguments{
   \item{theta}{A vector of score index, test score, or arc length values, one for
@@ -41,21 +41,26 @@
         surprisal curves over fine mesh.}
     }
   }
+  \item{binctr}{A vector of locations of the bin centers.}
   \item{itemindex}{A vector containing the indices of the items to be used.}
   \item{plotrng}{A vector of length 2 containing the starting score index
     and end score index values of the range to be plotted.}
 }
 \value{A named list object containing these results of the analysis:
   \describe{
+    \item{arclength}{The length of the test information or scale curve.}
+    \item{arclengthvec}{Positions on the test information or scale curve corresponding to a
+      fine mesh of score index values (typically 101 values between 0 and 100).} 
+    \item{arclengthfd}{Functional data object representing the relation between
+      the score index abscissa and the arclength or information ordinate.}
     \item{theta_al}{A vector of positions on the test information or scale curve corresponding
       to the input score index values in argument \code{theta}.} 
-    \item{arclength}{The length of the test information or scale curve.}
-    \item{arclengthfine}{Positions on the test information or scale curve corresponding to a
-      fine mesh of score index values (typically 101 values between 0 and 100).} 
-    \item{Qvec_al}{Values in arc length of five marker percentages.}
-    \item{Wdim}{The dimension of the overspace, which equal to sum of the number of 
+    \item{Qvec_al}{Values in arc length of the five marker percentages.}
+    \item{binctr_al}{Values in arc length of the bin centers.}
+    \item{Wfd.info}{A functional data object representing the relation between
+      the arclength or information abscissa and the score index ordinate.}
+    \item{Wdim.index}{The dimension of the overspace, which equal to sum of the number of 
       options in the items specified in \code{itemindex}.}
-    \item{nindex}{The number of items in \code{itemindex}.}
   }
 }
 \references{
@@ -78,7 +83,8 @@ indfine       <- seq(0,100,len=101)
 WfdList       <- Quantshort_parList$WfdList
 theta         <- Quantshort_parList$theta
 Qvec          <- Quantshort_parList$Qvec
-arclenList    <- theta2arclen(theta, Qvec, WfdList)
+binctr        <- Quantshort_parList$binctr
+arclenList    <- theta2arclen(theta, Qvec, WfdList, binctr)
 names(arclenList)
 ArcLength.plot(arclenList$arclength, arclenList$arclengthvec)
 #  Example 2.  Display the arc length curve for the 

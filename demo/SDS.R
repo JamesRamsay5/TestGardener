@@ -151,6 +151,8 @@ arclengthvec  <- SDS_infoList$arclengthvec
 theta_al      <- SDS_infoList$theta_al
 #  The arc length values for the five marker percentages
 Qvec_al       <- SDS_infoList$Qvec_al
+#  The arc length values for the bin centers
+binctr_al     <- SDS_infoList$binctr_al
 #  The log derivative fd object for calculating theta values from 
 #  arclength values
 Wfd_info      <- SDS_infoList$Wfd_info
@@ -167,23 +169,15 @@ Wdim          <- SDS_infoList$Wdim
 
 #  plot both the probability and surprisal curves along with data points
 
-#  plot both the probability and surprisal curves along with data points
-
 #  over score index theta
 
 indfine   <- seq(0,100,len=101)
-plotindex <- 1:n
-plotrange <- c(0,100)
-
-Wbinsmth.plot(indfine, plotindex, plotrange, binctr, Qvec, SDS_dataList, WfdList, 
-              Wrng=c(0,2.5))
+ICC.plot(indfine, WfdList, SDS_dataList, Qvec, binctr,  Wrng=c(0,2.5))
 
 #  over arclength or information
 
-binctr_al <- pracma::interp1(indfine, as.numeric(arclengthvec), binctr)
-Wbinsmth.plot(arclengthvec, plotindex, plotrange=c(0,arclength), binctr_al, 
-              Qvec_al, Quant_dataList, WfdList, Wrng=c(0,2.5))
-ICC.plot(arclengthvec, WfdList, SDS_dataList, Qvec_al, binctr_al,  Wrng=c(0,2.5))
+ICC.plot(arclengthvec, WfdList, SDS_dataList, Qvec_al, binctr_al,  
+         Wrng=c(0,2.5))
 
 #  ----------------------------------------------------------------------------
 #                         Plot density of theta
@@ -274,12 +268,13 @@ Result <- Wpca.plot(arclength, WfdList, SDS_dataList$Wdim, 3, dodge = 1.005,
 
 #  over score index theta
 
-Sensitivity.plot(indfine, WfdList, Qvec, SDS_dataList, titlestr=titlestr, plotindex=1:n)
+Sensitivity.plot(indfine, WfdList, Qvec, SDS_dataList, 
+                 titlestr=titlestr, plotindex=1:n)
 
 #  over arclength or information
 
-Sensitivity.plot(arclengthvec, WfdList, Qvec_al, 
-                 SDS_dataList, titlestr=titlestr, plotindex=1:n, plotrange=c(0,arclength))
+Sensitivity.plot(arclengthvec, WfdList, Qvec_al, SDS_dataList, 
+                 titlestr=titlestr, plotindex=1:n, plotrange=c(0,arclength))
 
 #  ----------------------------------------------------------------------------
 #                          Display power curves

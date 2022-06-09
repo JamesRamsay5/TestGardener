@@ -56,8 +56,7 @@ Sensitivity.plot <- function(scrfine, WfdList, Qvec, dataList, plotindex=1:n,
     
     plot_list[[i]] <- p
     print(p)
-    if (length(plotindex) > 1)
-    {
+    if (length(plotindex) > 1) {
       n1<-readline(prompt=
                      paste("Press [N/n/enter] to next item;",
                            "[P/p] to previous item; or item index to that item: "))

@@ -13,7 +13,7 @@
   command.
 }
 \usage{
-  scoreDensity(scrvec, scrrng, ndensbasis=15, ttlstr=NULL, pltmax=0)
+  scoreDensity(scrvec, scrrng=c(0,100), ndensbasis=15, ttlstr=NULL, pltmax=0)
 }
 \arguments{
   \item{scrvec}{A vector of strictly increasing bin boundary values, with the 
@@ -21,7 +21,7 @@
     The number of bins in the histogram is one less than the number of bndry 
     values.}
   \item{scrrng}{A vector of length 2 containing lower and upper boundaries on 
-    scores.}
+    scores, which defaults to c(0,100).}
   \item{ndensbasis}{The number of spline basis functions to be used to 
     represent the smooth density curve.}
   \item{ttlstr}{A string object used as a title for the plot.  
@@ -56,23 +56,6 @@ WfdList <- Quantshort_parList$WfdList
 theta   <- Quantshort_parList$theta
 Qvec    <- Quantshort_parList$Qvec
 #  plot the density for the score indices within interval c(0,100)
-theta.scrrng <- c(0,100)
 theta_int <- theta[0 < theta & theta < 100]
-scoreDensity(theta_int, theta.scrrng)
-#  plot the density for the sum score
-sumscr <- Quantshort_dataList$scrvec
-scoreDensity(sumscr, c(0,24), ttlstr="Sum score")
-#  plot the density for the expected score
-mu <- testscore(theta, WfdList, Quantshort_dataList$optList)
-mu.scrrng <- c(0,24)
-scoreDensity(mu, mu.scrrng, ttlstr="Expected sum score")
-#  plot the density for the arclength score
-ArclenResult  <- theta2arclen(theta, Qvec, WfdList)
-theta_al      <- ArclenResult$theta_al
-Qvec_al       <- ArclenResult$Qvec_al
-arclen.scrrng <- c(0,ArclenResult$arclength)
-scoreDensity(theta_al, arclen.scrrng, ttlstr="Arc length score")
-#  Example 2.  Display probbility density curves for the 
-# Symptom Distress Scale with 13 items and 473 respondents.
-# Proceed as above changing "Quant" to "SDS"
+scoreDensity(theta_int)
 }

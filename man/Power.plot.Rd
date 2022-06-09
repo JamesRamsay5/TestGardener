@@ -74,7 +74,7 @@ http://testgardener.azurewebsites.net
   \code{\link{Sensitivity.plot}},
   \code{\link{Entropy.plot}},
   \code{\link{Hfuns.plot}},
-  \code{\link{Wbinsmth.plot}}
+  \code{\link{ICC.plot}}
 }
 \examples{
 #  Example 1.  Display the item power curves for the 

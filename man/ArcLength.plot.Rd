@@ -1,7 +1,7 @@
 \name{ArcLength.plot}
 \alias{ArcLength.plot}
 \title{
-Plot arc length as a function of score index \code{theta}.
+Plot the score index \code{theta} as a function of arc length.
 }
 \description{Arc length is the distance along the space curved traced out as score index 
   \code{theta} increases from 0 to 100.  It is measured in bits and is remains 
@@ -42,7 +42,8 @@ indfine       <- seq(0,100,len=101)
 WfdList       <- Quantshort_parList$WfdList
 theta         <- Quantshort_parList$theta
 Qvec          <- Quantshort_parList$Qvec
-arclenList    <- theta2arclen(theta, Qvec, WfdList)
+binctr        <- Quantshort_parList$binctrc
+arclenList    <- theta2arclen(theta, Qvec, WfdList, binctr)
 names(arclenList)
 arclength    <- arclenList$arclength
 arclengthvec <- arclenList$arclengthvec
@@ -53,7 +54,8 @@ indfine       <- seq(0,100,len=101)
 WfdList       <- SDS_parList$WfdList
 theta         <- SDS_parList$theta
 Qvec          <- SDS_parList$Qvec
-arclenList    <- theta2arclen(theta, Qvec, WfdList)
+binctr        <- SDS_parList$binctr
+arclenList    <- theta2arclen(theta, Qvec, WfdList, binctr)
 arclength    <- arclenList$arclength
 arclengthvec <- arclenList$arclengthvec
 ArcLength.plot(arclength, arclengthvec)

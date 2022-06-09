@@ -127,7 +127,7 @@
         \link{theta2arclen},
         \link{thetafun},
         \link{Wbinsmth},
-        \link{Wbinsmth.plot},
+        \link{ICC.plot},
         \link{Wpca.plot}
   }
 }

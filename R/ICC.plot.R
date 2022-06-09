@@ -5,7 +5,7 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
                      titlestr = NULL, autoplot = FALSE,
                      ttlsz = NULL, axisttl = NULL, axistxt = NULL, lgdlab = NULL)
 {
-  # Last modified May 20 2022 by Jim Ramsay
+  # Last modified June 8 2022 by Jim Ramsay
   
   # scrfine    Vector of length 101 containing plotting points
   # WfdList    List of Wbinsmth results
@@ -36,8 +36,8 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
   n <- length(WfdList)
   
   optionList <- dataList$optList 
-
-  Qveci <- Qvec[Qvec >= plotrange[1] & Qvec <= plotrange[2]]
+  
+  #  set up background shading value shaderangeV
   
   if (!is.null(shaderange))
   {
@@ -52,10 +52,10 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
           shadeValid[ishade] <- FALSE
         } else if (rng[1] < plotrange[1])
         {
-          shaderange[[ishade]][1] = plotrange[1]
+          shaderange[[ishade]][1] <- plotrange[1]
         } else if (rng[2] > plotrange[2])
         {
-          shaderange[[ishade]][2] = plotrange[2]
+          shaderange[[ishade]][2] <- plotrange[2]
         }
       }
       
@@ -67,50 +67,59 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
     shaderangeV <- NULL
   }
   
-  if (autoplot) 
-  {
+  #   Invoke plotCore that actually controls the plotting
+  
+  if (autoplot) {
+    #  In Vignette, plot all items in a batch
     for (iplot in plotindex)
     {
       p <- plotCore(iplot, WfdList, optionList, dataList,
                     scrfine, titlestr, plotType,
-                    plotrange, shaderangeV, binctr, 
-                    Wrng, DWrng, Qveci, data_point, ci)    
+                    plotrange, plotindex, shaderangeV, binctr, 
+                    Wrng, DWrng, Qvec, data_point, ci)    
       print(p)
     }
-  } else
-  {
-    iplot <- plotindex[1]
-    while (iplot >= plotindex[1] & iplot <= plotindex[length(plotindex)])
-    {
+  } else {
+    #  Usual case of user control of plotting
+    nplot <- length(plotindex)
+    jplot <- 1
+    iplot <- plotindex[jplot]
+    #  set up  
+    while (jplot >= 1 & jplot <= nplot) {
       p <- plotCore(iplot, WfdList, optionList, dataList,
                     scrfine, titlestr, plotType,
-                    plotrange, shaderangeV, binctr, 
-                    Wrng, DWrng, Qveci, data_point, ci)    
+                    plotrange, plotindex, shaderangeV, binctr, 
+                    Wrng, DWrng, Qvec, data_point, ci)    
       print(p)
       
-      if (length(plotindex) > 1)
-      {
-        n1<-readline(prompt="Press [N/n/enter] to next item; [P/p] to previous item; or item index to that item: ")
-        if (n1 == "N" | n1 == "n" | n1 == "")
+      #  request next plot
+      
+      if (length(plotindex) > 1) {
+        n1 <- readline(prompt=
+                         paste("Press [N/n/enter] to next item;", 
+                               "[P/p] to previous item;", 
+                               "or position in plotindex: "))
+         if (n1 == "N" | n1 == "n" | n1 == "")
         {
-          iplot = iplot + 1
-        } else if (n1 == "P" | n1 == "p")
-        {
-          iplot = iplot - 1
-        } else
-        {
+          jplot <- jplot + 1
+          iplot <- plotindex[jplot]
+        } else if (n1 == "P" | n1 == "p") {
+          jplot <- jplot - 1
+          iplot <- plotindex[jplot]
+        } else {
           n1 <- suppressWarnings(as.integer(n1))
-          if (!is.na(n1) & (n1 >= plotindex[1] & n1 <= plotindex[length(plotindex)]))
-          {
-            iplot <- n1
-          } else
-          {
+          if (!is.na(n1) & (n1 >= 1 & n1 <= nplot)){
+            jplot <- n1
+            iplot <- plotindex[jplot]
+          } else {
             break
           }
         }
+      } else {
+        break
       }
-      gc() # to  free up memory from the previous run
-    } # end iplot
+      gc() # to  free up memory from the previous run    } # end iplot
+    }
   }
 }
 
@@ -118,21 +127,39 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
 
 plotCore   <- function(iplot, WfdList, optionList, dataList,
                        scrfine, titlestr, plotType,
-                       plotrange, shaderangeV, binctr, 
+                       plotrange, plotindex, shaderangeV, binctr, 
                        Wrng, DWrng, Qvec, data_point, ci)
 {
+  
   WListi    <- WfdList[[iplot]]
   itemStri  <- optionList$itemLab[iplot]  # Juan Li 2021-02-18
   optStri   <- optionList$optLab[[iplot]] # Juan Li 2021-02-18
   
-  Wfdi      <- WListi$Wfd
-  Mi        <- WListi$M # 2020-12-14
-  logMi     <- log(Mi)
-  Pbini     <- WListi$Pbin
-  Wbini     <- WListi$Wbin
-  Wfitfinei <- eval.surp(scrfine, Wfdi)
-  DWfitfinei <- eval.surp(scrfine, Wfdi, 1)
-  Pfitfinei <- exp(-Wfitfinei*logMi)
+  Wfdi       <- WListi$Wfd
+  Mi         <- WListi$M
+  logMi      <- log(Mi)
+  Pbini      <- WListi$Pbin
+  Wbini      <- WListi$Wbin
+  Wfitfinei  <- WListi$Wmatfine
+  DWfitfinei <- WListi$DWmatfine
+  Pfitfinei  <- WListi$Pmatfine
+  
+  #  define indices of  values to be plotted if plot range is less than
+  #  range of scrfine
+  
+  plotwidth <- plotrange[2] - plotrange[1]
+  nbin      <- dataList$nbin
+  nfine     <- length(dataList$scrfine)
+  if (plotwidth < diff(range(scrfine)))
+  {
+    indexfine <- (1:nfine)[scrfine >= plotrange[1] & scrfine <= plotrange[2]]
+    indexbin  <- (1:nbin )[binctr  >= plotrange[1] & binctr  <= plotrange[2]]
+    indexQvec <- (1:5    )[Qvec    >= plotrange[1] & Qvec    <= plotrange[2]]
+  } else {
+    indexfine <- 1:nfine
+    indexbin  <- 1:nbin
+    indexQvec <- 1:5
+  }
   
   if (ci) # plot confidence interval
   {
@@ -144,27 +171,27 @@ plotCore   <- function(iplot, WfdList, optionList, dataList,
     WStdErr    <- NULL
   }
   
+  #  define key value
+  
   if (is.null(dataList$key))
   {
     keyi <- NULL
-  } else
-  {
+  } else {
     keyi <- dataList$key[iplot]
   }
   
-  if (!is.null(itemStri))
-  {
-    ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,sep="") 
-  } else
-  {
-    if (!is.null(titlestr))
-    {
+  #  build title
+  
+  if (!is.null(itemStri)) {
+    ttllab <- paste(dataList$titlestr,' ', iplot,': ',itemStri,sep="") 
+  } else {
+    if (!is.null(titlestr)) {
       ttllab <- paste(titlestr,': ','Question ', iplot,sep="")
-    } else
-    {
+    } else {
       ttllab <- paste(dataList$titlestr,': ','Question ', iplot,sep="")
     }
   }
+  
   
   # ----------- Juan Li 2021-02-17 ---------
   if (!is.null(optStri)) 
@@ -175,48 +202,58 @@ plotCore   <- function(iplot, WfdList, optionList, dataList,
     optionVec <- NULL
   }
   # -----------------------------------------
+  
+  #  produce  a plot for each letter within the set ("P", "W", "S") in plotType
+  
   nplot  <- length(plotType)
   pList <- list()
   for (itype in 1:nplot)
   {
     if (plotType[itype] == "P") # probability
     {
-      pList[[itype]] <- plotICC(Mi, scrfine, Pbini, Pfitfinei, 
-                                Qvec, binctr, c(0,1), 0.5, "Proportion/Probability",
+      pList[[itype]] <- plotICC(Mi, scrfine[indexfine], Pbini[indexbin,], 
+                                Pfitfinei[indexfine,], Qvec[indexQvec], 
+                                binctr[indexbin], c(0,1), 0.5, 
+                                "Proportion/Probability",
                                 plotrange, shaderangeV, data_point, ci, 
                                 PStdErr, keyi, optVec=optionVec)
     } else if (plotType[itype] == "W") # surprisal
     {
       ystr <- paste("Surprisal (",Mi,"-bits)",sep="")
-      pList[[itype]] <- plotICC(Mi, scrfine, Wbini, Wfitfinei, 
-                                Qvec, binctr, Wrng, 0, ystr, 
+      pList[[itype]] <- plotICC(Mi, scrfine[indexfine], Wbini[indexbin,], 
+                                Wfitfinei[indexfine,], Qvec[indexQvec], 
+                                binctr[indexbin], Wrng, 0, 
+                                "Surprisal/Information (M-bits)", 
                                 plotrange, shaderangeV, data_point, ci,
                                 WStdErr, keyi, optVec=optionVec)
     } else if (plotType[itype] == "DW") # sensitivity
     {
-      pList[[itype]] <- plotICC(Mi, scrfine, NULL, DWfitfinei, 
-                                Qvec, binctr, DWrng, 0, "Sensitivity", 
+      pList[[itype]] <- plotICC(Mi, scrfine[indexfine], NULL, 
+                                DWfitfinei[indexfine,], Qvec[indexQvec], 
+                                binctr[indexbin], DWrng, 0, "Sensitivity", 
                                 plotrange, shaderangeV, data_point, ci,
                                 NULL, keyi, optVec=optionVec)
     } else
       stop("Can't recognize the plot type.")
   }
   
-  p <- ggpubr::ggarrange(plotlist = pList, ncol = 1, common.legend = TRUE,legend="bottom")
-  p <- ggpubr::annotate_figure(p, top = ggpubr::text_grob(ttllab,face = "bold", size = 16))
+  p <- ggpubr::ggarrange(plotlist = pList, ncol = 1, common.legend = TRUE,
+                         legend="bottom")
+  p <- ggpubr::annotate_figure(p, top = 
+              ggpubr::text_grob(ttllab,face = "bold", size = 16))
   
   return(p)
 }
 #  ----------------------------------------------------------------------------
 
 plotICC   <- function(Mi, scrfine, bin1, fitfinei, 
-                      Qvec, binctr, range, intercept, ylabel, 
+                      Qvec, binctr, yrange, intercept, ylabel, 
                       plotrange, shaderange, data_point, ci,
                       StdErr=NULL, keyi=NULL, 
                       ttllab=NULL, optVec=NULL,
-                      ttlsz = NULL, axisttl = NULL, axistxt = NULL, lgdlab = NULL)
+                      ttlsz = NULL, axisttl = NULL, axistxt = NULL, 
+                      lgdlab = NULL)
 {
-  # Last modified 19 January 2022 by Juan Li
   value    <- 0
   variable <- 0
   nbin <- length(binctr)
@@ -236,7 +273,7 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
   default_size =16
   default_size1=12
   default_size2=10
-  My_Theme = ggplot2::theme(
+  My_Theme <- ggplot2::theme(
     plot.title  = ggplot2::element_text(size = ifelse(is.null(ttlsz),  default_size,ttlsz)),
     axis.title  = ggplot2::element_text(size = ifelse(is.null(axisttl),default_size1,axisttl)),
     axis.text   = ggplot2::element_text(size = ifelse(is.null(axistxt),default_size2,axistxt)),
@@ -253,7 +290,6 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
     #       Plot probability curve(s) for multiple choice test items
     #  ---------------------------------------------------------------------
     
-    # plot the curve of right option
     dffine_r <- data.frame(scrfine=scrfine,
                            fitfinei_r= fitfinei[,keyi])
     pp <- ggplot2::ggplot(
@@ -304,16 +340,14 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
       #  ---------------------------------------------------------------------
       
       # plot data points of right option
-      dfpts_r <- data.frame(binctr=binctr,
-                            bin1_r= bin1[,keyi])
+      dfpts_r <- data.frame(binctr=binctr, bin1_r=bin1[,keyi])
       
       pp <- pp + ggplot2::geom_point(
-        data=dfpts_r, ggplot2::aes(binctr,bin1[,keyi]), shape = 21, fill = "blue", size = ptssize, 
+        data=dfpts_r, ggplot2::aes(binctr, bin1[,keyi]), shape = 21, fill = "blue", size = ptssize, 
         na.rm = TRUE)
       
       # plot data points of wrong options
-      dfpts_w <- data.frame(binctr=binctr,
-                            bin1_w= bin1[,indW]) 
+      dfpts_w <- data.frame(binctr=binctr, bin1_w= bin1[,indW]) 
       names(dfpts_w)[2:ncol(dfpts_w)]<- optVec[indW]
       dfpts_w <-   tidyr::gather(dfpts_w, key = "variable", value = "value", -binctr)
       
@@ -359,7 +393,8 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
                          ymin_r = binfit[,keyi]-2*StdErr[,keyi],
                          ymax_r = binfit[,keyi]+2*StdErr[,keyi])
       
-      pp <- pp + ggplot2::geom_ribbon(data = ci_r, ggplot2::aes(ymin = ymin_r, ymax = ymax_r, x = binctr), 
+      pp <- pp + ggplot2::geom_ribbon(data = ci_r, 
+                            ggplot2::aes(ymin = ymin_r, ymax = ymax_r, x = binctr), 
                                     inherit.aes = FALSE, fill = "blue", alpha = 0.5)
       
       # ci of wrong options
@@ -399,8 +434,9 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
       ci    <- cimin %>% dplyr::left_join(cimax, by = c("binctr", "variable"))
       
       pp <- pp +
-        ggplot2::geom_ribbon(data=ci, ggplot2::aes(ymin = ymin, ymax = ymax, x = binctr, fill=variable), 
-                             inherit.aes = FALSE, alpha = 0.5)+
+        ggplot2::geom_ribbon(data=ci, ggplot2::aes(ymin = ymin, ymax = ymax, 
+                            x = binctr, fill=variable), 
+                             inherit.aes = FALSE, alpha = 0.5) +
         ggplot2::scale_fill_hue(guide = "none") #,palette=scales::hue_pal(direction = -1)
     }
   }
@@ -410,14 +446,15 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
     rectAlpha <- 0.9
     for (ishade in 1:length(shaderange))
     {
-      pp <- pp + ggplot2::annotate("rect", xmin=shaderange[[ishade]][1], xmax=shaderange[[ishade]][2], 
-                                   ymin=range[1], ymax=range[2],
+      pp <- pp + ggplot2::annotate("rect", xmin=shaderange[[ishade]][1], 
+                                   xmax=shaderange[[ishade]][2], 
+                                   ymin=yrange[1], ymax=yrange[2],
                                    alpha = rectAlpha)
     }
   }
   
   pp <- pp +
-    ggplot2::ylim(range[1], range[2]) +
+    ggplot2::ylim(yrange[1], yrange[2]) +
     ggplot2::xlim(plotrange[1], plotrange[2]) +
     ggplot2::xlab("Score Index") +
     ggplot2::ylab(ylabel)

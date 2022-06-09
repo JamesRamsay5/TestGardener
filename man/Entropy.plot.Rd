@@ -79,7 +79,7 @@ http://testgardener.azurewebsites.net
   \code{\link{Sensitivity.plot}},
   \code{\link{Power.plot}},
   \code{\link{Hfuns.plot}},
-  \code{\link{Wbinsmth.plot}}
+  \code{\link{ICC.plot}}
 }
 \examples{
 #  Example 1.  Display the item entropy curves for the 

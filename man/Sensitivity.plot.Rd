@@ -104,7 +104,7 @@ http://testgardener.azurewebsites.net
 \seealso{
   \code{\link{Power.plot}},
   \code{\link{Entropy.plot}},
-  \code{\link{Wbinsmth.plot}}
+  \code{\link{ICC.plot}}
 }
 \examples{
 #  Example 1.  Display the option sensitivity curves for the 
@@ -112,6 +112,8 @@ http://testgardener.azurewebsites.net
 WfdList <- Quantshort_parList$WfdList
 Qvec    <- Quantshort_parList$Qvec
 scrfine <- seq(0,100,len=101)
+Sensitivity.plot(scrfine, WfdList, Qvec, Quantshort_dataList, 
+                 plotindex=1)
 #  Example 2.  Display the option sensitivity curves for the 
 #  Symptom Distress Scale with 13 items and 473 respondents
 #  Proceed as above changing "Quant" to "SDS".

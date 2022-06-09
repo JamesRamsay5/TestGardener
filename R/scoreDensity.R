@@ -1,11 +1,12 @@
-scoreDensity <- function(scrvec, scrrng, ndensbasis=15, ttlstr=NULL, pltmax=0) {
+scoreDensity <- function(scrvec, scrrng=c(0,100), ndensbasis=15, 
+                         ttlstr=NULL, pltmax=0) {
 
 # Last modified 10 February 2022 by Jim Ramsay
 
   #  define a fine mesh of score values for plotting
   
   nfine   <- 101
-  scrfine <- seq(scrrng[1],scrrng[2],length.out=nfine)
+  scrfine <- seq(0,100,len=101)
   
   #  set up the bspline basis object
   
@@ -21,14 +22,17 @@ scoreDensity <- function(scrvec, scrrng, ndensbasis=15, ttlstr=NULL, pltmax=0) {
   densfine     <- exp(logdensvec)/tdList$C
   pvec         <- c(0.05,0.25,0.50,0.75,0.95)
   denscdfi     <- unique(denscdf)
-  scrfinei     <- seq(scrrng[1],scrrng[2],length.out=length(denscdfi))
-  Qvec         <- pracma::interp1(as.numeric(denscdfi), as.numeric(scrfinei), as.numeric(pvec))
+  scrfinei     <- seq(0,100,length.out=length(denscdfi))
+  Qvec         <- pracma::interp1(as.numeric(denscdfi), 
+                                  as.numeric(scrfinei), as.numeric(pvec))
   
   #  plot using thetaPlot below
   
-  dens.plot  <- thetadensity.plot(scrvec, scrrng, scrfine, densfine, Qvec, 
+  dens.plot <- thetadensity.plot(scrvec, scrrng, scrfine, densfine, Qvec, 
                                   ttlstr, TRUE, pltmax)
-
+  
+  print(dens.plot)
+  
   return(dens.plot)
 }
 

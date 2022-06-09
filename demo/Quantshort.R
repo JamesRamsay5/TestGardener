@@ -111,7 +111,7 @@ ncycle=10
 #  ----------------------------------------------------------------------------
 
 AnalyzeResult <- Analyze(theta, thetaQnt, Quantshort_dataList, ncycle, 
-                         itdisp=TRUE, verbose=TRUE) 
+                         itdisp=FALSE, verbose=FALSE) 
 
 parList  <- AnalyzeResult$parList
 meanHvec <- AnalyzeResult$meanHsave
@@ -146,7 +146,7 @@ theta      <- Quantshort_parList$theta
 # A variety of useful objects related to the test info manifold
 # are computed and returned in a struct object infoStr
 
-Quantshort_infoList <- theta2arclen(theta, Qvec, WfdList)
+Quantshort_infoList <- theta2arclen(theta, Qvec, WfdList, binctr)
 
 save(Quantshort_infoList, file="data/Quantshort_infoList.rda")  # 20 May 2022
 load(file="data/QuantShort_infoList.rda")
@@ -164,6 +164,8 @@ arclengthvec  <- Quantshort_infoList$arclengthvec
 theta_al      <- Quantshort_infoList$theta_al
 #  The arc length values for the five marker percentages
 Qvec_al       <- Quantshort_infoList$Qvec_al
+#  The arc length values for the five marker percentages
+binctr_al       <- Quantshort_infoList$binctr_al
 #  The log derivative fd object for calculating theta values from 
 #  arclength values
 Wfd_info      <- Quantshort_infoList$Wfd_info
@@ -187,15 +189,10 @@ plotindex <- 1:n
 plotrange <- c(0,100)
 
 #  over score index theta
-Wbinsmth.plot(indfine, plotindex, plotrange, binctr, Qvec, Quantshort_dataList, 
-              WfdList, Wrng=c(0,2.5))
 ICC.plot(indfine, WfdList, Quantshort_dataList, Qvec, binctr,  Wrng=c(0,5))
 
 #  over arclength or information
-binctr_al <- pracma::interp1(indfine, as.numeric(arclengthvec), binctr)
-Wbinsmth.plot(arclengthvec, plotindex, plotrange=c(0,arclength), binctr_al, 
-              Qvec_al, Quantshort_dataList, WfdList, Wrng=c(0,2.5))
-ICC.plot(arclengthvec, WfdList, Quantshort_dataList, Qvec_al, binctr,  Wrng=c(0,2.5))
+ICC.plot(arclengthvec, WfdList, Quantshort_dataList, Qvec_al, binctr_al,  Wrng=c(0,2.5))
 
 #  ----------------------------------------------------------------------------
 #                         Plot density of theta
@@ -262,13 +259,13 @@ hist(theta_al,51)
 
 density_plot(theta_al, c(0,arclength), Qvec_al, xlabstr="Arclength", 
              titlestr="SweSAT 13B Info Density",  
-                         scrnbasis=15, nfine=101)
+             scrnbasis=15, nfine=101)
 #  ----------------------------------------------------------------------------
 #  Display test effort curve projected into its first two principal components
 #  ----------------------------------------------------------------------------
 
 # nharm=2
-Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim, titlestr=titlestr)
+Result <- Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim, titlestr=titlestr)
 
 # nharm=3
 Result <- Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim, 3, dodge = 1.005, 
@@ -281,19 +278,19 @@ Result <- Wpca.plot(arclength, WfdList, Quantshort_dataList$Wdim, 3, dodge = 1.0
 #  This code needs to put in a legend and indication of right answer if 
 #  scoring is multiple choice
 
-Sensitivity.plot(WfdList, Qvec, Quantshort_dataList)
+Sensitivity.plot(arclengthvec, WfdList, Qvec_al, Quantshort_dataList)
   
 #  ----------------------------------------------------------------------------
 #                          Display power curves
 #  ----------------------------------------------------------------------------
 
-Power.plot(WfdList, Qvec, Quantshort_dataList, height=0.25)
+Power.plot(arclengthvec, WfdList, Qvec_al, Quantshort_dataList, height=0.25)
 
 #  ----------------------------------------------------------------------------
 #                          Display entropy curves
 #  ----------------------------------------------------------------------------
 
-Entropy.plot(WfdList, Qvec, Quantshort_dataList, height=1)
+Entropy.plot(arclengthvec, WfdList, Qvec_al, Quantshort_dataList, height=1)
 
 #  ----------------------------------------------------------------------------
 #                   Display H, DH and D2H curves for selected examinees

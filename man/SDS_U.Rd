@@ -8,7 +8,7 @@
   SDS_U
 }
 \description{
-The integers indicate which answer was chosen for each question by the examinee
+  The integers indicate which answer was chosen for each question by the examinee
   associated with the row.
 }
 \format{
