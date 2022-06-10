@@ -11,7 +11,7 @@
 make.dataList(U, key, optList, grbg=rep(0,n), scrrng=NULL, titlestr=NULL,  
               nbin=nbinDefault(N),NumBasis=NULL,  WfdPar=NULL,
               jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-              linearwrd=FALSE, verbose=FALSE)
+              cubicwrd=FALSE, verbose=FALSE)
 }
 \arguments{
   \item{U}{A matrix with rows corresponding to examinees or respondents, 
@@ -43,8 +43,9 @@ make.dataList(U, key, optList, grbg=rep(0,n), scrrng=NULL, titlestr=NULL,
     to each sum score value prior to computing percent rank values.}
   \item{PcntMarkers}{Used in plots of curves to display marker or reference 
     percentage points for abscissa values in plots.}
-  \item{linearwrd}{If TRUE a default order 5 basis is constructed.
-    If FALSE the order and number of of basis functions are 2.}
+  \item{cubicwrd}{If TRUE a default order 5 basis is constructed.
+    If FALSE the order and number of of basis functions are 3 so as to
+    support the use of the second derivative in function \code{thetafun}.}
   \item{verbose}{If TRUE details of calculations are displayed.}
 }
 \details{
