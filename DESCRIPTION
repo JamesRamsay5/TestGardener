@@ -6,7 +6,7 @@ Title: Optimal Analysis of Test and Rating Scale Data
 Author: James Ramsay [aut,cre],
   Juan Li [aut,cre]
 Maintainer: James Ramsay <james.ramsay@mcgill.ca>
-Depends: R (>= 4.3), fda, ggplot2, rgl
+Depends: R (>= 3.5), fda, ggplot2, rgl
 Description: Develop, evaluate, and score multiple choice examinations, 
  psychological scales, questionnaires, and similar types of data involving
  sequences of choices among one or more sets of answers.
