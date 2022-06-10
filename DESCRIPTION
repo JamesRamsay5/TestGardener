@@ -1,8 +1,8 @@
 Package: TestGardener
-Type: Package
-Date: 2022-06-08
-Title: Optimal Analysis of Test and Rating Scale Data
 Version: 3.0.0
+Date: 2022-06-10
+Type: Package
+Title: Optimal Analysis of Test and Rating Scale Data
 Author: James Ramsay [aut,cre],
   Juan Li [aut,cre]
 Maintainer: James Ramsay <james.ramsay@mcgill.ca>
@@ -34,5 +34,5 @@ Imports:
   knitr,
   rmarkdown
 VignetteBuilder: knitr
-BuildVignettes: yes
+BuildVignettes: no
 Language: en-US
