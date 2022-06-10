@@ -2,7 +2,7 @@
 make.dataList <- function(U, key, optList, grbg=rep(0,n), scrrng=NULL, titlestr=NULL,
                           nbin=nbinDefault(N), NumBasis=NULL, WfdPar=NULL,
                           jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-                          linearwrd=FALSE, verbose=FALSE) {
+                          cubicwrd=FALSE, verbose=FALSE) {
   
 #' This function sets up the information required to analyze a set of data.
 #' The information is stored in the struct object dataStr.
@@ -93,12 +93,12 @@ if (is.null(NumBasis)) {
 
 if (is.null(WfdPar)) {
   #  Defaualt fdPar objects for representing functions
-  #  Two options are available: order 5 or order 2 (linear basis functions)
-  if (linearwrd) {
+  #  Two options are available: order 5 or order 3 (cubic basis functions)
+  if (cubicwrd) {
     #  The order of the B-splines is 2 and the two basis functions are
-    #  linear.  No smoothing is used.
-    Wnorder <- 2  #  Order of the basis functions
-    Wnbasis <- 2  #  Two basis functions
+    #  cubic.  No smoothing is used.
+    Wnorder <- 3  #  Order of the basis functions
+    Wnbasis <- 3  #  Three basis functions
     # Set up the basis object
     Wbasis  <- fda::create.bspline.basis(c(0,100), Wnbasis, Wnorder) 
     WfdPar  <- fdPar(Wbasis)
@@ -162,7 +162,7 @@ Wbinsmth.init <- function(percntrnk, nbin, WfdPar, grbg, optList, U) {
   
   #  This version of Wbinsmth() uses direct least squares smoothing of the
   #  surprisal values at bin centers to generate dependent variables for
-  #  a linear model for the vectorized K by M-1 parameter matrix Bmat.
+  #  a model for the vectorized K by M-1 parameter matrix Bmat.
   
   nitem <- ncol(U)
   chartList <- vector("list", nitem)
