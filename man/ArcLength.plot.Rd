@@ -42,7 +42,7 @@ indfine       <- seq(0,100,len=101)
 WfdList       <- Quantshort_parList$WfdList
 theta         <- Quantshort_parList$theta
 Qvec          <- Quantshort_parList$Qvec
-binctr        <- Quantshort_parList$binctrc
+binctr        <- Quantshort_parList$binctr
 arclenList    <- theta2arclen(theta, Qvec, WfdList, binctr)
 names(arclenList)
 arclength    <- arclenList$arclength
