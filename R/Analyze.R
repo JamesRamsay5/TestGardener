@@ -1,6 +1,6 @@
 Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=FALSE) {
   
-  # Last modified 9 March 2022 by Jim Ramsay
+  # Last modified 16 June 2022 by Jim Ramsay
 
   parList       <- vector("list",ncycle)  
   meanHsave     <- rep(0,ncycle)
@@ -30,27 +30,27 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     #  Step 1:  Bin the data, and smooth the binned data
     #  ----------------------------------------------------------
     # print("step 1")
-    if (verbose) print("Wbinsmth:")
+    if (verbose) print("Optimize surprisal curves:")
     
     WfdResult <- Wbinsmth(theta, dataList, WfdList, thetaQnt)
     WfdList   <- WfdResult$WfdList
     
     #  compute current mean value of objective function H
     
-    if (verbose) print("Hfun:")
+    if (verbose) print("Compute mean examinee fits")
     
     H <- Hfun(theta, WfdList, U)
     meanH <- mean(H)
     meanHsave[icycle] <- meanH
     
-    if (verbose) print(paste('Mean surprisal = ', round(meanH,3)))
+    if (verbose) print(paste('Mean data fit = ', round(meanH,3)))
     
     #  ----------------------------------------------------------
     #  Step 2:  Compute optimal score index values
     #  ----------------------------------------------------------
     # print("step 2")
     
-    if (verbose) print("thetafun:")
+    if (verbose) print("Optimize examinee data fits")
 
     thetafunList <- thetafun(theta, WfdList, U, 20, 1e-3, itdisp=itdisp)
     theta    <- thetafunList$theta_out
@@ -64,7 +64,7 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     #  ----------------------------------------------------------
     # print("step 3")
     
-    if (verbose) print("theta.distn:")
+    if (verbose) print("Compute score index density")
     
     thetadens <- theta[0 < theta & theta < 100]
     theta.distnList <- theta.distn(thetadens, logdensbasis)
@@ -86,8 +86,6 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     #  Step 4.  Compute arc length and its measures
     #  ----------------------------------------------------------
     
-   if (verbose) print("step 4")
-    
     DWfine = matrix(0,101,Wdim)
     m2 = 0
     for (i in 1:n) {
@@ -106,8 +104,6 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE, verbose=
     #  Step 5:  set up ParameterCell arrays
     #  ----------------------------------------------------------
     # print("step 5")
-    
-    if (verbose) print("parList:")
     
     parListi <- list(
       theta      = theta,

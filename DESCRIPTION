@@ -1,6 +1,6 @@
 Package: TestGardener
 Version: 3.0.0
-Date: 2022-06-10
+Date: 2022-06-25
 Type: Package
 Title: Optimal Analysis of Test and Rating Scale Data
 Author: James Ramsay [aut,cre],
@@ -34,5 +34,5 @@ Imports:
   knitr,
   rmarkdown
 VignetteBuilder: knitr
-BuildVignettes: no
+BuildVignettes: yes
 Language: en-US

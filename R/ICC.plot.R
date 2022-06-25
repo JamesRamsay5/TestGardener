@@ -3,7 +3,8 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
                      shaderange = NULL, Wrng=c(0,5), DWrng=c(-0.2, 0.2), 
                      data_point = FALSE, ci = FALSE, 
                      titlestr = NULL, autoplot = FALSE,
-                     ttlsz = NULL, axisttl = NULL, axistxt = NULL, lgdlab = NULL)
+                     ttlsz = NULL, axisttl = NULL, axistxt = NULL, 
+                     lgdlab = NULL)
 {
   # Last modified June 8 2022 by Jim Ramsay
   
@@ -12,12 +13,16 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
   # dataList   List of make.dataList
   # Qvec       vector of quantile positions
   # binctr     vector of bin centers
-  # plotType   Type(s) of plot, default as "P" for probability, can also be "W" for surprisal, 
-  #            "DW" for sensitivity, and any combination of the three
+  # plotType   Type(s) of plot, default as "P" for probability, 
+  #            can also be "W" for surprisal or
+  #            "DW" for sensitivity, and any combination of the three.
   
-  # plotindex  a vector of item indices; set if uses want to focus on specific items 
-  # plotrange  a vector of length 2; set if users want to focus on specific score range 
-  # shaderange a list of length 2 vector(s); set if users want to gray out specific score range(s)
+  # plotindex  a vector of item indices; set if uses want to focus on specific 
+  #            items 
+  # plotrange  a vector of length 2; set if users want to focus on specific 
+  #            score range 
+  # shaderange a list of length 2 vector(s); set if users want to gray out 
+  #            specific score range(s)
   
   # Wrng       make ylim of all suprisal plots the same
   # DWrng      make ylim of all sensitivity plots the same
@@ -26,7 +31,8 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
   # autoplot   in Vignette, plot all items in a batch
   
   # data_point default as FALSE; set to TRUE for plotting data points
-  # ci         default as FALSE; set to TRUE for plotting confidence limits of probability and surprisal
+  # ci         default as FALSE; set to TRUE for plotting confidence limits of 
+  #            probability and surprisal
   
   # ttlsz      font size of plot title
   # axisttl    font size of axis titles
@@ -59,7 +65,11 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec, binctr, plotType = "P",
         }
       }
       
-      if (sum(shadeValid) > 0) shaderangeV <- shaderange[shadeValid] else shaderangeV <- NULL
+      if (sum(shadeValid) > 0) {
+        shaderangeV <- shaderange[shadeValid] 
+      } else {
+        shaderangeV <- NULL
+      }
     } else 
       stop("shaderange is not a list.")
   } else
@@ -453,11 +463,19 @@ plotICC   <- function(Mi, scrfine, bin1, fitfinei,
     }
   }
   
+  if (plotrange[2] == 100) {
   pp <- pp +
     ggplot2::ylim(yrange[1], yrange[2]) +
     ggplot2::xlim(plotrange[1], plotrange[2]) +
     ggplot2::xlab("Score Index") +
     ggplot2::ylab(ylabel)
+  } else {
+    pp <- pp +
+      ggplot2::ylim(yrange[1], yrange[2]) +
+      ggplot2::xlim(plotrange[1], plotrange[2]) +
+      ggplot2::xlab("Information (M-bits)") +
+      ggplot2::ylab(ylabel)
+  }
   
   pp <- pp +
     ggplot2::theme(axis.title=ggplot2::element_text(size=16,face="bold"))
