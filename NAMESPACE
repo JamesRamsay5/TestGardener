@@ -1,0 +1,52 @@
+export(Analyze, 
+  ArcLength.plot, 
+  dataSimulation, 
+  density_plot, 
+  DHfun, 
+  entropies,
+  Entropy.plot, 
+  eval.surp, 
+  Hcurve, 
+  Hfun, 
+  Hfuns.plot, 
+  ICC.plot, 
+  make.dataList,
+  mu.plot, 
+  plotCore, 
+  plotICC, 
+  Power.plot, 
+  scoreDensity, 
+  scorePerformance, 
+  Sensitivity.plot, 
+  smooth.surp, 
+  testscore, 
+  TestInfo_svd, 
+  TG_density.fd,
+  theta.distn, 
+  theta2arclen, 
+  thetafun, 
+  thetasearch, 
+  Usimulate, 
+  Wpca.plot, 
+  Wbinsmth, 
+  Wbinsmth_nom)
+
+import(fda)
+import(splines)
+import(knitr)
+import(rmarkdown)
+import(dplyr)
+import(stringr)
+import(ggplot2, except = c(last_plot, select))
+import(ggpubr)
+import(tidyr)
+import(utf8)
+import(rgl)
+import(plotly)
+
+importFrom("grDevices", "dev.off", "rainbow", "tiff", "pdf", "png", "rgb")
+importFrom("graphics", "lines", "par", "text", "title", "legend", "points")
+importFrom("stats", "coef", "rmultinom", "approx", "lsfit", "rnorm", "var")
+importFrom("tidyr", "gather")
+importFrom("pracma", "interp1", "cumtrapz")
+
