@@ -1,5 +1,15 @@
 \name{NEWS}
 \title{Recent changes to the TestGardner package}
+\section{Changes in TestGardener version 3.2.5 (2023-04-10)}{
+\itemize{
+  \item{Extensive work on the test vignette Quant_13B_problem.Rmd and on the 
+  clinical rating scale vignette hads_dep_3.Rmd (not included in vignette 
+  folder, but in inst/HADS) led to detecting multiple problems with the 
+  plotting codes using ggplot2 and plotly packages.  
+  The argument lists in ICC.plot.R and Wpca.plot.R have been changed.  
+  Hopefully these are now safe to use.
+  }
+}
 \section{Changes in TestGardener version 3.2.4 (2023-23-08)}{
 \itemize{
   \item{TestGardener has evolved substantially over 2023 and since 
