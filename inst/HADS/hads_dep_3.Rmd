@@ -1,0 +1,557 @@
+---
+title: "HADS depression scale"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{HADS depression scale}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Introduction 
+
+In this vignette we run through an analysis of one of the two rating scales in the Hospital Anxiety and Depression Scale (HADS) used by the nursing profession to assess these levels of distress of a hospitalized patient.    
+
+The vignette can serve as a template for the analysis of any rating scale or Likert type scale. It can also serve for tests scored using pre-assigned weights to assess the quality of the answer on something other than just "right/wrong."  
+
+### Metric Scaling
+
+The purpose of this vignette is to see what we call *metric scaling* at work.  By this phrase we mean a simple transformation probability, $S(P) = -\log P$.  The transformed value $S$ is what is a metric measure of information as described in texts on information theory.  By a metric measure we mean that values of $S$ are non-negative, can be added and subtracted and multiplied by a fixed positive constant.  In the social sciences metric measures are often called *ratio scales* due to the work of S. S. Stevens.  Metric scales are, simply, the social sciences version of the core measures in the physical sciences, such as mass, heat, energy and distance.  A value $S$ is what we call *surprisal*, as a replacement of the more traditional but potentially vaguely understood term *information*.
+
+An analysis of rating scale data by the TestGardener package generates a metric scale measure of the experiential state reflected in pattern of choices made in completing the scale.  The result are much richer and more easily understood assessments of both rater status and the quantity of the information measured by each item.
+
+## The Data
+
+The data were made available to us by Prof. Ruth Ann Marrie in the College of Medicine at the University of Manitoba.
+
+The seven experiences for anxiety and the seven experiences for depression were rated by 810 respondents.    
+
+Since our goal is to present our information-based methodology, we elected to present results for only the hads depression scale.  The seven choice statements for the depression along with the choice options for each and their weights are as follows, with each accompanied by a two-word mnemonic help your recall.  
+
+1. (Still enjoy) I still enjoy the things I used to  
+    + 0 definitely as much,
+    + 1 not quite so much, 
+    + 2 only a little, 
+    + 3 hardly at all
+    
+2. (Can laugh) I can laugh and see the funny side of things  
+    + 0 as always could, 
+    + 1 not so much, 
+    + 2 definitely not so much, 
+    + 3 only occasionally
+    
+3. (Feel cheerful) I feel cheerful 
+    + 3 not at all, 
+    + 2 not often, 
+    + 1 sometimes, 
+    + 0 most of the time
+    
+4. (Slowed down) I feel as if I am slowed down  
+    + 3 nearly all of the time, 
+    + 2 very often, 
+    + 1 sometimes, 
+    + 0 not at all
+    
+5. (Ignore appearance) I have lost interest in my appearance 
+    + 3 definitely, 
+    + 2 not as much as I should, 
+    + 1 not quite as much, 
+    + 0 much as ever
+    
+6. (Enjoy things) I look forward with enjoyment to things  
+    + 0 much as ever, 
+    + 1 less than usually, 
+    + 2 definitely less than usual, 
+    + 3 hardly at all
+    
+7. (Enjoy media) I an enjoy a good book or radio or TV program 
+    + 0 often, 
+    + 1 sometimes, 
+    + 2 not often, 
+    + 3 very seldom
+ 
+There are four distinct stages to the processing of the data:
+1.  Reading in the data needed to do the analysis. 
+2.  Using the data to set up a named list object containing information essential for the analysis.
+3.  The actual analysis
+4.  Displaying graphs, tables and other results.
+
+## Reading in the data
+
+Here the data required for the analysis are entered.  There are up four objects to enter:  
+- the choice data
+- a title for the analysis
+- a character string for each item to display in plots
+- a character string for each option choice within each item
+- Weights assigned to each option within each question.
+
+If the data are those of the multiple choice test, the weights are 1 for the right choice and 0 for the wrong choices.  But in this vignette we have rating scale data, and within each item each option has a unique weight assigned by the test designer.  If all items have the same number of options, it is usual that the set of weights is the same for all questions, but this is not essential.  
+
+Each of the two scales hasseven statements.  The intensity of either anxiety or depression is rated using the integers 0, 1, 2, 3 and 4. However, since few patients chose level 4, and we wanted to be able to see graphic displays in three dimensions, we changed all the 4's in the data matrix to 3's. 
+
+Consequently the HADS scales the weights are 0, 1 and 2, assigned to the least medium and most depressive experience, respectfully. Often the options are ordered in the same way for all questions, but in this case the orders vary as shown by the table above.
+
+The choice weight values, or alternatively the indices of the choice weight values, are assumed to be saved in an N by n matrix called `U` in the code, where `N` is the number of raters, and `n` is the number of items, here 810 and 7, respectively. 
+
+The rows of `U` correspond to examinees and the column to items or questions.  Each number in `U` is the index of the option or answer that the examinee has chosen using the number 1 to `M` where `M` is the number of answers available for choice.  The number of choices `M` can vary from one item to another. We call this data structure *index mode* data.
+
+The choice indices may also be stored in a dataframe where all variables are of the factor type. We have avoided this level of sophistication since the only operations on `U` are summing and retrieving values and, given the potential size of `U`, it can be worthwhile to place additional restrictions on the structure, such as being in integer mode.
+
+*Note!*  Missing or illegal values in the matrix are treated as if they are an actual option or answer, and must be assigned the index `M` itself.  If these are present, then the actual designed answers are numbered from 1 to `M-1`;  otherwise `M` for an item is a proper answer choice.  TestGardener treats missing or illegal choices in exactly the same way as it treats choices of actual answers, since whether or not an proper answer was chosen is itself information about the ability or status of the examinee. 
+
+*Note again:*  The raw data provided to a test analyzer are often in what we call *score mode* where the value indicates the score or value assigned to that choice.  This is often the case where the data are binary right/wrong values that are scored either 1 or 0, and is also often the case for rating scales.  The test analyzer will have to convert these scores to indices before submitting `U` to TestGardener.  In the binary data 1/0 case, this conversion just involves adding 1 to all the scores.  The same is the case for rating scale scores that are 0 to some larger integer.  
+
+Finally, our example here is only one of many possible ways to construct a matrix `U`, since choice data can be read in from many types of files.  The easiest case is the ".csv" file that consists of comma-separated values.  
+
+###  Load the HADS depression data required for the analysis
+
+Our HADS data were supplied as rows of values not separated at all, and we therefore had to treat these rows as single strings of length 14 alternating between anxiety and depression.
+
+Load the Ustr_full, which is of length 810 and saved in file hads.txt.  If this file is not in your working folder, you will have to supply the full location of the file.
+
+Each row in the file as a set of strings 14 characters long.  These strings are scores because they contain the score or weight of the corresponding respondant's choices for hospital anxiety and hospital depression scale with an anxiety choice followed by a depressionn choice in alternating sequential order.
+
+```{r data-input, chunk=2}
+#  Scan in the choices made for each rater, 
+#  stored in file `hads.txt` as 810 strings, each of length 14
+Ustr_full <- scan("hads.txt", "o", quiet = TRUE) 
+#  Convert each string into a list object using package stringr 
+Ulist <- stringr::str_split(Ustr_full,"")
+#  Convert each list object to 14 integers and store
+#  as an 810 by 14 matrix U_full.
+U_full <- matrix(0,810,14)
+for (j in 1:810) {
+  #  first convert a list to character format
+  Ucharj <- unlist(Ulist[[j]])
+  #  then convert characters to integers
+  Uintj  <- as.integer(Ucharj)
+  #  store the 14 integers into a row of matrix U_full
+  U_full[j,] <- Uintj
+}
+```
+
+One is added to turn weight values 0, 1 and 2 into index values 1, 2 and 3.  We also extract the number of patients, 810, and the 7 items in the depression scale and put them into matrix `U_dep`.
+
+```{r add-one, chunk=3}
+U_dep <- U_full[,seq(2,14,2)] + 1
+N <- nrow(U_dep)  # 810
+n <- ncol(U_dep)  #   7
+```
+
+Now convert the weights of 4 to 3.
+
+```{r make-4-3, chunk=4}
+U_dep_3 <- U_dep
+for (j in 1:N) {
+  U_dep_3[j,U_dep_3[j,] > 3] <- 3 
+}
+```
+
+Set up a title for the data:
+
+```{r title, chunk=5}
+titlestr_dep <- 'Depression (3 options)'
+```
+
+###  Set up the quantities that are essential to the analysis
+
+Now we turn to computing objects using these data that are essential to the analysis of the data.  
+
+Here we indicate that each item for both scales has exactly 3 choices, and we supply the weights or scores 0, 1 and 2 used for each option.
+
+```{r weights, chunk=6}
+noption <- 3*rep(1,n)
+optScr  <- vector("list", n)
+scorei  <- 0:2
+for (item in 1:n) {
+    optScr[[item]] <- scorei
+}
+```
+
+We could supply labels in list vector `itemLab` for each item and also for each option with an item in list vector `optLab`, but we don't bother, and consequently `itemLab` and `optLab` are assigned values `NULL`.  Object `optList` is a named list containing these three list vectors.
+
+```{r optList, chunk=7}
+optList <- list(itemLab=NULL, optLab=NULL, optScr=optScr)
+```
+
+Now we turn to quantities that affect the computational aspects of our analysis.
+
+One piece of information requires a bit of explanation.  Function `make.dataList()` computes *sum scores* for each examinee.  With the rater data that we have here, the sum score for a rater is the sum over items of the weights assigned to the options that have been chosen.  In the multiple choice test case sum scores are simply counts of the number of correct answer choices.  
+
+The analysis phase does not use these sum scores directly.  Instead, it uses the rank orders of the sum scores (ordered from lowest to highest) divided by `N` and multipled by 100, so that the scores now look like percentages, and we refer to them as "percent ranks."  Since sum scores typically have only integer values, it's clear that among 810 raters there are many raters who have a given possible sum score ranging from 0 to 21.  For many reasons it is important to break up these tied values by randomizing by adding a small random number to each.  The price to be paid for this strategy, called by statisticians *jittering*, is that no two analyses will give identical results.  However, the variation in values computed for large enough data sets will be too small to affect decisions made in assessing the results of the analysis.
+
+First, we specify the number of bins used to bin the data and the sum score range.  In binning the data, we group the initial sum scores into `nbin` score intervals, and in each bin we calculate the proportion of raters that chose each option within each item.  The bin boundaries are adjusted so that the numbers of raters assingned to each bin are roughly the same. These proportions then are used in the analysis rather than the specific choices in order to speed up the analysis.  `N = 810` is are rather medium-sized sample, but it is common to work with samples in the tens or even hundreds of thousands.
+
+The bin number depends on the number N of raters.  We want at least 25 or so raters in each bin so that the bin can contain a useful estimate of the probability of each of the 7 x 3 = 21 choices.  We go for 16 here, which assigns about 50 raters to each bin, so that choice probabilities are well-defined.  The larger the number of bins, the longer the computation of results will be, and here we take advantage of the generous number of raters that we have in order to make computation speedy.
+
+Value `scrng` is a vector of length 2 defining the lower and upper boundaries of input sum score values.  In principle the observed sum score values can vary here between 0 and 21, and we indeed have enough data to use this whole range.  However, rating data often have extreme score values that do not occur and we need to then tighten up the lower and upper limits.
+
+```{r nbin-and-scrrng, chunk=8}
+nbin   <- 16
+scrrng <- c(0,21)
+```
+
+There is one last decision to make.  We have to define aspects of the functional data analysis sline basis system that we use to compute surprisal curves.  We can at this point input a complete description of the this basis using code from the package `fda`, but the most important and usually sufficient input is the number of basis functions to use.  
+
+How do we choose this number?  Most of the earlier psychometric models used a formulation that is equivalent to two spline basis functions.  This is equivalent to using straight lines.  We've never seen choice data where this elementary model was sufficient to fit the variation in data that we were working with.  But experimentation with these hads data has pointed to the use of four basis functions which are cubic in shape.   Here we make that choice:
+
+```{r Numbasis, chunk=9}
+NumBasis <- 4
+```
+
+From these objects we have a function `make_dataList()` that completes the set up.  It gathers together the objects required by function `Analyze()` into a named list that we call `hads_dep_dataList`.
+
+```{r make-dataList, chunk=10}
+hads_dep_dataList <- 
+  TestGardener::make.dataList(U_dep_3, key=NULL, optList, scrrng, titlestr_dep, NumBasis=4)
+```
+
+A problem is that many examinees will get the same rank value if we order these ranks directly. We cannot know whether there might be some source of bias in how these tied ranks are arranged. For example, suppose male examinees for each rank value are followed by female examinees with that rank value.  We deal with this problem by default by adding a small random normally distributed number to each tied rank that is too small to upset the original rank order.  This within-rank randomization is called "jittering" in the statistics community, and its tends to break up the influence of any source of bias.  This is the default, but can be turned off if desired.
+
+These jittered percent ranks are used to provide initial values for a cycled optimization procedure used by TestGardener.
+
+Let's make our first plot a display of the histograms and the probability density functions for the sum scores.
+
+```{r histogram, chunk=11,fig.width = 7}
+hist(hads_dep_dataList$scrvec, hads_dep_dataList$scrrng[2], xlab="Sum Score",
+     main=titlestr_dep)
+```
+
+We see that, on the whole, most patients do not experience great distress.
+
+From here on, the commands and text are essentially the same as those for the SweSAT SMS data, except for comments what we see in the figures.
+
+```{r initialize-theta, chunk=12}
+theta_dep    <- hads_dep_dataList$percntrnk
+thetaQnt_dep <- seq(0,100,len=2*hads_dep_dataList$nbin+1)
+```
+
+## Cycling through the estimation steps
+
+Our approach to computing optimal estimates of surprisal curves and examinee percentile rank values involves alternating between:
+
+1. estimating surprisal curves assuming the previously computed percentile ranks are known
+2. estimating examinee percentile ranks assuming the surprisal curves are known.
+
+This is a common strategy in statistics, and especially when results are not required to be completely optimal.  We remind ourselves that nobody would need a test score that is accurate to many decimal places.  One decimal place would surely do just fine from a user's perspective.
+
+We first choose a number of cycles that experience indicates is sufficient to achieve nearly optimal results, and then at the end of the cycles we display a measure of the total fit to the data for each cycle as a check that sufficient cycles have been carried.  Finally, we choose a cycle that appears to be sufficiently effective.  A list object is also defined that contains the various results at each cycle.
+
+In this case the measure of total fit is the average of the fitting criterion across all examinees.  The fitting criterion for each examinee is the negative of the log of the likelihood, or *maximum likelihood estimation.*  
+
+Here is a brief description of the steps within each cycle
+
+###  Step 1:  Bin the data, and smooth the binned data to estimate surprisal curves
+
+Before we invoke function `Wbinsmth`, we use the first three lines to define bin boundaries and centres so as to have a roughly equal number of examinees in each bin.  Vector `denscdfi` has already been set up that contains values of the cumulative probability distribution for the percentile ranks at a fine mesh of discrete points.  Bin locations and the locations of the five marker percents in `Qvec` are set up using interpolation.  Surprisal curves are then estimated and the results set up.
+  
+###  Step 2:  Compute optimal score index values
+
+Function `thetafun()` estimates examinee percentile values given the curve shapes that we've estimated in Step 1.  The average criterion value is also computed and stored.
+  
+
+###  Step 3:  Estimate the percentile rank density 
+
+The density that we need is only for those percentile ranks not located at either boundary, function `theta.distn()` only works with these.  The results will be used in the next cycle.
+
+###  Step 4:  Estimate arc length scores along the test effort curve
+
+The test information curve is the curve in the space of dimension `Wdim` that is defined by the evolution of all the curves jointly as their percentile index values range from 0 to 100%.
+
+###  Step 5:  Set up the list object that stores results
+
+All the results generated in this cycle are bundled together in a named list object for access at the end of the cycles.  The line saves the object in the list vector `SDS_dataResult`.
+  
+Here is the single command that launches the analysis, using 20 cycles:
+
+```{r Analysis, chunk=13, cache=TRUE} 
+ncycle <- 20
+AnalyzeResult_dep <- TestGardener::Analyze(theta_dep, thetaQnt_dep, hads_dep_dataList, 
+                                           ncycle, itdisp=FALSE) 
+```
+
+Extract the lists containing results for each cycle
+
+```{r parList, chunk=14}
+hads_dep_parList_cycles <- AnalyzeResult_dep$parList
+```
+
+### Plot progress of the mean fitting functions and test arc lengths 
+
+The mean fitting values in `meanH` should decrease, and then level off as we 
+approach optimal estimations of important model objects, such as optimal percent  
+ranks in numeric vector `theta` and optimal surprisal curves in list vector 
+`WfdList`.  Plotting these values as a function of cycle number will allow us to 
+a choose best cycle for displaying results.  This will generate two plots for each set of data, so be sure that you have enough space in your Plots window in the lower right panel of RStudio.
+
+Plots for mean data fit:
+
+```{r Hcycle, chunk=15}  
+HCycle <- matrix(0,ncycle,2)
+for (icycle in 1:ncycle) {
+    HCycle[icycle,1] <- hads_dep_parList_cycles[[icycle]]$meanH
+    HCycle[icycle,2] <- hads_dep_parList_cycles[[icycle]]$arclength
+}
+```
+
+```{r fit-progress, chunk=16,fig.width = 7}
+plot(1:ncycle, HCycle[,1], type="b", lwd=2, main=titlestr_dep,
+     xlab="Cycle Number", ylab="Mean H")
+```
+
+```{r arclength-progress, chunk=17,fig.width = 7}
+plot(1:ncycle, HCycle[,2], type="b", lwd=2, main=titlestr_dep,
+     xlab="Cycle Number", ylab="Arc Length")
+```
+
+This plot shows a nice exponential-like decline in the average fitting criterion `mean H` and the arc length of the test information function over 20 iterations.   Notice that the initial sum scores define a scale information or scale scope value of about 24 3-bits, and that the iterations increase this value to about 42 3-bits, an improvement in scale power of about 35%.
+
+###  Now we store results for the last cycle using the score index, a value within [0,100], as the latent variable that is used as abscissa in our plots.
+
+```{r icycle, chunk=18}  
+icycle <- ncycle
+hads_dep_parList  <- hads_dep_parList_cycles[[icycle]]
+```
+
+```{r, chunk=19, parList-objects}
+WfdList_dep   <- hads_dep_parList$WfdList
+theta_dep     <- hads_dep_parList$theta
+Qvec_dep      <- hads_dep_parList$Qvec
+arclength_dep <- hads_dep_parList$arclength
+binctr_dep    <- hads_dep_parList$binctr
+```
+
+###   The metric surprisal curve, its length, and distance along it.
+
+Classical psychometric models characterise choice behaviour in terms the probabilities of choosing options.  These probablities evolve smoothly as the value of the latent variable varies.  The usual latent variable is the whole real line of infinite length, which we replace by our finite closed interval [0,100].  Moreover, we work directly with surprisal values, and plot how they evolve over [0,100].  
+
+The smooth simultaneous evolutions of a set of probabilities or surprisals defines a single curve within the range of the respective values.  The surprisal curve has measure with the unit called the bit, a variant of the concept bit used in computer jargon.  The length of this surprisal curve, computed for either the entire scale, or a single item, or even a subset of items, measures in bits the quantity of information defined by the choices defining the scale, an item or an item subset.  Moreover, a rater's position along the curve with a location less than the entire length reflects the amount of information that that rater posesses that is estimated to have defined the raters's choices.
+
+A remarkable quality of this distance measure is that it does not change if we apply a smooth transformation to the score index.  That is, if we square real numbers within [0,100] to make a different score index, the information curves will not change their values.
+
+We call the length of an information or surprisal curve the *scope* of the scale or item, and it defines a metric measure of the power of the scale or item to reflect a patient's level of depression.  The scope of the HADS scale is about 42 3-bits, the value of variable `arclength_dep`.
+
+###  Compute the scale information curve and its length, and store results.
+
+```{r infoList, chunk=20}
+hads_dep_infoList <- TestGardener::theta2arclen(theta_dep, Qvec_dep, WfdList_dep, binctr_dep)
+```
+
+Then we retrieve these quantities:
+
+```{r infoList-objects, chunk=21}
+arclength_al_dep     <- hads_dep_infoList$arclength
+arclengthvec_al_dep  <- hads_dep_infoList$arclengthvec
+WfdList_al_dep       <- hads_dep_infoList$WfdList
+theta_al_dep         <- hads_dep_infoList$theta_al
+Qvec_al_dep          <- hads_dep_infoList$Qvec_al
+binctr_al_dep        <- hads_dep_infoList$binctr_al
+```
+
+### The arc length or scope of each item information curve.
+
+As the score index moves fro 0 to 100, the three surprisal curves for an item in the HADS scale trace out a smooth three-dimensional curve.  The length of the curve, or its scope, is measured in 3-bits.  Scope is a measurement of how intensely the experience articulated in the text of the option is felt.  
+
+```{r item-scopes, chunk=22}
+itemScope  <- matrix(0,n,1)
+pltrng     <- c(0,100)
+indfine    <- seq(0,100,len=101)
+cat("Item Scopes\n")
+for (item in 1:n) {
+  Resulti <- TestGardener::theta2arclen(indfine, Qvec_dep, WfdList_dep, NULL, item, pltrng, TRUE)
+  itemScope[item] <- Resulti$arclength
+  cat(paste(item,round(itemScope[item],1)))
+  cat("\n")
+}
+scpsort <- sort(itemScope, decreasing=TRUE, index.return=TRUE)
+```
+
+We see that the two items with the highest scopes are 1 (Still enjoy) and 6 (Enjoy things).  Their scopes are about the same, which is no surprise since these two items (1) talk about enjoying life, and (2) are essentially the description of the inverse of depression.  Scope 3 (Feel cheerful) is next in size, and also another item that describes more subjective and less concrete descriptions of depression.  Items 5 (Ignore appearance) and 7 (Enjoy media) have the least scopes, and in part reflect the concrete experiences that usually go with hospitalisation.
+
+###   Plot the arc length or scope of the entire scale
+
+As the score index moves from 0 to 100, the surprisal values of the total number of options in the scale trace out a curve in 21-dimensional space, and the length of this trajectory is the scope of the entire scale.
+
+```{r scale-scope, chunk=23}
+cat("Scale Scope\n")
+Result <- TestGardener::theta2arclen(indfine, Qvec_dep, WfdList_dep, NULL, 1:n, pltrng, TRUE)
+scaleScope <- Result$arclength
+cat(round(scaleScope,1))
+```
+
+###       Plot the distribution of score index and information values
+
+We plot two density functions here for the depression data.   
+
+The top panel is the density of the score index scores and the bottom is the density of test information scores.  
+
+Comparing these two plots allows us to see how different the two types of score are.  The test information plot is to be preferred because it is a ratio scale variable and allows two differences to be directly compared.
+
+```{r two-densities, chunk=24,fig.width = 7}
+#. Density over score index
+TestGardener::density_plot(theta_dep, c(0,100), Qvec_dep, 
+                           xlabstr="Score Index", 
+                           scrnbasis=15, nfine=101)
+#. Density over scale information
+TestGardener::density_plot(theta_al_dep, c(0,arclength_dep), Qvec_al_dep, 
+                           xlabstr="Information (M-bits)", 
+                           scrnbasis=15, nfine=101)
+```
+
+We see that the proportion of raters over a fixed interval, the density of raters, varies greatly over either interval.  We've added some elements to help to understand this variation.  The vertical dashed lines indicate the positions below which 5%, 25%, 50%, 75% and 95% of the raters fall.  The circles at either boundary are the propotions of raters allocated to these boundaries, whether 0 misery on the left or complete on the right.
+
+There are five peaks, with the sharpest of largest being the happy raters on the left who are having a fine time. Perhaps the next small peak are those who are troubled by some small inconvenince.  The food, perhaps?  The left-most peak appears to define those who should certainly be get some treatment relative to depression.
+
+When we compare the two curves, we find that the peaks in the information or surprisal measure are more sharply defined, and also that the experiences in the two 75%, above 12 3-bits, occupy much more of the variation than is seen in the score index plot.  This is what we would hope for, a a more informative focus on those patients that the scale was designed to highlight.
+
+###  Plot surprisal curves over information
+
+We use the test information curve as the abscissa because of its metric properties.
+
+```{r item, chunk=25,fig.width = 7}  
+TestGardener::ICC.plot(arclengthvec_al_dep, WfdList_dep, hads_dep_dataList, Qvec_al_dep, 
+                       data_point=TRUE, binctr_al_dep, Wrng=c(0,5), 
+                       plotType="S", scopevec=itemScope, plotindex=1:n, autoplot=TRUE)
+```
+
+Let's make a few observations on what we see in these two plots.
+
+When probability goes up to one, surprise declines to zero, as we would expect.  The probability of a rating 0 is high and the surprisal is low if the respondent is in the bottom 25%, as we would expect.  But, for some reason that is also the case if patient is near the 75% mark.  Perhaps if the distress for other factors is that high, nausea considered of minor importance.  Or, if one is that sick, nausea is relieved by a treatment. A mild distress rating of 1 appears at the 50% level.  The probability of higher ratings is rare, and it seems that few patients at the upper end of the scale worry about this symptom.  (We convert 6-bits into 2-bits by multiplying 3 5-bits by 2.585, the value of the logarithm to the base 2 of 6.)
+
+It is the speed of an increase or decrease in the surprisal curve that is the fundamental signal that an examinee should be boosted up and dragged down, respectively, from a given position.  The sharp increase in surprise for rating 0 at the 40% level signals that an examinee in that zone should be increased.  Of course the examinee's final actual position will depend, not only on the five surprisal curves shown here, but also on those for the remaining 12 questions.
+
+We call the rate of increase or decrease the "sensitivity" of an option.  We have a specific plot for display this directly below.
+
+The dots in the plot are the surprisal values for examinees in each of the 20 bins used in this analysis.  The points are on the whole close their corresponding curves, suggesting that 473 examinees gives us a pretty fair idea of the shape of a surprisal or probability curve.
+
+### Compute a table of mean entropies, direct on the diagonal, mutual off-diagonal
+
+```{r entropies, chunk=26}
+entrymat <- matrix(0,n,n)
+for (mitem in 1:n) {
+  for (nitem in 1:n) {
+    Result <- TestGardener::entropies(theta_dep, mitem, nitem, hads_dep_dataList$U, noption)
+    entrymat[mitem,nitem] <- Result$Hmutual
+  }
+}
+print(round(entrymat,2))
+```
+
+##  Display test information curve projected into its first three principal components
+
+We can't imagine anything going on in 21-dimensional space.  But we can produce a 3-dimensional image that maximizes its closeness to the curve's actual behaviour using the singular value decomposition or principle components analysis (using an origin of zero rather than the mean).  It turns out that three dimensions is enough to get very close indeed, with fit percentages in excess of 98%.  
+
+```{r scale-info-curve, chunk=27, fig.width = 7, webgl=FALSE}  
+titlestr_dep_scale <- paste(titlestr_dep,"Scope",round(arclength_dep,1))
+Result <- TestGardener::Wpca.plot(WfdList_dep, nharm=3, 
+                                  rotate=FALSE, titlestr=titlestr_dep_scale)
+Result$pcaplt
+```
+
+There is a strong change in the direction of this curve at the 75\% marker point for the depression data, and at the 95\%.  Given what we saw in the density plots, this seems to be the point where the patient experiences distresses that would no longer be called normal.
+
+### Display the item information curve for each item
+
+```{r item-info-curve_1, chunk=28, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 1
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                   titlestr=titlestri)
+Resulti$pcaplt
+```
+
+
+```{r item-info-curve_2, chunk=29, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 2  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                     titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+```{r item-info-curve_3, chunk=30, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 3  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                     titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+```{r item-info-curve_4, chunk=31, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 4  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                     titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+```{r item-info-curve_5, chunk=32, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 5  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                     titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+```{r item-info-curve_6, chunk=33, eval=TRUE, fig.width = 6, fig.height = 7, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 6  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                     titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+```{r item-info-curve_7, chunk=34, eval=TRUE, fig.width = 7, fig.height = 8, webgl=FALSE}  
+WfdListi <- vector("list", 1)
+i <- 7  
+WfdListi[[1]] <- WfdList_dep[[i]]
+scopei <- scpsort$x[i]
+itemi  <- scpsort$ix[i]
+titlestri <- paste("Item",itemi,"Scope",round(scopei,1))
+Resulti <- TestGardener::Wpca.plot(WfdListi, nharm=2, rotate=FALSE, 
+                                   titlestr=titlestri)
+Resulti$pcaplt
+``` 
+
+#  ----------------------------------------------------------------------------
+#                   plot H and D2H curves for selected examinees
+#  ----------------------------------------------------------------------------
+
+```{r plot 5 patient fit curves, chunk=35}
+TestGardener::Hfuns.plot(indfine, theta_dep, WfdList_dep, U_dep, plotindex=1:5)
+```
+
+
+
+
+```
