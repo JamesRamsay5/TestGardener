@@ -7,7 +7,7 @@
   folder, but in inst/HADS) led to detecting multiple problems with the 
   plotting codes using ggplot2 and plotly packages.  
   The argument lists in ICC.plot.R and Wpca.plot.R have been changed.  
-  Hopefully these are now safe to use.
+  Hopefully these are now safe to use.}
   }
 }
 \section{Changes in TestGardener version 3.2.4 (2023-23-08)}{
