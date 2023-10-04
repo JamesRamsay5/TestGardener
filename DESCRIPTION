@@ -1,6 +1,6 @@
 Package: TestGardener
-Version: 3.2.4
-Date: 2023-08-23
+Version: 3.3.1
+Date: 2023-10-03
 Type: Package
 Title: Optimal Analysis of Test and Rating Scale Data
 Authors@R: c(person("James", "Ramsay", 

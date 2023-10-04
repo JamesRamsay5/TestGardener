@@ -5,12 +5,9 @@
 \usage{
   ICC.plot(scrfine, WfdList, dataList, Qvec, 
            binctr = NULL, data_point = FALSE, ci = FALSE, 
-           plotType = "P", 
-           Wrng=c(0,5), DWrng=c(-0.2, 0.2),
-           plotindex=1:n, 
-           titlestr = NULL, plotTitle = TRUE, xlab = "Score Index", ylab = "NULL",
-           autoplot = FALSE,
-           plotMissing = TRUE, 
+           plotType="S", Wrng=c(0,5), DWrng=c(-0.2, 0.2), plotindex=1:n, 
+           titlestr = NULL, scopevec = rep(0, length(plotindex)),  
+           plotTitle = TRUE,autoplot = FALSE, plotMissing = TRUE, 
            plotrange=c(min(scrfine),max(scrfine)), shaderange = NULL,  
            ttlsz = NULL, axisttl = NULL, axistxt = NULL, 
            lgdlab = NULL, lgdpos = "bottom")
@@ -103,9 +100,8 @@ option characteristic curves.
     sensitivity values.}
   \item{plotindex}{A vector of indices of items to be plotted.}
   \item{titlestr}{plot title}
+  \item{scopevec}{A numeric vector of length n containing item scope values.}
   \item{plotTitle}{indicator of showing the plot title, default as TRUE}
-  \item{xlab}{title of x-axis, default as "Score Index"}
-  \item{ylab}{title of y-axis, default as "Probability", Note: should work with plotType to define ylab for each subplot}
   \item{autoplot}{indicator for plotting all items in a batch}
   \item{plotMissing}{Determine if plot the extra option for missing/spoiled responses.}
   \item{plotrange}{A vector of length 2 containing the plot boundaries of
@@ -140,7 +136,7 @@ option characteristic curves.
   \code{\link{Sensitivity.plot}},
   \code{\link{Power.plot}},
   \code{\link{Entropy.plot}},
-  \code{\link{Wbinsmth}},
+  \code{\link{Wbinsmth}}
 }
 \examples{
 #  Example 1.  Display the item surprisal curves for the 
@@ -152,10 +148,11 @@ titlestr <- NULL
 #  plot the curves for the first question
 scrfine <- seq(0,100,len=101)
 oldpar <- par(no.readonly=TRUE)
-ICC.plot(scrfine, WfdList, Quant_13B_problem_dataList, Qvec, binctr, 
-         plotindex=1:2)
+indfine <- seq(0,100,len=101)
+ICC.plot(indfine, WfdList, Quant_13B_problem_dataList, Qvec, binctr, 
+         plotType = c("S", "P"), plotindex=6)
 par(oldpar)
-#  Example 2.  Display the item proability and surprisal curves for the 
+#  Example 2.  Display the item probability and surprisal curves for the 
 # Symptom Distress Scale with 13 items and 473 respondents.
 # Proceed as above changing "Quant" to "SDS"
 }

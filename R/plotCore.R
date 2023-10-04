@@ -1,28 +1,28 @@
 plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec, 
-                       binctr, data_point, ci,
-                       plotType, 
-                       Wrng, DWrng, 
-                       titlestr, plotTitle, xlab, ylab,
-                       plotMissing, 
-                       plotrange, shaderange,  
-                       ttlsz, axisttl, axistxt,
+                       binctr, data_point, ci, plotType, Wrng, DWrng, 
+                       titlestr, scopeveci, plotTitle, plotMissing, 
+                       plotrange, shaderange, ttlsz, axisttl, axistxt,
                        lgdlab, lgdpos) {
   
-  # Last modified 10 July 2023 by Juan Li
+  # Last modified 2 October 2023 by Jim Ramsay
+  
+  #  obtain option labels
   
   optionList <- dataList$optList 
+  
+  #  obtain WfdList information for this plot
   
   WListi    <- WfdList[[iplot]]
   itemStri  <- optionList$itemLab[iplot]  # Juan Li 2021-02-18
   optStri   <- optionList$optLab[[iplot]] # Juan Li 2021-02-18
   Mi         <- WListi$M # 2020-12-14
   
-  # data for plotting the curves
+  # obtain curve values at mesh points
+  
   Wfitfinei  <- WListi$Wmatfine
   DWfitfinei <- WListi$DWmatfine
   Pfitfinei  <- WListi$Pmatfine
-  if (!plotMissing)
-  {
+  if (!plotMissing) {
     Mi         <- Mi - 1
     Wfitfinei  <- WListi$Wmatfine[,1:Mi]
     DWfitfinei <- WListi$DWmatfine[,1:Mi]
@@ -30,25 +30,23 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
   }
   
   # data for plotting data points
-  if (data_point & !is.null(binctr)) 
-  {
+  
+  if (data_point & !is.null(binctr)) {
     Pbini      <- WListi$Pbin
     Wbini      <- WListi$Wbin
     
-    if (!plotMissing)
-    {
+    if (!plotMissing) {
       Pbini      <- WListi$Pbin[,1:Mi]
       Wbini      <- WListi$Wbin[,1:Mi]
     }
-  } else
-  {
+  } else {
     Pbini    <- NULL
     Wbini    <- NULL
   }
   
   # data for plotting confidence interval
-  if (ci & !is.null(binctr)) 
-  {
+  
+  if (ci & !is.null(binctr)) {
     PStdErr    <- WListi$PStdErr   
     WStdErr    <- WListi$WStdErr
     
@@ -57,100 +55,133 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
       PStdErr    <- WListi$PStdErr[,1:Mi]
       WStdErr    <- WListi$WStdErr[,1:Mi]
     }
-  } else
-  {
+  } else {
     PStdErr    <- NULL
     WStdErr    <- NULL
   }
   
-  # vector of answer key
-  if (is.null(dataList$key))
-  {
+  # vector for answer key
+  
+  if (is.null(dataList$key)) {
     keyi <- NULL
-  } else
-  {
+  } else {
     keyi <- dataList$key[iplot]
   }
   
-  # plot title for each item
+  # ------------------  assemble the title for this item  ----------------------
+  
   if (plotTitle) {
-    if (!is.null(itemStri))
-    {
-      if (!is.null(titlestr))
-      {
-        ttllab <- paste(titlestr,' ',iplot,': ',itemStri,sep="")
-      } else
-      {
-        ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,sep="")
+    # print("plot title")
+    # assemble the title ttllab for this item
+    if (!is.null(itemStri)) {
+      # an item title string is supplied
+      # print("itemStr")
+      if (!is.null(titlestr)) {
+        # a scale title is supplied
+        # print("titlestr")
+        if (!(scopeveci == 0)) {
+          # print("scope")
+          # a vector of scope value is supplied
+          ttllab <- paste(titlestr,         ' ',iplot,': ',itemStri,' ',"scope ",
+                          round(scopeveci,1),sep="")
+        } else {
+          # print("no scope")
+          # scopevec is missing
+          ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,' ',"scope ",
+                          round(scopeveci,1),sep="")
+        }
+      } else {
+        # print("no itemstr")
+        if (!(scopeveci == 0)) {
+          # print("scope")
+          # a vector of scope value is supplied
+          ttllab <- paste(titlestr,         ' ',iplot,': ',"scope ",
+                          round(scopeveci,1),sep="")
+        } else {
+          # print("no scope")
+          # scopevec is missing
+          ttllab <- paste(titlestr,' ',iplot, sep="")
+        }
       }
-    } else
-    {
-      if (!is.null(titlestr))
-      {
-        ttllab <- paste(titlestr,' ', iplot,sep="")
-      } else
-      {
-        ttllab <- paste(dataList$titlestr,' ', iplot,sep="")
+    } else {
+      if (!is.null(titlestr)) {
+        # a scale title is supplied
+        # print("titlestr")
+        if (!(scopeveci == 0)) {
+          # print("scope")
+          # a vector of scope value is supplied
+          ttllab <- paste(titlestr," item ",iplot,": ","scope ",
+                          round(scopeveci,1),sep="")
+        } else {
+          # print("no scope")
+          # scopevec is missing
+          ttllab <- paste(titlestr," item ",iplot,)
+        }
+      } else {
+        # print("no titlestr")
+        # print(scopeveci)
+        if (!(scopeveci == 0)) {
+          # print("scope")
+          # a vector of scope value is supplied
+          ttllab <- paste("item",iplot,': ',"scope ",
+                          round(scopeveci,1),sep="")
+        } else {
+          # print("no scope")
+          # scopevec is missing
+          ttllab <- paste("item",iplot)
+        }
       }
     }
   } else {
+    # don't plot a title
     ttllab <- NULL
   }
   
-  # option string
-  if (!is.null(optStri)) 
-  {
+  # --------------  option string. -------------
+  
+  if (!is.null(optStri)) {
     optionVec <- optStri
-  } else
-  {
+  } else {
     optionVec <- NULL
   }
   
-  # -----------------------------------------
-  nplot  <- length(plotType)
+  # ---------------  construct abscissa label xlabel. -------------
+  
+  if (max(scrfine) == 100) {
+    xlabel <- "Score Index" 
+  } else {
+    xlabel <- paste("Information Metric (",Mi," bits)", sep="")    
+  }
+  
+  #  ---------------- Call plotICC to make the plot. ---------------------------
+  
+  nplotType  <- length(plotType)
   pList <- list()
-  
-  # ylabel
-  ylabel <- rep("", nplot)
-  for (itype in 1:nplot) {
-    if (plotType[itype] == "P") {
-      ylabel[itype] = "Proportion/Probability"
-    } else if (plotType[itype] == "W") {
-      ylabel[itype] = paste("Surprisal (",Mi,"-bits)",sep="")
-    } else {
-      ylabel[itype] = "Sensitivity"
-    }
-  }
-  if (length(ylab) == nplot) { # 2023-05-28,  & nplot > 1
-    ylabel[1] = ylab
-  }
-  
-  #  Call plotICC
-  for (itype in 1:nplot) {
+  for (itype in 1:nplotType) {
     if (plotType[itype] == "P") {
       # probability
+      ylabel <- "Proportion/Probability"
       pList[[itype]] <- plotICC(Mi, scrfine, Pfitfinei, Qvec, keyi,
-                                binctr, Pbini, PStdErr, 
-                                c(0,1), 0.5, 
-                                ttllab, xlab, ylabel[itype], optionVec,
+                                binctr, Pbini, PStdErr, c(0,1), 0.5, 
+                                ttllab, xlabel, ylabel, optionVec,
                                 plotrange, shaderange, 
                                 ttlsz, axisttl, axistxt,
                                 lgdlab, lgdpos)
-    } else if (plotType[itype] == "W") {
+    } else if (plotType[itype] == "S" || plotType[itype] == "W") {
       # surprisal
+      ylabel <- paste("Surprisal (",Mi,"-bits)",sep="")
       pList[[itype]] <- plotICC(Mi, scrfine, Wfitfinei, Qvec, keyi,
-                                binctr, Wbini, WStdErr, 
-                                Wrng, 0, 
-                                ttllab, xlab, ylabel[itype], optionVec,
+                                binctr, Wbini, WStdErr, Wrng, 0, 
+                                ttllab, xlabel, ylabel, optionVec,
                                 plotrange, shaderange, 
                                 ttlsz, axisttl, axistxt,
                                 lgdlab, lgdpos)
-    } else if (plotType[itype] == "DW") {
+    } else if (plotType[itype] == "DS" || plotType[itype] == "DW") {
       # sensitivity
+      ylabel <- "Sensitivity"
       pList[[itype]] <- plotICC(Mi, scrfine, DWfitfinei, Qvec, keyi,
-                                binctr, NULL, NULL, 
-                                DWrng, 0, 
-                                ttllab, xlab, ylabel[itype], optionVec,
+                                binctr, NULL, NULL, DWrng, 0, 
+                                ttllab, xlabel, ylabel, optionVec,
                                 plotrange, shaderange, 
                                 ttlsz, axisttl, axistxt,
                                 lgdlab, lgdpos)
@@ -159,7 +190,7 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
     }
   }
   
-  if (nplot > 1) {
+  if (nplotType > 1) {
     p <- ggpubr::ggarrange(plotlist = pList, ncol = 1)
   } else {
     p <- pList[[1]]

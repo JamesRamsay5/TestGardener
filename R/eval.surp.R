@@ -16,7 +16,7 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
   #  Returns:  An array of function values corresponding to the 
   #              argument values in EVALARG
   
-  #  Last modified 25 April 2025 by Jim Ramsay
+  #  Last modified 275 September 2023 by Jim Ramsay
   
   #  check arguments
   
@@ -50,7 +50,7 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
     evalarg <- t(evalarg)  
   }
   
-  #  check EVALARG
+  #  check EVALARG 
   
   if (evaldim[1] > 1 && evaldim[2] > 1) 
     stop('Argument EVALARG is not a vector.')
@@ -58,6 +58,9 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
   evalarg  <- as.vector(evalarg)
   basisfd  <- Wfdobj$basis
   rangeval <- basisfd$rangeval
+  if (min(evalarg) < rangeval[1] || max(evalarg) > rangeval[2]) {
+    stop("Values in argument valarg outside of basis boundaries.")
+  }
   evalarg[evalarg < rangeval[1]-1e-10] <- NA
   evalarg[evalarg > rangeval[2]+1e-10] <- NA
   

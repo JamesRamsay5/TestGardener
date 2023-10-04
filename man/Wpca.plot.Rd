@@ -10,12 +10,9 @@ Plot the test information or scale curve in either two or three dimensions.
   can be fixed by using functional principal components analysis.
 }
 \usage{
-  Wpca.plot(arclength, WfdList, Wdim=NULL, nharm=2, rotate=TRUE, 
-  titlestr=NULL)
+  Wpca.plot(WfdList, Wdim=NULL, nharm=2, rotate=TRUE, titlestr=NULL)
 }
 \arguments{
-  \item{arclength}{The total length of the test information or scale curve as computed by function 
-  \code{theta2arclen.}}
   \item{WfdList}{
   A numbered list object produced by a TestGardener analysis of a test.  Its length
   is equal to the number of items in the test or questions in the scale.  
@@ -35,7 +32,7 @@ Plot the test information or scale curve in either two or three dimensions.
       surprisal curves over fine mesh.}
     }
   }
-  \item{Wdim}{The total number of options in the test or scale.}
+  \item{Wdim}{Interval over which curve is plotted. All if Wdim == NULL.}
   \item{nharm}{The number of principal components of the test information or scale 
   curve to be used to display the curve.  Must be either 2 or 3.}
   \item{rotate}{If true, rotate principal components of the test information or 
@@ -73,18 +70,20 @@ theta      <- Quant_13B_problem_parList$theta
 arclength  <- Quant_13B_problem_parList$arclength 
 oldpar <- par(no.readonly=TRUE)
 on.exit(oldpar)
-Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quant_13B_problem_dataList$Wdim)
-varprop <- Wpca.plotResults$varpropvarmx
+Results <- Wpca.plot(WfdList, nharm=2, rotate=FALSE)
+print(Results$pcaplt)
+varprop <- Results$varpropvarmx
 print("Proportions of variance accounted for and their sum:")
-print(round(c(varprop,sum(varprop)),3))
+print(round(100*c(varprop,sum(varprop)),1))
 #  plot a three-dimension version of manifold curve
 WfdList    <- Quant_13B_problem_parList$WfdList
 theta      <- Quant_13B_problem_parList$theta
 arclength  <- Quant_13B_problem_parList$arclength 
-Wpca.plotResults <- Wpca.plot(arclength, WfdList, Quant_13B_problem_dataList$Wdim, nharm=3)
-varprop <- Wpca.plotResults$varpropvarmx
+Results <- Wpca.plot(WfdList, nharm=3, rotate=FALSE)
+print(Results$pcaplt)
+varprop <- Results$varpropvarmx
 print("Proportions of variance accounted for and their sum:")
-print(round(c(varprop,sum(varprop)),3))
+print(round(100*c(varprop,sum(varprop)),1))
 #  Example 2.  Display the test information curve for the 
 # Symptom Distress Scale with 13 items and 473 respondents.
 # Proceed as above changing "Quant" to "SDS"

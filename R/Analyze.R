@@ -31,8 +31,7 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE,
   
   for (icycle in 1:ncycle) {
     
-    #  if (verbose) print(paste('----------  Cycle ',icycle,'-----------'))
-    print(paste('----------  Cycle ',icycle,'-----------'))
+    if (verbose) print(paste('----------  Cycle ',icycle,'-----------'))
     
     #  ----------------------------------------------------------
     #  Step 1:  Bin the data, and smooth the binned data
@@ -118,7 +117,6 @@ Analyze <- function(theta, thetaQnt, dataList, ncycle=10, itdisp=FALSE,
       DHval  <- Result$DHval
       D2Hval <- Result$D2Hval
     }
-    print("thetasearch done")
     
     #  ----------------------------------------------------------
     #  Step 7:  set up ParameterCell arrays

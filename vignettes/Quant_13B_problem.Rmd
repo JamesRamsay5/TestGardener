@@ -7,7 +7,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, echo = FALSE}
+```{r, chunk=1,, echo = FALSE}
 knitr::opts_chunk$set(collapse=TRUE, comment="#", out.width='//textwidth')
 system.file(package="TestGardener")
 ```
@@ -50,13 +50,13 @@ The reader may find it helpful to consult man pages for the functions used using
 
 First we will set up a title for the data to be used in plots:
 
-```{r}
+```{r define title, chunk=2}
 titlestr  <- "SweSAT-Q: 24 math analysis items and 1000 examinees"
 ```
 
 We aim to keep the code as much as possible close to the base package. We read in the data from a .txt file with 1000 rows and 24 columns.  Each row contains a choice index number with values 1 to 5, and separated by a single blank.
 
-```{r}
+```{r read U, chunk=3}
 U <- as.matrix(read.table("Quant_13B_problem_U.txt"))
 N <- nrow(U) # Number of examinees 
 n <- ncol(U) # Number of items
@@ -66,7 +66,7 @@ For variety, we use an alternative strategy to input the 24 right answer keys, w
 numbers.  The stringr() function splits the 24 number into spaced
 values.
 
-```{r}
+```{r read key, chunk=4}
 key   <- scan("Quant_13B_problem_key.txt","o")
 key <- as.numeric(unlist(stringr::str_split(key,"")))
 ```
@@ -77,13 +77,13 @@ Now we turn to computing objects using these data that are essential to the anal
 
 All questions for these 24 questions in the test have four answers, but we will add an additional category for answers that are missing or illegitimate.
 
-```{r}
+```{r define numbers of options, chunk=5}
 noption <- rep(5,n)
 ```
 
 Now we turn to code that sets up objects that are essential to the analysis but that the analyst may want to set up using code rather than inputting.  The first of these is a list vector of length `n` where each member contains a numeric vector of length `M` containing the designed scores assigned to each option.  For multiple choice tests, that is easily done using the following code:
 
-```{r}
+```{r define option weights, chunk=6}
 ScoreList <- list() # option scores
 for (item in 1:n){
   scorei <- rep(0,noption[item])
@@ -96,13 +96,13 @@ There is also the possibility of inputting strings for each question and each op
 
 Next, we set up a named list called `optList` that contains `ScoreList` and default values for the item and option strings:
 
-```{r}
+```{r define option labels, chunk=7}
 optList <- list(itemLab=NULL, optLab=NULL, optScr=ScoreList)
 ```
 
 We're now finished with the data input and setup phase.  From these objects we have a function `make_dataList` that completes the set up:
 
-```{r}
+```{r make the dataList object, chunk=8}
 Math_dataList <- TestGardener::make.dataList(U, key, optList)
 names(Math_dataList)
 ```
@@ -117,7 +117,7 @@ These jittered percent ranks are used to provide initial values for a cycled opt
 
 Let's make our first plot a display of the histogram and the probability density function for the sum scores.
 
-```{r,fig.width = 7}
+```{r plot a histogram of sum scores, chunk=9, fig.width = 7}
 hist(Math_dataList$scrvec, Math_dataList$scrrng[2], xlab="Sum Score",
      main=titlestr)
 ```
@@ -130,7 +130,7 @@ First we compute item response or item characteristic curves for each response w
 
 The initial surprisal curves are achieved as follows using the important function `Wbinsmth()`:
 
-```{r}
+```{r initialize the analysis, chunk=10}
 theta     <- Math_dataList$percntrnk
 thetaQnt  <- Math_dataList$thetaQnt
 WfdResult <- TestGardener::Wbinsmth(theta, Math_dataList)
@@ -138,14 +138,13 @@ WfdResult <- TestGardener::Wbinsmth(theta, Math_dataList)
 
 One may well want to plot these initial surprisal curves in terms of both probability and surprisal, this is achieved in this way:
 
-```{r,fig.width = 7}
+```{r plot initial curves, chunk=11, fig.width = 7}
 WfdList <- WfdResult$WfdList
 binctr  <- WfdResult$aves
 Qvec    <- c(5,25,50,75,95)
 indfine <- seq(0,100,len=101)
 TestGardener::ICC.plot(indfine, WfdList, Math_dataList, Qvec, binctr,  
-                       Wrng=c(0,3), plotindex=1)
-
+                       Wrng=c(0,5), plotindex=1, plotType="P")
 ```
 
 Here Ωand elsewhere we only plot the probability and surprisal curves for the first time in order to allow this vignette to be displayed compactly.  There are comments on how to interpret these plots in the call to function `ICC.plot()` after the analysis step.  
@@ -165,7 +164,7 @@ We first choose a number of cycles that experience indicates is sufficient to ac
 
 In this case the measure of total fit is the average of the fitting criterion across all examinees.  The fitting criterion for each examinee is the negative of the log of the likelihood, or *maximum likelihood estimation.*  Here we choose 10 cycles.
 
-```{r}
+```{r set number of cycles, chunk=12}
 ncycle <- 10
 ```
 
@@ -194,7 +193,7 @@ All the results generated in this cycle are bundled together in a named list obj
   
 Here is the single command that launches the analysis and prints the cycle numbers:
 
-```{r}  
+```{r,chunk=13}  
 AnalyzeResult <- TestGardener::Analyze(theta, thetaQnt, Math_dataList, 
                                        ncycle, itdisp=FALSE, verbose=FALSE) 
 ```
@@ -204,7 +203,7 @@ want to keep the output compact, and have therefore turned them off.
 
 The following five lines set up a 10 by 2 matrix containing averages of the fitting criterion values taken over examinees and the arclength over the information curve.  
 
-```{r}  
+```{r set up cycle progress for mean fit and arc length, chunk=14}  
 parList      <- AnalyzeResult$parList
 HCycle <- matrix(0,ncycle,2)
 for (icycle in 1:ncycle) {
@@ -223,14 +222,14 @@ ranks in numeric vector `theta` and optimal surprisal curves in list vector
 `WfdList`.  Plotting these values as a function of cycle number will allow us to 
 a choose best cycle for displaying results.  
 
-```{r,fig.width = 7}  
+```{r plot the cycle progress of the mean data fit, chunk=15, fig.width = 7}  
 plot(1:ncycle, HCycle[,1], type="b", lwd=2,
      xlab="Cycle Number", ylab="Mean H")
 ```
 
 Now we do the same thing for the arclengths.
 
-```{r,fig.width = 7}  
+```{r plot the cycle progress of arclength, chunk=16, fig.width = 7}  
 plot(1:ncycle, HCycle[,2], type="b", lwd=2, 
      xlab="Cycle Number", ylab="Arc Length")
 ```
@@ -244,19 +243,16 @@ The arc length of the information curve increases at each cycle as more and more
 
 Here we choose to use results for the last cycle:
 
-```{r}  
+```{r define parList, chunk=17}  
 Math_parListi  <- parList[[ncycle]]
 ```
 
 The list object `Math_parListi` contains a large number of objects, but in our exploration of results, we will only need these results:
 
-```{r}  
+```{r output parList objects, chunk=18}  
 WfdList    <- Math_parListi$WfdList
 theta      <- Math_parListi$theta
 Qvec       <- Math_parListi$Qvec
-Hval       <- Math_parListi$Hval
-DHval      <- Math_parListi$DHval
-D2Hval     <- Math_parListi$D2Hval
 binctr     <- Math_parListi$binctr
 indfine    <- seq(0,100,len=101)
 ```
@@ -270,22 +266,19 @@ indfine    <- seq(0,100,len=101)
 
 First we compute the quantities that we will need and same them in a named list:
 
-```{r}
+```{r define infoList, chunk=19}
 Math_infoList <- TestGardener::theta2arclen(theta, Qvec, WfdList, binctr)
 ```
 
 Then we retrieve these quantities:
 
-```{r}
+```{r output objects in infoList, chunk=20}
 arclength     <- Math_infoList$arclength
 arclengthvec  <- Math_infoList$arclengthvec
-arclengthfd   <- Math_infoList$arclengthfd
+WfdList_al    <- Math_infoList$arclength
 theta_al      <- Math_infoList$theta_al
-thetafine_al  <- Math_infoList$thetafine.rng
 Qvec_al       <- Math_infoList$Qvec_al
 binctr_al     <- Math_infoList$binctr_al
-Wfd_info      <- Math_infoList$Wfd_info
-Wdim          <- Math_infoList$Wdim
 ```
 
 ##  Plot the probability density of the score index and of arc length
@@ -293,15 +286,14 @@ Wdim          <- Math_infoList$Wdim
 The density of the percentile ranks that we initially used will no longer be a flat line.  
 This is because examinees tend to cluster at various score levels, no matter how the score is defined.  Certain groups of items will tend to be correctly answered by the middle performance folks and other by only the top performers.  Among the weakest examinees, there will still be a subset of questions that they can handle.  We want to see these clusters emerge.
 
-```{r,fig.width = 7}  
-indfine <- seq(0,100,len=101)
+```{r plot score index density, chunk=21, fig.width = 7}  
 TestGardener::density_plot(theta, c(0,100), Qvec, xlabstr="Score index", 
                            titlestr="Theta Density", scrnbasis=15)
 ```
 
 In fact, there are four distinct clusters of score index values below the 75% level.  Within each of these clusters there are strong similarities in examinee's choice patterns, whether right or wrong. We have only plotted score indices which are away from the two boundaries, because there are significant tendencies to have estimated score index values at 0 and 100.
 
-```{r,fig.width = 7}  
+```{r plot arclength density,chunk=22,fig.width = 7}  
 TestGardener::density_plot(theta_al, c(0,arclength), Qvec_al, xlabstr="Arclength", 
                            titlestr="Arc length Density",  scrnbasis=15)
 ```
@@ -314,8 +306,7 @@ The correct answer curves for testing data are plotted as thick blue lines for h
 
 This plot plots probability and surprisal curves as a function of the score index `theta`:
 
-```{r,fig.width = 7,fig.height = 5}  
-indfine <- seq(0,100,len=101)
+```{r plot curves over score index, chunk=23,  fig.width = 7, fig.height = 7}  
 TestGardener::ICC.plot(indfine, WfdList, Math_dataList, Qvec, binctr,  
                        data_point=TRUE, plotType=c("P", "W"), Wrng=c(0,3), plotindex=1)
 ```
@@ -335,9 +326,10 @@ The dots in the plot are the surprisal values for examinees in each of the 20 bi
 Now let's change the abscissa from the score index to the arclength or information index. We do this because arclength doesn't change if we transform the score index in some way, and also 
 arclength along the information curve has the extremely important metric property that a difference in arc lengths means exactly the same thing everywhere along the arc length interval.
 
-```{r,fig.width = 7,fig.height = 5}  
+```{r plot curves as functions of arclength, chunk=24, fig.width = 7, fig.height = 5}  
 TestGardener::ICC.plot(arclengthvec, WfdList, Math_dataList, Qvec_al, binctr_al,  
-                       data_point=TRUE, plotType=c("P", "W"), Wrng=c(0,3), plotindex=1)
+                       data_point=TRUE, plotType=c("P", "W"), Wrng=c(0,5),            
+                       plotindex=1)
 ```
 
 What has changed?  We see that now the high performance right side of the plot has been spread out.  This provides us with more information and more accuracy in assessing performance in this important performance level.
@@ -346,7 +338,7 @@ What has changed?  We see that now the high performance right side of the plot h
 
 The expected score for an examinee are determined by his value `theta` for the question and by the score values assigned by the test designer to each option.  We use a plotting interval defined by the range of the sum scores, but as a rule the density of expected scores is positive only over a shorter interval.
 
-```{r}  
+```{r plot expected score index against arc length, chunk=25}  
 indfine <- seq(0,100,len=101)
 mufine <- TestGardener::testscore(indfine, WfdList, optList)
 TestGardener::mu.plot(mufine, Math_dataList$scrrng, titlestr)
@@ -368,7 +360,7 @@ What we can study, and use in many ways, is the distance within the curve from i
 
 The next analysis and plot displays the length of the curve and how it changes relative to the score index theta associated with any point on the curve.
 
-```{r,fig.width = 7}  
+```{r plot arc length against score index, chunk=26, fig.width = 7}  
 print(paste("Arc length =", round(arclength,2)))
 TestGardener::ArcLength.plot(arclength, arclengthvec, titlestr)
 ```
@@ -381,17 +373,15 @@ The test information curve is in principle an object of dimension `Wdim`, but in
 
 Sorry, we are not completing this plot.  We've encountered problems using the the rgl and plotly packages for plotting curves and are working on a fix. (August 21, 2023)
 
-
-```{r, setup}
-# library(rgl)
-# options(rgl.useNULL = TRUE) # Suppress the separate window.
-```
-
-```{r, eval=TRUE, fig.width = 7, webgl=TRUE}  
-Result <- TestGardener::Wpca.plot(arclength, WfdList,
-                                  Math_dataList$Wdim, nharm=3,
+```{r compute and display test information curve, chunk=27, eval=TRUE, fig.width = 7, webgl=TRUE}  
+Result <- TestGardener::Wpca.plot(WfdList, nharm=3,
                                   rotate=FALSE, titlestr = titlestr)
 print(Result$pcaplt)
+print("Percentagess of variance for principal components:")
+print(round(100*Result$varpropvarmx,1))
+print("Total percentage of variation:")
+print(round(sum(100*Result$varpropvarmx,1)))
+
 ```
 
 The change in direction of this curve between the 25% and 50% marker points indicates that the information acquired initially is qualitatively different than that mastered at the upper end of the curve.  This seems obvious, since math moves from the concrete to the abstract over a secondary school program.
@@ -406,6 +396,6 @@ If an estimated score index seems inconsistent with the sum score value or is ot
 
 Here we produce these plots for the first examinee.
 
-```{r, eval = TRUE, fig.width = 7}
-TestGardener::Hfuns.plot(indfine, theta, WfdList, U, plotindex=1)
+```{r plot the first five examinee data fits, chunk=28, eval = TRUE, fig.width = 7}
+TestGardener::Hfuns.plot(indfine, theta, WfdList, U, plotindex=1:5)
 ```

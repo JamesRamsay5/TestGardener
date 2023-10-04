@@ -46,7 +46,7 @@ theta2arclen <- function(theta, Qvec, WfdList, binctr, itemindex=1:n,
     # WDIM          ... The dimension of the over space containing the 
     #                   surprisal curves.
     
-    #  Last modified 7 March 2023
+    #  Last modified 25 September 2023
     
     #  ------------------------------------------------------------------------
     #                              check inputs  
@@ -129,6 +129,14 @@ theta2arclen <- function(theta, Qvec, WfdList, binctr, itemindex=1:n,
     arclengthvec.rng <- 
       pracma::cumtrapz(indfine.rng,sqrt(apply(DWfine.rng^2,1,sum)))
     arclength.rng    <- max(arclengthvec.rng)
+
+    scopevec.rng <- matrix(0,length(itemindex),1)
+    for (item in itemindex) {
+      WListi <- WfdList[[item]]
+      scopevec.rngi <- 
+        pracma::cumtrapz(indfine.rng,sqrt(apply(WListi$DWmatfine^2,1,sum)))
+      scopevec.rng[item]    <- max(scopevec.rngi)
+    }
     
     #  ------------------------------------------------------------------------
     #  If shortwrd == TRUE, return here with only arclength.rng and
@@ -217,6 +225,7 @@ theta2arclen <- function(theta, Qvec, WfdList, binctr, itemindex=1:n,
     
     return(list(
         arclength       = arclength.rng,
+        scopevec.       = scopevec.rng,
         arclengthvec    = arclengthvec.rng,
         arclengthfd     = arclengthfd.rng,
         theta_al        = theta_al,
