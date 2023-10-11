@@ -42,7 +42,9 @@
 #' entropy_scores
 #' 
 thetas2entropyscores <- function(model, thetas, items = 1:length(model$parList[[iter]]$WfdList), grid_size = 10000, return_grid = FALSE) {
-  theta_grid <- sort(c(thetas, seq(0, 100, length.out = grid_size)))
+  theta_grid <- setdiff(seq(0, 100, length.out = grid_size), thetas) |> # remove potential duplicates from grid
+    c(thetas) |> # merge with sample thetas
+    sort()
   iter <- length(model$parList)
   entropy_scores <- vector("numeric", length = length(theta_grid))
   for (item in items) {
@@ -62,11 +64,11 @@ thetas2entropyscores <- function(model, thetas, items = 1:length(model$parList[[
   if (return_grid) {
     return(cbind(theta = theta_grid, entropy_score = entropy_scores))
   } else {
+    # Extract the entropy scores from the grid
     matching_indices <- which(theta_grid %in% thetas)
-    # Extract and order results based on the original order of 'thetas' argument
-    ordered_thetas <- theta_grid[matching_indices]
     ordered_entropy_scores <- entropy_scores[matching_indices]
-    order_vec <- order(match(ordered_thetas, thetas))
-    return(data.frame(theta = ordered_thetas[order_vec], entropy_score = ordered_entropy_scores[order_vec]))
+    # Order the results based on the original order of the 'thetas' argument
+    order_vec <- order(order(thetas))
+    return(data.frame(theta = thetas, entropy_score = ordered_entropy_scores[order_vec]))
   }
 }
