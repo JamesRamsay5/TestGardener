@@ -373,15 +373,12 @@ The test information curve is in principle an object of dimension `Wdim`, but in
 
 Sorry, we are not completing this plot.  We've encountered problems using the the rgl and plotly packages for plotting curves and are working on a fix. (August 21, 2023)
 
-```{r compute and display test information curve, chunk=27, eval=TRUE, fig.width = 7, webgl=TRUE}  
-Result <- TestGardener::Wpca.plot(WfdList, nharm=3,
-                                  rotate=FALSE, titlestr = titlestr)
-print(Result$pcaplt)
-print("Percentagess of variance for principal components:")
+```{r compute and display test information curve, chunk=27, eval=TRUE, fig.width = 7, Result <- TestGardener::Wpca(WfdList, nharm=3, rotate=FALSE)
+Wpca.plot(harmvarmxfd, nharm=3, titlestr)
+print("Percentages of variance for principal components:")
 print(round(100*Result$varpropvarmx,1))
 print("Total percentage of variation:")
 print(round(sum(100*Result$varpropvarmx,1)))
-
 ```
 
 The change in direction of this curve between the 25% and 50% marker points indicates that the information acquired initially is qualitatively different than that mastered at the upper end of the curve.  This seems obvious, since math moves from the concrete to the abstract over a secondary school program.

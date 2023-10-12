@@ -55,9 +55,9 @@ make.dataList(U, key, optList, scrrng=NULL, titlestr=NULL,
 }
 \details{
   The score range defined \code{scrrng} should contain all of the sum score 
-  values, but can go beyond them if desired.  For example, it may be that no 
-  examinee gets a zero sum score, but for reporting and display purposes using 
-  zero as the lower limit seems desirable.
+  values, but can go beyond their boundaries if desired.  For example, 
+  it may be that no examinee gets a zero sum score, but for reporting and 
+  display purposes using zero as the lower limit seems desirable.
   
   The number of bins is chosen so that a minimum of at least about 25 initial 
   percentage ranks fall within a bin.  For larger samples, the number per bin 

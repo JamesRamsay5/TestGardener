@@ -25,6 +25,7 @@ export(Analyze,
   thetafun, 
   thetasearch, 
   Usimulate, 
+  Wpca,
   Wpca.plot, 
   Wbinsmth, 
   Wbinsmth_nom)

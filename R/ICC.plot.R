@@ -50,34 +50,34 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
   # lgdlab     font size of legend labels
   # lgdpos     legend position, could be set as "None" to remove the legend
   
-  # Last modified September 3 October 2023 by Jim Ramsay
-  
-  n <- length(WfdList)
-
   #  --------------------------------------------------------------------------
   #               The arguments with defaults for debugging purposes
   #  ------------------------------------------------------------------------
-
-  # binctr=NULL 
-  # data_point=FALSE 
-  # ci=FALSE 
-  # plotType="S" 
-  # Wrng=c(05) 
+  
+  # binctr=NULL
+  # data_point=FALSE
+  # ci=FALSE
+  # plotType="S"
+  # Wrng=c(05)
   # DWrng=c(-0.2, 0.2)
-  # plotindex=1:n 
-  # titlestr=NULL 
-  # scopevec=rep(0,length(plotindex))  
-  # plotTitle=TRUE 
-  # autoplot=FALSE 
-  # plotMissing=TRUE 
-  # plotrange=c(min(scrfine),max(scrfine)) 
-  # shaderange=NULL  
-  # ttlsz=NULL 
-  # axisttl=NULL 
-  # axistxt=NULL 
-  # lgdlab=NULL 
+  # plotindex=1:n
+  # titlestr=NULL
+  # scopevec=rep(0,length(plotindex))
+  # plotTitle=TRUE
+  # autoplot=FALSE
+  # plotMissing=TRUE
+  # plotrange=c(min(scrfine),max(scrfine))
+  # shaderange=NULL
+  # ttlsz=NULL
+  # axisttl=NULL
+  # axistxt=NULL
+  # lgdlab=NULL
   # lgdpos="bottom"
-    
+  
+  # Last modified September 12 October 2023 by Jim Ramsay
+  
+  n <- length(WfdList)
+
   #  --------------------------------------------------------------------------
   #                  Define background shading in plots
   #  --------------------------------------------------------------------------
@@ -111,49 +111,62 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
   #               Loop through items to be plotted
   #  --------------------------------------------------------------------------
   
+  # print(data_point)
+  nplot <- length(plotindex)
   # print("invoke plotCore")
   # print(scopevec)
   #   ---------  Invoke plotCore that actually controls the plotting. ----------
   plotlist <- list()
-  if (autoplot) {
+  
+  #  ---------------------  autoplot && nplot > 1  --------------------
+  
+  if (autoplot && nplot > 1) {
     #  ------------------  plot all items in a batch. -----------------
-    for (i in plotindex) {
+    for (iplot in plotindex) {
+      scopei <- scopevec[iplot]
       # print("autoplot")
-      # print(scopevec)
       p <- plotCore(iplot, scrfine, WfdList, dataList, Qvec, 
                   binctr, data_point, ci, plotType, Wrng, DWrng, 
-                  titlestr, scopevec[iplot], plotTitle, plotMissing, 
+                  titlestr, scopei, plotTitle, plotMissing, 
                   plotrange, shaderangeV, ttlsz, axisttl, axistxt,
                   lgdlab, lgdpos) 
       print(p)
       plotlist[[iplot]] <- p
     }
   } 
-  if (length(plotindex) == 1) {
+  
+  #  ---------------------  length(plotindex) == 1  --------------------
+
+    if (length(plotindex) == 1) {
       #  ------------------  plot all items in a batch. -----------------
         iplot <- plotindex
-        scopevec <- as.vector(scopevec)
-        # print(" length(plotindex == 1 cases")
+        # print(" length(plotindex) == 1")
+        # print(plotindex)
+        # print(data_point)
         # print(scopevec)
+        scopei <- scopevec
         p <- plotCore(iplot, scrfine, WfdList, dataList, Qvec, 
                       binctr, data_point, ci, plotType, Wrng, DWrng, 
-                      titlestr, scopevec, plotTitle, plotMissing, 
+                      titlestr, scopei, plotTitle, plotMissing, 
                       plotrange, shaderangeV, ttlsz, axisttl, axistxt,
                       lgdlab, lgdpos) 
         print(p)
         plotlist[[1]] <- p
   } 
-  if (!(autoplot || length(plotindex == 1))) {
+  
+  #  ---------------------  !autoplot && nplot > 1  --------------------
+
+    if (!autoplot && nplot > 1) {
     #  -------------  Usual case of user control of plotting  -----------
-    # # print("usual case")
+    # print("usual case")
     nplot <- length(plotindex)
     jplot <- 1
     iplot <- plotindex[jplot]
     while (jplot >= 1 & jplot <= nplot) {
-      # # print("plotCore with scope")
+      scopei <- scopevec[iplot]
       p <- plotCore(iplot, scrfine, WfdList, dataList, Qvec, 
                     binctr, data_point, ci, plotType, Wrng, DWrng, 
-                    titlestr, scopevec[iplot], plotTitle, plotMissing, 
+                    titlestr, scopei, plotTitle, plotMissing, 
                     plotrange, shaderangeV, ttlsz, axisttl, axistxt,
                     lgdlab, lgdpos)  
       print(p)
@@ -169,7 +182,7 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
         if (n1 == "N" | n1 == "n" | n1 == "") {
           jplot <- jplot + 1
           iplot <- plotindex[jplot]
-        } else 
+        } else {
           if (n1 == "P" | n1 == "p") {
             jplot <- jplot - 1
             iplot <- plotindex[jplot]
@@ -180,30 +193,35 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
               iplot <- plotindex[jplot]
             } else {
               break
-            }
+            } 
           }
-        } else {
+        }
+      } else {
         break
       }
       gc() # to  free up memory from the previous run
-    }
-  } # end iplot
+    } 
+    
+  } # end plotting
   
   return(plotlist)
+  
 }
 
 #. ----------------------------------------------------------------------------
 
-plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec, 
-                       binctr, data_point, ci, plotType, Wrng, DWrng, 
-                       titlestr, scopeveci, plotTitle, plotMissing, 
-                       plotrange, shaderange, ttlsz, axisttl, axistxt,
-                       lgdlab, lgdpos) {
+plotCore <- function(iplot, scrfine, WfdList, dataList, Qvec, 
+                     binctr, data_point, ci, plotType, Wrng, DWrng, 
+                     titlestr, scopei, plotTitle, plotMissing, 
+                     plotrange, shaderange, ttlsz, axisttl, axistxt,
+                     lgdlab, lgdpos) {
   
-  # Last modified 3 October 2023 by Jim Ramsay
+  # Last modified 12 October 2023 by Jim Ramsay
   
   #  obtain option labels
   
+  # print("in plotCore")
+  # print(data_point)
   optionList <- dataList$optList 
   
   #  obtain WfdList information for this plot
@@ -275,39 +293,39 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
       if (!is.null(titlestr)) {
         # a scale title is supplied
         # print("titlestr")
-        if (!(scopeveci == 0)) {
+        if (scopei != 0) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste(titlestr,         ' ',iplot,': ',itemStri,' ',"scope ",
-                          round(scopeveci,1),sep="")
+                          round(scopei,1),sep="")
         } else {
           # print("no scope")
           # scopevec is missing
           ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,' ',"scope ",
-                          round(scopeveci,1),sep="")
+                          round(scopei,1),sep="")
         }
       } else {
         # print("no itemstr")
-        if (!(scopeveci == 0)) {
+        if (!(scopei == 0)) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste(titlestr,         ' ',iplot,': ',"scope ",
-                          round(scopeveci,1),sep="")
+                          round(scopei,1),sep="")
         } else {
           # print("no scope")
           # scopevec is missing
           ttllab <- paste(titlestr,' ',iplot, sep="")
         }
       }
-    } else {
+    } else 
       if (!is.null(titlestr)) {
         # a scale title is supplied
         # print("titlestr")
-        if (!(scopeveci == 0)) {
+        if (!(scopei == 0)) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste(titlestr," item ",iplot,": ","scope ",
-                          round(scopeveci,1),sep="")
+                          round(scopei,1),sep="")
         } else {
           # print("no scope")
           # scopevec is missing
@@ -315,18 +333,18 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
         }
       } else {
         # print("no titlestr")
-        # print(scopeveci)
-        if (!(scopeveci == 0)) {
+        # print(scopei)
+        if (!(scopei == 0)) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste("item",iplot,': ',"scope ",
-                          round(scopeveci,1),sep="")
+                          round(scopei,1))
         } else {
           # print("no scope")
           # scopevec is missing
           ttllab <- paste("item",iplot)
         }
-      }
+      
     }
   } else {
     # don't plot a title
@@ -365,6 +383,7 @@ plotCore   <- function(iplot, scrfine, WfdList, dataList, Qvec,
                                 lgdlab, lgdpos)
     } else if (plotType[itype] == "S" || plotType[itype] == "W") {
       # surprisal
+      # print("invoke plotICC with surprisal")
       ylabel <- paste("Surprisal (",Mi,"-bits)",sep="")
       pList[[itype]] <- plotICC(Mi, scrfine, Wfitfinei, Qvec, keyi,
                                 binctr, Wbini, WStdErr, Wrng, 0, 
@@ -406,7 +425,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
                       lgdlab, lgdpos)
 {
   # Plot a single ICC plot
-  
+  # print("in plotICC")
   # Last modified 27 April 2023 by Juan Li
   value    <- 0
   variable <- 0
@@ -430,7 +449,8 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
   ymax_r <- NULL
   
   if (!is.null(keyi)) {
-    
+    # print("key is not null")
+    # print(keyi)
     #  ---------------------------------------------------------------------
     #       Plot probability curve(s) for multiple choice test items
     #  ---------------------------------------------------------------------
@@ -457,7 +477,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
       ggplot2::scale_colour_hue(name="Wrong")
     
   } else {
-    
+    # print("key null")
     #  ---------------------------------------------------------------------
     #             Plot probability curves for scale items
     #  ---------------------------------------------------------------------

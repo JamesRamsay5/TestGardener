@@ -144,14 +144,20 @@ option characteristic curves.
 WfdList  <- Quant_13B_problem_parList$WfdList
 Qvec     <- Quant_13B_problem_parList$Qvec
 binctr   <- Quant_13B_problem_parList$binctr
-titlestr <- NULL
-#  plot the curves for the first question
-scrfine <- seq(0,100,len=101)
+titlestr <- "SweSAT_13B"
+#  plot the curves for the first question over the score index
 oldpar <- par(no.readonly=TRUE)
 indfine <- seq(0,100,len=101)
 ICC.plot(indfine, WfdList, Quant_13B_problem_dataList, Qvec, binctr, 
-         plotType = c("S", "P"), plotindex=6)
+         plotType = c("S", "P"), plotindex=1)
+#  plot the curves for the first question over test information
+arclengthvec <- Quant_13B_problem_infoList$arclengthvec
+Qvec_al      <- Quant_13B_problem_infoList$Qvec
+binctr_al    <- Quant_13B_problem_infoList$binctr
+ICC.plot(arclengthvec, WfdList, Quant_13B_problem_dataList, Qvec_al, binctr_al, 
+         plotType = c("S", "P"), plotindex=1)
 par(oldpar)
+
 #  Example 2.  Display the item probability and surprisal curves for the 
 # Symptom Distress Scale with 13 items and 473 respondents.
 # Proceed as above changing "Quant" to "SDS"
