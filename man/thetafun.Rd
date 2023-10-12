@@ -34,16 +34,16 @@ are printed for each iteration.
     computed during the analysis.
     The named list in each member contains these objects:
     \itemize{
-      \item{Wfd:} {A functional data object containing the \code{M} 
+      \item{Wfd: }{A functional data object containing the \code{M} 
         surprisal curves for a question.}
-      \item{M:} {The number of options.}
-      \item{Pbin:} {A matrix containing proportions at each bin.}
-      \item{Wbin:} {A matrix containing surprisal values at each bin.}
-      \item{Pmatfine:} {A matrix of probabilities over a fine mesh.}
-      \item{Wmatfine:} {A matrix of surprisal values over a fine mesh.}
-      \item{DWmatfine:} {A matrix of the values of the first derivative of 
+      \item{M: }{The number of options.}
+      \item{Pbin: }{A matrix containing proportions at each bin.}
+      \item{Wbin: }{A matrix containing surprisal values at each bin.}
+      \item{Pmatfine: }{A matrix of probabilities over a fine mesh.}
+      \item{Wmatfine: }{A matrix of surprisal values over a fine mesh.}
+      \item{DWmatfine: }{A matrix of the values of the first derivative of 
         surprisal curves over fine mesh.}
-      \item{D2Wmatfine:} {A matrix of the values of the second derivative of 
+      \item{D2Wmatfine: }{A matrix of the values of the second derivative of 
         surprisal curves over fine mesh.}
     }
   }
@@ -58,12 +58,12 @@ are printed for each iteration.
 }
 \value{
 A named list with these members:
-  \describe{
-    \item{theta_out:}{A vector of optimized score index value.} 
-    \item{Hval:}{The negative log likelihood criterion.}
-    \item{DHval:}{The first derivative of the negative likelihood.} 
-    \item{D2Hval:}{The second derivative of the negative likelihood.} 
-    \item{iter:}{The number iterations used.}
+  \itemize{
+    \item{theta_out: }{A vector of optimized score index value.} 
+    \item{Hval: }{The negative log likelihood criterion.}
+    \item{DHval: }{The first derivative of the negative likelihood.} 
+    \item{D2Hval: }{The second derivative of the negative likelihood.} 
+    \item{iter: }{The number iterations used.}
   }
 }
 \references{

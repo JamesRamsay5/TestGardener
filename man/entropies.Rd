@@ -4,12 +4,12 @@
 Entropy measures of inter-item dependency
 }
 \description{
-Entropy $I_1$ is a scalar measure of how much informationn is required to predict 
+Entropy \eqn{I_1} is a scalar measure of how much information is required to predict 
 the outcome of a choice number 1 exactly, and consequently is a measure of item effectiveness suitable for multiple choice tests and rating scales.  
-Joint entropy $J_{1,2$} is a scalar measure of the cross-product of multinomial 
-vectors 1 and 2. Mutual entropy $I_{1,2} = I_1 + I_2 - J_{1,2}$ is a measure 
+Joint entropy \eqn{J_{1,2}} is a scalar measure of the cross-product of multinomial 
+vectors 1 and 2. Mutual entropy \eqn{I_{1,2} = I_1 + I_2 - J_{1,2}} is a measure 
 of the co-dependency of items 1 and 2, and thus the analogue of the negative
-log of a squared correlation $R^2$.  this function computes all four types
+log of a squared correlation \eqn{R^2}.  this function computes all four types
 of entropies for two specificed items.
 }
 \usage{
@@ -27,11 +27,11 @@ entropies(theta, m, n, U, noption)
 \value{
 A named list object containing objects produced from analyzing the simulations,
 one set for each simulation:
-  \describe{
-    \item{I_m:}{The entropy of item m.}
-    \item{I_n:}{The entropy of item n.}
-    \item{J_nm:}{The joint entropy of items m and n.}
-    \item{I_nm:}{The mutual entropy of items m and n.}
+  \itemize{
+    \item{I_m: }{The entropy of item m.}
+    \item{I_n: }{The entropy of item n.}
+    \item{J_nm: }{The joint entropy of items m and n.}
+    \item{I_nm: }{The mutual entropy of items m and n.}
   }
 }
 \references{
