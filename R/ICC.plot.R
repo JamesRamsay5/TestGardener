@@ -1,5 +1,5 @@
 ICC.plot <- function(scrfine, WfdList, dataList, Qvec, 
-                     binctr=NULL, data_point=FALSE, ci=FALSE, 
+                     binctr, data_point=FALSE, ci=FALSE, 
                      plotType="S", Wrng=c(0,5), DWrng=c(-0.2, 0.2),
                      plotindex=1:n, 
                      titlestr=NULL, scopevec=rep(0,length(plotindex)),  
@@ -74,7 +74,7 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
   # lgdlab=NULL
   # lgdpos="bottom"
   
-  # Last modified September 12 October 2023 by Jim Ramsay
+  # Last modified September 13 October 2023 by Jim Ramsay
   
   n <- length(WfdList)
 
@@ -144,7 +144,7 @@ ICC.plot <- function(scrfine, WfdList, dataList, Qvec,
         # print(plotindex)
         # print(data_point)
         # print(scopevec)
-        scopei <- scopevec
+        scopei <- scopevec[iplot]
         p <- plotCore(iplot, scrfine, WfdList, dataList, Qvec, 
                       binctr, data_point, ci, plotType, Wrng, DWrng, 
                       titlestr, scopei, plotTitle, plotMissing, 
@@ -216,7 +216,7 @@ plotCore <- function(iplot, scrfine, WfdList, dataList, Qvec,
                      plotrange, shaderange, ttlsz, axisttl, axistxt,
                      lgdlab, lgdpos) {
   
-  # Last modified 12 October 2023 by Jim Ramsay
+  # Last modified 13 October 2023 by Jim Ramsay
   
   #  obtain option labels
   
@@ -301,7 +301,7 @@ plotCore <- function(iplot, scrfine, WfdList, dataList, Qvec,
         } else {
           # print("no scope")
           # scopevec is missing
-          ttllab <- paste(dataList$titlestr,' ',iplot,': ',itemStri,' ',"scope ",
+          ttllab <- paste(titlestr,' ',iplot,': ',itemStri,' ',"scope ",
                           round(scopei,1),sep="")
         }
       } else {
@@ -343,8 +343,7 @@ plotCore <- function(iplot, scrfine, WfdList, dataList, Qvec,
           # print("no scope")
           # scopevec is missing
           ttllab <- paste("item",iplot)
-        }
-      
+      }
     }
   } else {
     # don't plot a title
