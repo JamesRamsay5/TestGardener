@@ -4,7 +4,7 @@
        items.}
 \usage{
   ICC.plot(scrfine, WfdList, dataList, Qvec, 
-           binctr = NULL, data_point = FALSE, ci = FALSE, 
+           binctr, data_point = FALSE, ci = FALSE, 
            plotType="S", Wrng=c(0,5), DWrng=c(-0.2, 0.2), plotindex=1:n, 
            titlestr = NULL, scopevec = rep(0, length(plotindex)),  
            plotTitle = TRUE,autoplot = FALSE, plotMissing = TRUE, 
