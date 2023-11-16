@@ -7,161 +7,75 @@ library(TestGardener)
 
 titlestr  <- "Symptom Distress Scale"
 
-U         <- scan("SDS_U.txt", "o") # used from TestGardener/R
-U         <- matrix(U,473,13,byrow=TRUE)
+chcevec <- as.integer(scan("data/SDS_chcemat.txt", "o")) # used from TestGardener/R
+chcemat <- matrix(chcevec,473,13,byrow=TRUE)
 
-# U         <- U[,2]
-# N         <- length(U) # Number of examinees
-# Umat      <- as.integer(unlist(stringr::str_split(U,"")))
-# n         <- length(Umat)/N # Number of items
-# U         <- matrix(Umat,N,n,byrow=TRUE)
+N <- nrow(chcemat)
+n <- ncol(chcemat)
 
 key     <- NULL
 
-noption <- matrix(5,n,1)
+noption <- rep(5,n)
 
 # Change the coding of invalid responses.
-for (i in 1:n)
-{
-  if (any(U[,i] > noption[i]))
+for (i in 1:n) {
+  if (any(chcemat[,i] > noption[i]))
   {
     noption[i]  <- noption[i] + 1 # Add one option for invalid responses
-    U[U[,i] >= noption[i],i] <- noption[i]
+    chcemat[chcemat[,i] >= noption[i],i] <- noption[i]
   }
 }
 
 # summary count for each option
-for (i in 1:n)
-{
+for (i in 1:n) {
   print(paste("Item: ",i,sep=""))
-  for (m in 1:noption[i])
-  {
-    print(paste("Option: ",m," N= ",sum(U[,i]==m),sep=""))
+  for (m in 1:noption[i]) {
+    print(paste("Option: ",m," N= ",sum(chcemat[,i]==m),sep=""))
   }
 }
 
 # --------- Define the option score values for each item ---------
 
-ScoreList <- list() # option scores
+ScoreList <- vector("list", n) # option scores
 for (item in 1:n){
   scorei <- c(0:4,0)
   ScoreList[[item]] <- scorei
 }
 
-optList <- list(itemLab=NULL, optLab=NULL, optScr=ScoreList)
+TGresult <- TGanalysis(chcemat, scoreList, noption, 
+                       NumBasis=4, ncycle=10, verbose=TRUE)
 
-# ----------------  Initialization Steps  ------------------------
+SDS_dataList <- TGresult$dataList
+SDS_parmList <- TGresult$parmList
+SDS_infoList <- TGresult$infoList
 
-SDS_dataList <- make.dataList(U, key, optList, titlestr=titlestr)
+#  save this list object in the data folder 5 May 2023
 
-#  save this list object in the data folder
+save(SDS_dataList, 
+     file="../TestGardener/data/SDS_dataList.rda") 
+load(file="../TestGardener/data/SDS_dataList.rda") 
 
-save(SDS_dataList, file="data/SDS_dataList.rda")
-load(file="data/SDS_dataList.rda")
+save(SDS_parmList, 
+     file="../TestGardener/data/SDS_parmList.rda") 
+load(file="../TestGardener/data/SDS_parmList.rda") 
 
-#  --------- Set initial values that are required in the later analysis --------- 
+save(SDS_infoList, 
+     file="../TestGardener/data/SDS_infoList.rda")  
+load(file="../TestGardener/data/SDS_infoList.rda")
 
-#  compute the initial option surprisal curves using the 
-#  percentage ranks as initial estimates of theta
+SfdList    <- SDS_parmList$SfdList
+Qvec       <- SDS_parmList$Qvec
+binctr     <- SDS_parmList$binctr
+index      <- SDS_parmList$index
+Hval       <- SDS_parmList$Hval
+DHval      <- SDS_parmList$DHval
+D2Hval     <- SDS_parmList$D2Hval
 
-theta     <- SDS_dataList$percntrnk
-thetaQnt  <- SDS_dataList$thetaQnt
-
-WfdResult <- Wbinsmth(theta, SDS_dataList)
-
-#  Plot the initial option proability and surprisal curves
-
-WfdList <- WfdResult$WfdList
-binctr  <- WfdResult$aves
-Qvec    <- c(5,25,50,75,95)
-
-indfine   <- seq(0,100,len=101)
-plotindex <- 1:n
-plotrange <- c(0,100)
-
-Wbinsmth.plot(indfine, plotindex, plotrange, binctr, Qvec, Quant_dataList, WfdList, 
-              Wrng=c(0,2.5))
-ICC.plot(indfine, WfdList, SDS_dataList, Qvec, binctr,  Wrng=c(0,2.5))
-
-#  re-display the curves for the first scale item
-
-print(plot_list[[1]])
-
-# ---------------  Optimal scoring: cycle of smoothing/theta estimation  ------------
-
-#  Set number of cycles and the cell array to containing the parameter
-
-ncycle=20
-
-#  ----------------------------------------------------------------------------
-#                      Proceed through the cycles
-#  ----------------------------------------------------------------------------
-
-AnalyzeResult <- Analyze(theta, thetaQnt, SDS_dataList, ncycle, itdisp=FALSE) 
-
-parList   <- AnalyzeResult$parList
-meanHsave <- AnalyzeResult$meanHsave
-
-#  ----------------------------------------------------------------------------
-#              Plot meanHsave and choose cycle for plotting
-#  ----------------------------------------------------------------------------
-
-cycleno <- 1:ncycle
-par(mfrow=c(1,1))
-plot(cycleno,meanHsave, type="b", lwd=2, xlab="Cycle Number")
-
-#  select cycle for plotting
-
-icycle <- 20
-
-SDS_parList  <- parList[[icycle]]
-
-#  save this list object in the data folder
-
-save(SDS_parList, file="data/SDS_parList.rda")  #  17 May 2022
-load(file="data/SDS_parList.rda")  
-
-WfdList    <- SDS_parList$WfdList
-Qvec       <- SDS_parList$Qvec
-binctr     <- SDS_parList$binctr
-theta      <- SDS_parList$theta
-
-#  ----------------------------------------------------------------------------
-#                   Compute the arc length or information measure 
-#  ----------------------------------------------------------------------------
-
-# A variety of useful objects related to the test info manifold
-# are computed and returned in a struct object infoStr
-
-SDS_infoList <- theta2arclen(theta, Qvec, WfdList)  # saved 6 May 2022
-
-save(SDS_infoList, file="data/SDS_infoList.rda")  # 17 May 2022
-load(file="SDS_infoList.rda")
-
-#  The length of the test manifold
-arclength     <- SDS_infoList$arclength
-#  The log derivative fd object for calculating arc length values from 
-#  thetavalues
-Wfd_theta     <- SDS_infoList$Wfd_theta
-#  indefinite integral of arc length values corresponding to 
-#  equally spaced theta values
-arclengthvec  <- SDS_infoList$arclengthvec
-#  The N arc length values corresponding to the N estimated score indes
-#  theta values
-theta_al      <- SDS_infoList$theta_al
-#  The arc length values for the five marker percentages
-Qvec_al       <- SDS_infoList$Qvec_al
-#  The arc length values for the bin centers
-binctr_al     <- SDS_infoList$binctr_al
-#  The log derivative fd object for calculating theta values from 
-#  arclength values
-Wfd_info      <- SDS_infoList$Wfd_info
-#  101 score index values corresponding to 101 equally spaced arc length
-#  values
-thetavec      <- SDS_infoList$thetavec
-#  The dimension of the overspace within which the test info manifold
-#  is found.
-Wdim          <- SDS_infoList$Wdim
+infoSurp    <- SDS_infoList$infoSurp
+infoSurpvec <- SDS_infoList$infoSurpvec
+scopevec    <- SDS_infoList$scopevec
+Qinfovec    <- SDS_infoList$Qinfovec
+bininfoctr  <- SDS_infoList$bininfoctr
 
 #  ----------------------------------------------------------------------------
 #                   Plot surprisal curves for each test question
@@ -169,24 +83,24 @@ Wdim          <- SDS_infoList$Wdim
 
 #  plot both the probability and surprisal curves along with data points
 
-#  over score index theta
+#  over score index index
 
 indfine   <- seq(0,100,len=101)
-ICC.plot(indfine, WfdList, SDS_dataList, Qvec, binctr,  Wrng=c(0,2.5))
+ICC_plot(indfine, SfdList, SDS_dataList, Qvec, binctr,  Srng=c(0,2.5))
 
-#  over arclength or information
+#  over infoSurp or information
 
-ICC.plot(arclengthvec, WfdList, SDS_dataList, Qvec_al, binctr_al,  
-         Wrng=c(0,2.5))
+ICC_plot(infoSurpvec, SfdList, SDS_dataList, Qinfovec, bininfoctr,  
+         data_point=TRUE, plotType=c("P", "S"), Srng=c(0,2.5))
 
 #  ----------------------------------------------------------------------------
-#                         Plot density of theta
+#                         Plot density of index
 #  ----------------------------------------------------------------------------
 
 ttllab     <- paste(titlestr,": percent rank", sep="")
-edges      <- c(0,100)
-theta_in   <- theta[0 < theta & theta < 100]
-indden10   <- scoreDensity(theta_in, edges, 15, ttlstr=ttllab)
+sccrrng    <- c(0,100)
+index_int  <- index[0 < index & index < 100]
+indden10   <- scoreDensity(index_int, scrrng=c(0,37), ttlstr=ttllab)
 print(indden10)
 
 #  ----------------------------------------------------------------------------
@@ -194,70 +108,86 @@ print(indden10)
 #      Plot expected test scores and expected test score over mesh
 #  ----------------------------------------------------------------------------
 
-mu <- testscore(theta, WfdList, optList)
+muvec <- mu(index, SfdList, SDS_dataList$scoreList)
 ttllab <- paste(titlestr,": expected score", sep="")
 scrrng <- c(0,37)
 muden  <- scoreDensity(mu, scrrng, ttlstr=ttllab) 
 print(muden)
 
-#  compute expected score for each value in the fine mesh of theta values
+#  compute expected score for each value in the fine mesh of index values
 
 indfine <- seq(0,100,len=101)
-mufine  <- testscore(indfine, WfdList, optList)
-mu.plot(mufine, SDS_dataList$scrrng, ttllab)
+mufine  <- testscore(indfine, SfdList, optList)
+mu_plot(mufine, SDS_dataList$scrrng, ttllab)
 
 #  ----------------------------------------------------------------------------
-#         Compute arc length over a fine mesh of theta values and plot
+#         Compute arc length over a fine mesh of index values and plot
 #  ----------------------------------------------------------------------------
 
 #  print length of the test information curve
 
-print(paste("Arc length =", round(arclength,2)))
+print(paste("Arc length =", round(infoSurp,2)))
 
 #  plot arc length over fine mesh
 
-ArcLength.plot(arclength, arclengthvec, titlestr)
+Scope_plot(infoSurp, infoSurpvec, titlestr)
 
 #  ----------------------------------------------------------------------------
-#         plot the distribution of score index values theta 
+#         plot the distribution of score index values index 
 #  ----------------------------------------------------------------------------
 
 #  Use a histogram to see fine detail
 
-hist(theta,51)
+hist(index,51)
 
 #  Plot the probability density function as a smooth curve along with
 #  points indicating boundary proportions
 
-density_plot(theta, c(0,100), Qvec, xlabstr="Score index", 
+density_plot(index, c(0,100), Qvec, xlabstr="Score index", 
              titlestr="SDS Theta Density",  
              scrnbasis=11, nfine=101)
 
 #  ----------------------------------------------------------------------------
-#         plot the distribution of arclength or information
+#         plot the distribution of infoSurp or information
 #  ----------------------------------------------------------------------------
 
 #  Use a histogram to see fine detail
 
-hist(theta_al,51)
+hist(infoSurpvec,51)
 
 #  Plot the probability density function as a smooth curve along with
 #  points indicating boundary proportions
 
-density_plot(theta_al, c(0,arclength), Qvec_al, xlabstr="Arclength", 
+density_plot(infoSurpvec, c(0,infoSurp), Qinfovec, xlabstr="Arclength", 
              titlestr="SDS Info Density",  
              scrnbasis=15, nfine=101)
 
 #  ----------------------------------------------------------------------------
 #  Display test effort curve projected into its first two principal components
 #  ----------------------------------------------------------------------------
+#  Perform the singular value decomposition of the curve trajectory
 
-# nharm=2
-Result <- Wpca.plot(arclength, WfdList, SDS_dataList$Wdim, titlestr=titlestr)
+ReturnPca3 <- Spca(SfdList, nharm=3, rotate=FALSE)
 
-# nharm=3
-Result <- Wpca.plot(arclength, WfdList, SDS_dataList$Wdim, 3, dodge = 1.005, 
-                    titlestr=titlestr)
+#  display the proportiions of variation and their sum
+
+print(round(100*ReturnPca3$varpropvarmx,1))
+
+#  96.5%  2.4%  0.6%
+
+print(round(sum(100*ReturnPca3$varpropvarmx,1)))
+
+#  100.0%
+
+#  display the plot 
+
+titlestr <- paste("SDS scale =", round(infoSurp,1),"(3-bits)")
+harmvarmxfd <- ReturnPca3$harmvarmxfd
+
+
+png("figs/ScaleInfo.png")
+Spca_plot(harmvarmxfd, nharm=3, titlestr)
+dev.off()
 
 #  ----------------------------------------------------------------------------
 #                          Display sensitivity curves
@@ -266,52 +196,52 @@ Result <- Wpca.plot(arclength, WfdList, SDS_dataList$Wdim, 3, dodge = 1.005,
 #  This code needs to put in a legend and indication of right answer if 
 #  scoring is multiple choice
 
-#  over score index theta
+#  over score index index
 
-Sensitivity.plot(indfine, WfdList, Qvec, SDS_dataList, 
+Sensitivity_plot(indfine, SfdList, Qvec, SDS_dataList, 
                  titlestr=titlestr, plotindex=1:n)
 
-#  over arclength or information
+#  over infoSurp or information
 
-Sensitivity.plot(arclengthvec, WfdList, Qvec_al, SDS_dataList, 
-                 titlestr=titlestr, plotindex=1:n, plotrange=c(0,arclength))
+Sensitivity_plot(infofine, SfdList, Qinfovec, SDS_dataList, 
+                 titlestr=titlestr, plotindex=1:n, plotrange=c(0,infoSurp))
 
 #  ----------------------------------------------------------------------------
 #                          Display power curves
 #  ----------------------------------------------------------------------------
 
-#  over score index theta
+#  over score index index
 
-Power.plot(indfine, WfdList, Qvec, SDS_dataList, plotindex=1:n, height=0.3)
+Power_plot(indfine, SfdList, Qvec, SDS_dataList, plotindex=1:n, height=0.3)
 
-#  over arclength or information
+#  over infoSurp or information
 
-Power.plot(arclengthvec, WfdList, Qvec_al, SDS_dataList, plotindex=1:n, 
-           plotrange=c(0,arclength), height=0.3)
+Power_plot(infoSurpvec, SfdList, Qinfovec, SDS_dataList, plotindex=1:n, 
+           plotrange=c(0,infoSurp), height=0.3)
 
 #  ----------------------------------------------------------------------------
 #                          Display entropy curves
 #  ----------------------------------------------------------------------------
 
-#  over score index theta
+#  over score index index
 
-Entropy.plot(indfine, WfdList, Qvec, SDS_dataList, height=1)
+Entropy_plot(indfine, SfdList, Qvec, SDS_dataList, height=1)
 
-#  over arclength or information
+#  over infoSurp or information
 
-Entropy.plot(arclengthvec, WfdList, Qvec_al, SDS_dataList, plotindex=1:n, 
-             plotrange=c(0,arclength), height=1)
+Entropy_plot(scopevec, SfdList, Qinfovec, SDS_dataList, plotindex=1:n, 
+             plotrange=c(0,infoSurp), height=1)
 
 #  ----------------------------------------------------------------------------
 #                   Display H, DH and D2H curves for selected examinees
 #  ----------------------------------------------------------------------------
 
-Hfuns.plot(theta, WfdList, SDS_dataList$U, plotindex=1:5)
+Ffuns_plot(indfine, index, SfdList, SDS_dataList$chcemat, plotindex=11:20)
 
 #  ----------------------------------------------------------------------------
 #             simulate data samples and analyze simulated samples
 #  ----------------------------------------------------------------------------
 
-simList <- dataSimulation(SDS_dataList, SDS_parList, nsample=500)
-dataSimulation.plot(simList, Qvec)
+simList <- dataSimulation(SDS_dataList, SDS_parmList, nsample=500)
+dataSimulation_plot(simList, Qvec)
 

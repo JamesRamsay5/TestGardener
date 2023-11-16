@@ -30,7 +30,7 @@ ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine,
   # itemStr    ...  Item label string
   # optStr     ...  List vector containing option label strings
   
-  #  Last modified 20 April 2023 by Jim Ramsay
+  #  Last modified 31 October 2023 by Jim Ramsay
   
   #  Set up default binary ICC if there are no arguments
   

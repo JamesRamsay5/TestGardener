@@ -1,21 +1,21 @@
-entropies <- function(theta, m, n, U, noption) {
+entropies <- function(index, m, n, chcemat, noption) {
 #  Compute two single entropies, joint entropy, and mutual entropy
 #  arguments
-#  theta   ... vector of score index values
+#  index   ... vector of score index values
 #  m       ... index of first item
 #  n       ... index of second item
-#  U       ... data matrix containing choice indices
+#  chcemat       ... data matrix containing choice indices
 #  noption ... number of options in an item
   
-#  Last modified 17 October 2022 by Jim
+#  Last modified 2 November 2023 by Jim
   
-  nobs  <- length(theta)
+  nobs  <- length(index)
   nobsinv <- 1/nobs
   #  single entropies
   #  single entropy m
   Hmprob <- matrix(0,noption[m],1)
   for (j in 1:nobs) {
-    mi <- U[j,m]
+    mi <- chcemat[j,m]
     Hmprob[mi] <- Hmprob[mi] + nobsinv
   }
   Hm <- 0
@@ -26,7 +26,7 @@ entropies <- function(theta, m, n, U, noption) {
   #  single entrop n
   Hnprob <- matrix(0,noption[n],1)
   for (j in 1:nobs) {
-    ni <- U[j,n]
+    ni <- chcemat[j,n]
     Hnprob[ni] <- Hnprob[ni] + nobsinv
   }
   Hn <- 0
@@ -37,8 +37,8 @@ entropies <- function(theta, m, n, U, noption) {
   #  joint entropy mn
   Hjointprob <- matrix(0,noption[m],noption[n])
   for (j in 1:nobs) {
-    mi <- U[j,m]
-    ni <- U[j,n]
+    mi <- chcemat[j,m]
+    ni <- chcemat[j,n]
     Hjointprob[mi,ni] <- Hjointprob[mi,ni] + nobsinv
   }
   Hjoint <- 0

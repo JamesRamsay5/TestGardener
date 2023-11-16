@@ -6,7 +6,7 @@ Simulate Choice Data from a Previous Analysis
 \description{
 Simulation of data using a previous analysis requires only an ICC vector and two objects computed by function \code{theta.distn} along with a specification of the number of simulated the simulated persons.}
 \usage{
-SimulateData(nsim, indfine, denscdf, WfdList)
+SimulateData(nsim, indfine, denscdf, SfdList)
 }
 \arguments{
   \item{nsim}{Number of persons having simulated choices.}
@@ -15,7 +15,7 @@ SimulateData(nsim, indfine, denscdf, WfdList)
   \code{denscdf}.}
   \item{denscdf}{The cumulative probability values within [0,1].
     The values have to be discrete, begin with 0 and end with 1.}
-  \item{WfdList}{List vector of length n of list vectors for
+  \item{SfdList}{List vector of length n of list vectors for
         item objects.}
 }
 \details{
@@ -37,7 +37,7 @@ each person's option choice for each item.}
 \author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{dataSimulation}},
-  \code{\link{Usimulate}}
+  \code{\link{chce_simulate}}
 }
 \examples{
 # example code to be set up 

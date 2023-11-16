@@ -12,12 +12,12 @@
   The resulting approximation is converted to a set of surprisal curve values.
 }
 \usage{
-  TestInfo_svd(scrfine, WfdList, itemindex=1:n, nharm=2)
+  TestInfo_svd(scrfine, SfdList, itemindex=1:n, nharm=2)
 }
 \arguments{
   \item{scrfine}{A fine mesh of values over which the image is plotted.  This 
   is usually either the score index theta or the test arc length.}
-  \item{WfdList}{A list vector of length n, the number of test items.  
+  \item{SfdList}{A list vector of length n, the number of test items.  
   Each list in the vector contains values of the surprisal curves for that
   item.}
   \item{itemindex}{A vector of item indices to be used in the approximation.}
@@ -39,13 +39,3 @@ information-based psychometrics. Psych, 2, 347-360.
 http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
-\examples{
-##---- Should be DIRECTLY executable !! ----
-##-- ==>  Define data, use random,
-##--	or do  help(data=index)  for the standard data sets.
-
-## The function is currently defined as
-function (x) 
-{
-  }
-}

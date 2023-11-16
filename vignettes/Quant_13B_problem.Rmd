@@ -2,12 +2,12 @@
 title: "Quant_13B_problem"
 output: html_document
 vignette: >
-  %\VignetteIndexEntry{Quant_13B_problem}
+  %\VignetteIndexEntry{"Quant_13B_problem"}
   %\VignetteEngine{rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, chunk=1,, echo = FALSE}
+```{r, chunk=1, echo = TRUE}
 knitr::opts_chunk$set(collapse=TRUE, comment="#", out.width='//textwidth')
 system.file(package="TestGardener")
 ```
@@ -40,9 +40,9 @@ Here the data required for the analysis are entered.  There are up to five objec
 - a character string for each option choice within each item
 The two essential inputs are the choice data and the right answer key.  
 
-The choice data are an N by n matrix called `U_5000` in the code.  The rows of `U_5000` correspond to examinees and the 80 columns to items or questions.  Each number in `U_5000` is the index of the option or answer that the examinee has chosen using the number 1 to `M` where `M` is the number of answers available for choice.  We call this data structure *index mode* data, in contrast to score data where the number indicate pre-assigned scoring weights.
+The choice data are an N by n matrix called `chcemat_5000` in the code.  The rows of `chcemat_5000` correspond to examinees and the 80 columns to items or questions.  Each number in `chcemat_5000` is the index of the option or answer that the examinee has chosen using the number 1 to `M` where `M` is the number of answers available for choice.  We call this data structure *index mode* data, in contrast to score data where the number indicate pre-assigned scoring weights.
 
-The choice indices may also be stored in a dataframe where all variables are of the factor type. We have avoided this level of sophistication since the only operations on `U_5000` are summing and retrieving values.  Given the potential size of the choice data, it can be worthwhile to place additional restrictions on the structure such being in integer mode.
+The choice indices may also be stored in a dataframe where all variables are of the factor type. We have avoided this level of sophistication since the only operations on `chcemat_5000` are summing and retrieving values.  Given the potential size of the choice data, it can be worthwhile to place additional restrictions on the structure such being in integer mode.
 
 The second data to read in are the indices of the right answers in the vector `key`.  This object is used to assign scores of 0 to wrong answers and 1 to right answers.
 
@@ -56,19 +56,16 @@ titlestr  <- "SweSAT-Q: 24 math analysis items and 1000 examinees"
 
 We aim to keep the code as much as possible close to the base package. We read in the data from a .txt file with 1000 rows and 24 columns.  Each row contains a choice index number with values 1 to 5, and separated by a single blank.
 
-```{r read U, chunk=3}
-U <- as.matrix(read.table("Quant_13B_problem_U.txt"))
-N <- nrow(U) # Number of examinees 
-n <- ncol(U) # Number of items
+```{r read chcemat, chunk=3}
+chcemat <- as.matrix(read.table("Quant_13B_problem_chcemat.txt"))
+N <- nrow(chcemat) # Number of examinees 
+n <- ncol(chcemat) # Number of items
 ```
 
-For variety, we use an alternative strategy to input the 24 right answer keys, which are in a .txt file, but with no spaces between
-numbers.  The stringr() function splits the 24 number into spaced
-values.
+For variety, we use an alternative strategy to input the 24 right answer keys, which are in a .txt file, but with no spaces between numbers.  The stringr() function splits the 24 number into spaced values.
 
 ```{r read key, chunk=4}
-key   <- scan("Quant_13B_problem_key.txt","o")
-key <- as.numeric(unlist(stringr::str_split(key,"")))
+key <- scan("Quant_13B_problem_key.txt",0)
 ```
 
 ##  Setting up the analysis
@@ -84,41 +81,35 @@ noption <- rep(5,n)
 Now we turn to code that sets up objects that are essential to the analysis but that the analyst may want to set up using code rather than inputting.  The first of these is a list vector of length `n` where each member contains a numeric vector of length `M` containing the designed scores assigned to each option.  For multiple choice tests, that is easily done using the following code:
 
 ```{r define option weights, chunk=6}
-ScoreList <- list() # option scores
-for (item in 1:n){
+scoreList <- list() # option scores
+for (item in 1:n) {
   scorei <- rep(0,noption[item])
   scorei[key[item]] <- 1
-  ScoreList[[item]] <- scorei
+  scoreList[[item]] <- scorei
 }
 ```
 
 There is also the possibility of inputting strings for each question and each option within each question.  We won't use this feature in this analysis.
 
-Next, we set up a named list called `optList` that contains `ScoreList` and default values for the item and option strings:
-
-```{r define option labels, chunk=7}
-optList <- list(itemLab=NULL, optLab=NULL, optScr=ScoreList)
-```
-
 We're now finished with the data input and setup phase.  From these objects we have a function `make_dataList` that completes the set up:
 
 ```{r make the dataList object, chunk=8}
-Math_dataList <- TestGardener::make.dataList(U, key, optList)
+Math_dataList <- TestGardener::make_dataList(chcemat, scoreList, noption)
 names(Math_dataList)
 ```
 
-The result is a named list with many members whose values may be required in the analysis phase.  Consult the documentation using `help("make.dataList.R")`.
+The result is a named list with many members whose values may be required in the analysis phase.  Consult the documentation using `help("make_dataList.R")`.
 
 One default option requires a bit of explanation.  Function `make.dataList()` computes sum scores for each examinee, which in the multiple choice case are simply counts of the number of correct answer choices.  The analysis phase does not use these sum scores directly.  Instead, it uses the rank orders of the sum scores (ordered from lowest to highest) divided by `N` and multipled by 100, so that the scores now look like percentages, and we refer to them as "percent ranks."
 
-A problem is that many examinees will get the same rank value if we order these ranks directly.  We can't know whether there might be some source of bias in how these tied ranks are arranged.  For example, suppose male examinees for each rank value are followed by female examinees with that rank value.  We deal with this problem by default by adding a small random normally distributed number to each tied rank that is too small to upset the original rank order.  This within-rank randomization is called "jittering" in the statistics community, and its tends to break up the influence of any source of bias.  This is the default, but can be turned off if desired.
+A problem is that many examinees will get the same rank value if we order these ranks directly. We can't know whether there might be some source of bias in how these tied ranks are arranged.  For example, suppose male examinees for each rank value are followed by female examinees with that rank value.  We deal with this problem by default by adding a small random normally distributed number to each tied rank that is too small to upset the original rank order.  This within-rank randomization is called "jittering" in the statistics community, and its tends to break up the influence of any source of bias.  This is the default, but can be turned off if desired.
 
 These jittered percent ranks are used to provide initial values for a cycled optimization procedure used by TestGardener.
 
 Let's make our first plot a display of the histogram and the probability density function for the sum scores.
 
 ```{r plot a histogram of sum scores, chunk=9, fig.width = 7}
-hist(Math_dataList$scrvec, Math_dataList$scrrng[2], xlab="Sum Score",
+hist(Math_dataList$scrvec, Math_dataList$sumscr_rng[2], xlab="Sum Score",
      main=titlestr)
 ```
 
@@ -128,26 +119,26 @@ The next steps are optional.  The analysis can proceed without them, but the ana
 
 First we compute item response or item characteristic curves for each response within each question.  These curves are historically probability curves, but we much prefer to work with a transformation of probability, "surprisal = - log(probability)," for two reasons: (1) this greatly aids the speed and accuracy of computing the curves since they are positive unbounded values, and (2) surprisal is in fact a measure of information, and as such has the same properties as other scientific measures.  It's unit is the "bit" and what is especially important is that any fixed difference between two bit values means exactly the same thing everywhere on a surprisal curve.
 
-The initial surprisal curves are achieved as follows using the important function `Wbinsmth()`:
+The initial surprisal curves are achieved as follows using the important function `Sbinsmth()`:
 
 ```{r initialize the analysis, chunk=10}
-theta     <- Math_dataList$percntrnk
-thetaQnt  <- Math_dataList$thetaQnt
-WfdResult <- TestGardener::Wbinsmth(theta, Math_dataList)
+index     <- Math_dataList$percntrnk
+indexQnt  <- Math_dataList$indexQnt
+SfdResult <- TestGardener::Sbinsmth(index, Math_dataList)
 ```
 
 One may well want to plot these initial surprisal curves in terms of both probability and surprisal, this is achieved in this way:
 
 ```{r plot initial curves, chunk=11, fig.width = 7}
-WfdList <- WfdResult$WfdList
-binctr  <- WfdResult$aves
+SfdList <- SfdResult$SfdList
+binctr  <- SfdResult$aves
 Qvec    <- c(5,25,50,75,95)
 indfine <- seq(0,100,len=101)
-TestGardener::ICC.plot(indfine, WfdList, Math_dataList, Qvec, binctr,  
-                       Wrng=c(0,5), plotindex=1, plotType="P")
+TestGardener::ICC_plot(indfine, SfdList, Math_dataList, Qvec, binctr,  
+                       Srng=c(0,5), plotindex=1, plotType="P")
 ```
 
-Here Ωand elsewhere we only plot the probability and surprisal curves for the first time in order to allow this vignette to be displayed compactly.  There are comments on how to interpret these plots in the call to function `ICC.plot()` after the analysis step.  
+Here Ωand elsewhere we only plot the probability and surprisal curves for the first time in order to allow this vignette to be displayed compactly.  There are comments on how to interpret these plots in the call to function `ICC_plot()` after the analysis step.  
 
 The bottom plot displays surprisal, the logarithm to the base M of the negative of probability.  Surprisal is a valuable transform of probability.  As the name suggests, when probability approach one, surprisal move close to zero, but probabilities near zero imply surprisals high surprisals.  Surprisal is a measure if information having the "M-bit" as its unit.  Most of us are familiar with the "2-bit", associated with coin tosses.  Surprisal is essentially the number of heads you would have to toss on the average to yield a particular probability.  Probability 0.5 corresponds to 1 "2-bit", and the famous probabilities 0.05 and 0.01 in statistics correspond to 4.3 and 6.1 "2-bits" respectively.  These ideas generalize to "M-sided coins" such as the "6-bit" for a dice.
 
@@ -165,27 +156,27 @@ We first choose a number of cycles that experience indicates is sufficient to ac
 In this case the measure of total fit is the average of the fitting criterion across all examinees.  The fitting criterion for each examinee is the negative of the log of the likelihood, or *maximum likelihood estimation.*  Here we choose 10 cycles.
 
 ```{r set number of cycles, chunk=12}
-ncycle <- 10
+ncycle <- 2
 ```
 
 Here is a brief description of the steps within each cycle
 
 ###  Step 1:  Bin the data, and smooth the binned data to estimate surprisal curves
 
-Before we invoke function `Wbinsmth`, we use the first three lines to define bin boundaries and centres so as to have a roughly equal number of examinees in each bin.  Vector `denscdfi` has already been set up that contains values of the cumulative probability distribution for the percentile ranks at a fine mesh of discrete points.  Bin locations and the locations of the five marker percents in `Qvec` are set up using interpolation.  Surprisal curves are then estimated and the results set up.
+Before we invoke function `Sbinsmth`, we use the first three lines to define bin boundaries and centres so as to have a roughly equal number of examinees in each bin.  Vector `denscdfi` has already been set up that contains values of the cumulative probability distribution for the percentile ranks at a fine mesh of discrete points.  Bin locations and the locations of the five marker percents in `Qvec` are set up using interpolation.  Surprisal curves are then estimated and the results set up.
   
 ###  Step 2:  Compute optimal score index values
 
-Function `thetafun()` estimates examinee percentile values given the curve shapes that we've estimated in Step 1.  The average criterion value is also computed and stored.
+Function `indexfun()` estimates examinee percentile values given the curve shapes that we've estimated in Step 1.  The average criterion value is also computed and stored.
   
 
 ###  Step 3:  Estimate the percentile rank density 
 
-The density that we need is only for those percentile ranks not located at either boundary, function `theta.distn()` only works with these.  The results will be used in the next cycle.
+The density that we need is only for those percentile ranks not located at either boundary, function `index.distn()` only works with these.  The results will be used in the next cycle.
 
 ###  Step 4:  Estimate arc length scores along the test effort curve
 
-The test information curve is the curve in the space of dimension `Wdim` that is defined by the evolution of all the curves jointly as their percentile index values range from 0 to 100%.
+The test information curve is the curve in the space of dimension `Sdim` that is defined by the evolution of all the curves jointly as their percentile index values range from 0 to 100%.
 
 ###  Step 5:  Set up the list object that stores results
 
@@ -193,8 +184,8 @@ All the results generated in this cycle are bundled together in a named list obj
   
 Here is the single command that launches the analysis and prints the cycle numbers:
 
-```{r,chunk=13}  
-AnalyzeResult <- TestGardener::Analyze(theta, thetaQnt, Math_dataList, 
+```{r define list of length ncycle for analysis results,chunk=13}  
+parmListvec <- TestGardener::Analyze(index, indexQnt, Math_dataList, 
                                        ncycle, itdisp=FALSE, verbose=FALSE) 
 ```
 
@@ -204,81 +195,77 @@ want to keep the output compact, and have therefore turned them off.
 The following five lines set up a 10 by 2 matrix containing averages of the fitting criterion values taken over examinees and the arclength over the information curve.  
 
 ```{r set up cycle progress for mean fit and arc length, chunk=14}  
-parList      <- AnalyzeResult$parList
-HCycle <- matrix(0,ncycle,2)
+Fcycle <- matrix(0,ncycle,2)
 for (icycle in 1:ncycle) {
-    HCycle[icycle,1] <- parList[[icycle]]$meanH
-    HCycle[icycle,2] <- parList[[icycle]]$arclength
+    Fcycle[icycle,1] <- parmListvec[[icycle]]$meanF
+    Fcycle[icycle,2] <- parmListvec[[icycle]]$infoSurp
 }
 ```
 
-##  Displaying the results of the analysis cycles
+### Plot `meanF` and 'infoSurp'; and also choose the cycle for plotting
 
-### Plot `meanH` and 'arclength'; and also choose the cycle for plotting
-
-The mean fitting values in `meanH` should decrease, and then level off as we 
+The mean fitting values in `meanF` should decrease, and then level off as we 
 approach optimal estimations of important model objects, such as optimal percent  
-ranks in numeric vector `theta` and optimal surprisal curves in list vector 
-`WfdList`.  Plotting these values as a function of cycle number will allow us to 
+ranks in numeric vector `index` and optimal surprisal curves in list vector 
+`SfdList`.  Plotting these values as a function of cycle number will allow us to 
 a choose best cycle for displaying results.  
 
 ```{r plot the cycle progress of the mean data fit, chunk=15, fig.width = 7}  
-plot(1:ncycle, HCycle[,1], type="b", lwd=2,
-     xlab="Cycle Number", ylab="Mean H")
+plot(1:ncycle, Fcycle[,1], type="b", lwd=2,
+     xlab="Cycle Number", ylab="Mean F")
 ```
 
 Now we do the same thing for the arclengths.
 
-```{r plot the cycle progress of arclength, chunk=16, fig.width = 7}  
-plot(1:ncycle, HCycle[,2], type="b", lwd=2, 
+```{r plot the cycle progress of infoSurp, chunk=16, fig.width = 7}  
+plot(1:ncycle, Fcycle[,2], type="b", lwd=2, 
      xlab="Cycle Number", ylab="Arc Length")
 ```
 
-This plot shows a nice exponential-like decline in the average fitting criterion `meanH` over 10 iterations.  It does look like we could derive a small benefit from a few more iterations, but the changes in what we estimate using super precision in the minimization will be too small to be of any practical interest.  
+This plot shows a nice exponential-like decline in the average fitting criterion `meanF` over 10 iterations.  It does look like we could derive a small benefit from a few more iterations, but the changes in what we estimate using super precision in the minimization will be too small to be of any practical interest.  
 
 The arc length of the information curve increases at each cycle as more and more information captured by the fit to the choice data.
 
 
-###  Setting up the parList objects to be used in further analyses and displays
+###  Setting up the parmList objects to be used in further analyses and displays
 
 Here we choose to use results for the last cycle:
 
-```{r define parList, chunk=17}  
-Math_parListi  <- parList[[ncycle]]
+```{r define parmList, chunk=17}  
+Math_parmListi  <- parmListvec[[ncycle]]
 ```
 
-The list object `Math_parListi` contains a large number of objects, but in our exploration of results, we will only need these results:
+The list object `Math_parmListi` contains a large number of objects, but in our exploration of results, we will only need these results:
 
-```{r output parList objects, chunk=18}  
-WfdList    <- Math_parListi$WfdList
-theta      <- Math_parListi$theta
-Qvec       <- Math_parListi$Qvec
-binctr     <- Math_parListi$binctr
+```{r output parmList objects, chunk=18}  
+SfdList    <- Math_parmListi$SfdList
+index      <- Math_parmListi$index
+Qvec       <- Math_parmListi$Qvec
+binctr     <- Math_parmListi$binctr
 indfine    <- seq(0,100,len=101)
 ```
 
-- `WfdList`: List object of length `n` that contains information about the surprisal and   probability curves 
-- `theta`:  A vector of length N of values of what we call "score index", which are real numbers between 0 and 100.  These values are used for computing various score values such as expected sum scores.
+- `SfdList`: List object of length `n` that contains information about the surprisal and   probability curves 
+- `index`:  A vector of length N of values of what we call "score index", which are real numbers between 0 and 100.  These values are used for computing various score values such as expected sum scores.
 - `Qvec`:  Values within the range 0 to 100 below which these percentages of examinees fall: 5, 25, 50, 75 and 95.
-- `binctr`:  The surprisal curves are estimated by first binning the values in vector `theta` and then using the surprisal values within each bin.  `binctr` contains the values at the centres of the bins.
+- `binctr`:  The surprisal curves are estimated by first binning the values in vector `index` and then using the surprisal values within each bin.  `binctr` contains the values at the centres of the bins.
 
 ###  Compute objects needed for plotting as a function of arc length or information
 
 First we compute the quantities that we will need and same them in a named list:
 
 ```{r define infoList, chunk=19}
-Math_infoList <- TestGardener::theta2arclen(theta, Qvec, WfdList, binctr)
+Math_infoList <- TestGardener::index2info(index, Qvec, SfdList, binctr)
 ```
 
 Then we retrieve these quantities:
 
 ```{r output objects in infoList, chunk=20}
-arclength     <- Math_infoList$arclength
-arclengthvec  <- Math_infoList$arclengthvec
-WfdList_al    <- Math_infoList$arclength
-theta_al      <- Math_infoList$theta_al
-Qvec_al       <- Math_infoList$Qvec_al
-binctr_al     <- Math_infoList$binctr_al
+infoSurp    <- Math_infoList$infoSurp
+infoSurpvec <- Math_infoList$infoSurpvec
+scopevec    <- Math_infoList$scopevec
+Qinfovec    <- Math_infoList$Qinfovec
+bininfoctr  <- Math_infoList$bininfoctr
 ```
 
 ##  Plot the probability density of the score index and of arc length
@@ -287,14 +274,14 @@ The density of the percentile ranks that we initially used will no longer be a f
 This is because examinees tend to cluster at various score levels, no matter how the score is defined.  Certain groups of items will tend to be correctly answered by the middle performance folks and other by only the top performers.  Among the weakest examinees, there will still be a subset of questions that they can handle.  We want to see these clusters emerge.
 
 ```{r plot score index density, chunk=21, fig.width = 7}  
-TestGardener::density_plot(theta, c(0,100), Qvec, xlabstr="Score index", 
+TestGardener::density_plot(index, c(0,100), Qvec, xlabstr="Score index", 
                            titlestr="Theta Density", scrnbasis=15)
 ```
 
 In fact, there are four distinct clusters of score index values below the 75% level.  Within each of these clusters there are strong similarities in examinee's choice patterns, whether right or wrong. We have only plotted score indices which are away from the two boundaries, because there are significant tendencies to have estimated score index values at 0 and 100.
 
-```{r plot arclength density,chunk=22,fig.width = 7}  
-TestGardener::density_plot(theta_al, c(0,arclength), Qvec_al, xlabstr="Arclength", 
+```{r plot infoSurp density,chunk=22,fig.width = 7}  
+TestGardener::density_plot(scopevec, c(0,infoSurp), Qinfovec, xlabstr="Arclength", 
                            titlestr="Arc length Density",  scrnbasis=15)
 ```
 
@@ -304,11 +291,11 @@ Here we just plot the probability and surprisal curves for just the first questi
 illustration.  If argument `plotindex` is omitted, curves for all questions would be plotted.
 The correct answer curves for testing data are plotted as thick blue lines for highlighting, but for rating scale questions, this is omitted.
 
-This plot plots probability and surprisal curves as a function of the score index `theta`:
+This plot plots probability and surprisal curves as a function of the score index `index`:
 
 ```{r plot curves over score index, chunk=23,  fig.width = 7, fig.height = 7}  
-TestGardener::ICC.plot(indfine, WfdList, Math_dataList, Qvec, binctr,  
-                       data_point=TRUE, plotType=c("P", "W"), Wrng=c(0,3), plotindex=1)
+TestGardener::ICC_plot(indfine, SfdList, Math_dataList, Qvec, binctr,  
+                       data_point=TRUE, plotType=c("P", "S"), Srng=c(0,3), plotindex=1)
 ```
 
 Let's make a few observations on what we see in these two plots.
@@ -326,9 +313,9 @@ The dots in the plot are the surprisal values for examinees in each of the 20 bi
 Now let's change the abscissa from the score index to the arclength or information index. We do this because arclength doesn't change if we transform the score index in some way, and also 
 arclength along the information curve has the extremely important metric property that a difference in arc lengths means exactly the same thing everywhere along the arc length interval.
 
-```{r plot curves as functions of arclength, chunk=24, fig.width = 7, fig.height = 5}  
-TestGardener::ICC.plot(arclengthvec, WfdList, Math_dataList, Qvec_al, binctr_al,  
-                       data_point=TRUE, plotType=c("P", "W"), Wrng=c(0,5),            
+```{r plot curves as functions of infoSurp, chunk=24, fig.width = 7, fig.height = 5}  
+TestGardener::ICC_plot(infoSurpvec, SfdList, Math_dataList, Qinfovec, bininfoctr,  
+                       data_point=TRUE, plotType=c("P", "S"), Srng=c(0,4),            
                        plotindex=1)
 ```
 
@@ -336,12 +323,12 @@ What has changed?  We see that now the high performance right side of the plot h
 
 ##  Compute expected test scores and plot their density function for all examinees
 
-The expected score for an examinee are determined by his value `theta` for the question and by the score values assigned by the test designer to each option.  We use a plotting interval defined by the range of the sum scores, but as a rule the density of expected scores is positive only over a shorter interval.
+The expected score for an examinee are determined by his value `index` for the question and by the score values assigned by the test designer to each option.  We use a plotting interval defined by the range of the sum scores, but as a rule the density of expected scores is positive only over a shorter interval.
 
-```{r plot expected score index against arc length, chunk=25}  
-indfine <- seq(0,100,len=101)
-mufine <- TestGardener::testscore(indfine, WfdList, optList)
-TestGardener::mu.plot(mufine, Math_dataList$scrrng, titlestr)
+```{r plot expected score index against arc length, chunk=25, error=TRUE}  
+muvec  <- TestGardener::mu(index, SfdList, Math_dataList$scoreList)
+ttllab <- paste(titlestr,": expected score", sep="")
+muden  <- TestGardener::scoreDensity(muvec, scrrng=c(0,24), ttlstr=ttllab) 
 ```
 
 Note that the bottom 5% examinees get on the average sum scores of about 5, which is 20% of the largest possible score of 24.  This is because, even though they know nearly nothing about math, they can still score right often by just guessing or randomly choosing.
@@ -358,23 +345,23 @@ We have 412 curves simultaneously changing location simultaneously in both proba
 
 What we can study, and use in many ways, is the distance within the curve from its beginning to either any fixed point along it, or to its end.  Thße curve is made especially useful because it can be shown that any smooth warping of the score index continuum will have no impact on the shape of this curve.  Distance along the curve can be measured in bits, and a fixed change in bits has the same meaning at every point in the curve.  The bit is a measure information, and we call this curve the *test information curve.*
 
-The next analysis and plot displays the length of the curve and how it changes relative to the score index theta associated with any point on the curve.
+The next analysis and plot displays the length of the curve and how it changes relative to the score index index associated with any point on the curve.
 
 ```{r plot arc length against score index, chunk=26, fig.width = 7}  
-print(paste("Arc length =", round(arclength,2)))
-TestGardener::ArcLength.plot(arclength, arclengthvec, titlestr)
+print(paste("Scope =", round(infoSurp,2)))
+TestGardener::Scope_plot(infoSurp, infoSurpvec, titlestr)
 ```
 
 The relationship is quite linear, except for some curvature near 0 and 100.  We can say of the top examinees that they acquire nearly 90 2-bits of information represented in the test.  That is, the probability of aceing this test by chance alone is that of tossing 90 heads in a row.  (We convert 5-bits into 2-bits by multiplying 39 by 2.32])
 
 ##  Display test information curve projected into its first three principal components
 
-The test information curve is in principle an object of dimension `Wdim`, but in most cases almost all of its shape can be seen in either two dimensions or three.  Here we display it in two dimensions as defined by a functional principal component analysis.
+The test information curve is in principle an object of dimension `Sdim`, but in most cases almost all of its shape can be seen in either two dimensions or three.  Here we display it in two dimensions as defined by a functional principal component analysis.
 
 Sorry, we are not completing this plot.  We've encountered problems using the the rgl and plotly packages for plotting curves and are working on a fix. (August 21, 2023)
 
-```{r compute and display test information curve, chunk=27, eval=TRUE, fig.width = 7, Result <- TestGardener::Wpca(WfdList, nharm=3, rotate=FALSE)
-Wpca.plot(harmvarmxfd, nharm=3, titlestr)
+```{r compute and display test information curve, chunk=27, eval=TRUE, fig.width = 7, Result <- TestGardener::Spca(SfdList, nharm=3, rotate=FALSE)
+Spca_plot(harmvarmxfd, nharm=3, titlestr)
 print("Percentages of variance for principal components:")
 print(round(100*Result$varpropvarmx,1))
 print("Total percentage of variation:")
@@ -383,16 +370,16 @@ print(round(sum(100*Result$varpropvarmx,1)))
 
 The change in direction of this curve between the 25% and 50% marker points indicates that the information acquired initially is qualitatively different than that mastered at the upper end of the curve.  This seems obvious, since math moves from the concrete to the abstract over a secondary school program.
 
-##  Investigate the status of score index estimate by plotting H(theta) and its derivatives
+##  Investigate the status of score index estimate by plotting F(index) and its derivatives
 
-An optimal fitting criterion for modelling test data should have these features:  (1) at the optimum value of theta fit values at neighbouring values should be larger than the optimum; (2)  the first derivative of the fitting criterion should be zero or very nearly so, and (3)  the second derivative should have a positive value.
+An optimal fitting criterion for modelling test data should have these features:  (1) at the optimum value of index fit values at neighbouring values should be larger than the optimum; (2)  the first derivative of the fitting criterion should be zero or very nearly so, and (3)  the second derivative should have a positive value.
 
 But one should not automatically assume that there is a single unique best score index value that exists for an examinee or a ratings scale respondent.  It's not at all rare that some sets of data display more than one minimum.  After all, a person can know some portion of the information at an expert level but be terribly weak for other types of information.  By tradition we don't like to tell people that there are two or more right answers to the question, "How much do you know?"  But the reality is otherwise, and especially when the amount of data available is modest.
 
-If an estimated score index seems inconsistent with the sum score value or is otherwise suspicious, the function Hfuns.plot() allows us to explore the shape of the fitting function H(theta) as well as that of its second derivative.  
+If an estimated score index seems inconsistent with the sum score value or is otherwise suspicious, the function Ffuns_plot() allows us to explore the shape of the fitting function F(index) as well as that of its second derivative.  
 
 Here we produce these plots for the first examinee.
 
 ```{r plot the first five examinee data fits, chunk=28, eval = TRUE, fig.width = 7}
-TestGardener::Hfuns.plot(indfine, theta, WfdList, U, plotindex=1:5)
+TestGardener::Ffuns_plot(indfine, index, SfdList, chcemat, plotindex=1:5)
 ```

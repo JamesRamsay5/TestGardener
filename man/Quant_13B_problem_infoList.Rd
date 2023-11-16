@@ -21,26 +21,23 @@
 \usage{Quant_13B_problem_infoList}
 \format{A named list containing eight objects.}
 \value{
-  The object \code{Quant_13B_problem_parList} is a named list with these members:
+  The object \code{Quant_13B_problem_parmList} is a named list with these members:
   \describe{
-    \item{arclength:}{The total length of the information domain measured in 
+    \item{infoSurp:}{The total length of the information domain measured in 
     	M-bits, where \code{M } is the number of options for a question.}
-    \item{Wfd.theta:}{The log derivative functional data object defining 
+    \item{Sfd:}{The log derivative functional data object defining 
     	a strictly increasing set of arc length values
         corresponding to set of score index values.}
-    \item{arclengthvec:}{A mesh of equally-spaced values of 
+    \item{infoSurpvec:}{A mesh of equally-spaced values of 
     	indefinite integrals of sum of norms of surprisal derivatives.}
-    \item{theta_al}{The N arc length values corresponding to the N
+    \item{scopevec}{The N arc length values corresponding to the N
     	estimated score index values assigned to N examinees.}
-    \item{Qvec_al:}{The arc length positions corresponding to the marker 
+    \item{Qinfovec:}{The arc length positions corresponding to the marker 
     	percentages 5, 25, 50, 75 and 95.}      
-    \item{Wfd.info:}{The log derivative functional data object defining
-        a strictly increasing set of score index valuescorresponding to 
-        a set of arc length values.}
-    \item{thetavec:}{A vector of score index values resulting from using 
+    \item{index:}{A vector of score index values resulting from using 
     	function \code{monfd} with equally spaced arc length values and 
-        \code{Wfd.info}.}
-    \item{Wdim:}{The dimension of the over space containing the  surprisal 
+        \code{Sfd.info}.}
+    \item{Sdim:}{The dimension of the over space containing the  surprisal 
     	pcurves.}
   }
 }

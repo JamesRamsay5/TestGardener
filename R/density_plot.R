@@ -5,7 +5,7 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   #  curve, and also plots the proportions of score values at both
   #  boundaries as points.  
   #  The score values are typically either the values of the score index 
-  #  values theta or the arclength or information score values.  
+  #  values Sfd or the arclength or information score values.  
   #  Arguments:
   #  SCRVEC   ... A vector of N score values
   #  SCRNG    ... A vector of length 2 containing boundary values
@@ -18,7 +18,7 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   #               the smooth density function.
   #  NFINE    ... The number of plotting points.
   
-  #  Last modified 9 February 2023 by Jim Ramsay
+  #  Last modified 1 November 2023 by Jim Ramsay
   
   #  set default values
   #  get the score values not on the boundaries
@@ -28,7 +28,9 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   #  the density function
   logdensbasis <- create.bspline.basis(scrrng, scrnbasis)    
   #  compute the values of the density function
-  densResults  <- theta.distn(scrdens, logdensbasis)
+  
+  densResults  <- index_distn(scrdens, logdensbasis)
+  
   logdensfd    <- densResults$logdensfd
   C            <- densResults$C
   densfine     <- densResults$pdffine
@@ -38,7 +40,7 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   N_min <- sum(scrvec == scrrng[1])
   pmax  <- max(c(N_min/N, max(densfine),N_max/N)) 
   plot(scrfine, densfine, type="l", lwd=2, ylim=c(0,pmax),
-       xlab=xlabstr, ylab="Density", main=titlestr)
+       xlab=xlabstr, ylab="Density", main=titlestr, cex=4)
   for (k in 1:5) lines(c(Qvec[k],Qvec[k]), c(0,pmax), lty=2)
   points(scrrng[1], N_min/N, pch="o", lwd=2)
   points(scrrng[2], N_max/N, pch="o", lwd=2)

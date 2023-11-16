@@ -1,7 +1,7 @@
 scoreDensity <- function(scrvec, scrrng=c(0,100), ndensbasis=15, 
                          ttlstr=NULL, pltmax=0) {
 
-# Last modified 4 March 2023 by Jim Ramsay
+# Last modified 9 November 2023 by Jim Ramsay
 
   #  define a fine mesh of score values for plotting
   
@@ -12,9 +12,9 @@ scoreDensity <- function(scrvec, scrrng=c(0,100), ndensbasis=15,
   
   logdensbasis <- fda::create.bspline.basis(scrrng, ndensbasis)
 
-  # call theta.distn to get the smooth density function
+  # call index_distn to get the smooth density function
   
-  tdList       <- theta.distn(scrvec, logdensbasis, nfine)
+  tdList       <- index_distn(scrvec, logdensbasis, nfine)
   
   denscdf      <- tdList$cdffine
   logdensfd    <- tdList$logdensfd
@@ -26,9 +26,9 @@ scoreDensity <- function(scrvec, scrrng=c(0,100), ndensbasis=15,
   Qvec         <- pracma::interp1(as.numeric(denscdfi), 
                                   as.numeric(scrfinei), as.numeric(pvec))
   
-  #  plot using thetaPlot below
+  #  plot using indexPlot below
   
-  dens.plot <- thetadensity.plot(scrvec, scrrng, scrfine, densfine, Qvec, 
+  dens.plot <- index_density.plot(scrvec, scrrng, scrfine, densfine, Qvec, 
                                   ttlstr, TRUE, pltmax)
   
   print(dens.plot)
@@ -38,7 +38,7 @@ scoreDensity <- function(scrvec, scrrng=c(0,100), ndensbasis=15,
 
 #  ----------------------------------------------------------------------------
 
-thetadensity.plot <- function(scrvec, scrrng, scrfine, densfine, Qvec, 
+index_density.plot <- function(scrvec, scrrng, scrfine, densfine, Qvec, 
                               ttlstr=NULL, labelwrd = TRUE, pltmax=0) {
   
   # Last modified 9 February 2021 by Jim Ramsay
@@ -50,28 +50,28 @@ thetadensity.plot <- function(scrvec, scrrng, scrfine, densfine, Qvec,
   if (pltmax==0) pltmax <- max(densfine)
   if (labelwrd) {
     label_y  <- pltmax/20
-  } else
-  {
+  } else {
     label_y  <- 0
   }
   # print(label_y)
   
   # Plot proportions
   
-  ..count.. <- NULL
+  # after_stat(count) <- NULL
   df1 <- data.frame(scrvec=scrvec)
   df2 <- data.frame(scrfine=scrfine, densfine=densfine)
   dens.plot <- ggplot2::ggplot(df1, ggplot2::aes(scrvec)) +
     ggplot2::geom_histogram(binwidth = binwidth, color="black", fill=NA, 
-                            ggplot2::aes(y=(..count..)/sum(..count..)), na.rm = TRUE)
+    ggplot2::aes(y=(afterstat(count)/sum(afterstat(count)))), na.rm = TRUE)
   dens.plot <- dens.plot +  
-    ggplot2::geom_line(data=df2, ggplot2::aes(x=scrfine,y=densfine, color="red"), size=2,na.rm = TRUE) +  
+    ggplot2::geom_line(data=df2, ggplot2::aes(x=scrfine,y=densfine, color="red"), 
+                       linewidth=2,na.rm = TRUE) +  
     ggplot2::geom_vline(xintercept = Qvec, linetype = 2) +
     ggplot2::ylim(0,pltmax) +
     ggplot2::xlab("score") +
     ggplot2::ylab("proportion") +
     ggplot2::theme(legend.position = "none",
-          axis.title=ggplot2::element_text(size=16,face="bold")) 
+                 axis.title=ggplot2::element_text(face="bold")) 
   dens.plot <- dens.plot +
     ggplot2::annotate("text", x=Qvec[1], y=label_y, label=" 5%") +
     ggplot2::annotate("text", x=Qvec[2], y=label_y, label="25%") +

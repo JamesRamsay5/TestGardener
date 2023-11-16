@@ -1,17 +1,17 @@
-smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
+smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
                        iterlim=50, dbglev=0) {
-    #  Smooths the relationship of Y to ARGVALS using weights in WTVEC by fitting 
+  #  Smooths the relationship of Y to ARGVALS using weights in STVEC by fitting 
   #     surprisal functions to a set of surprisal transforms of choice 
   #     probabilities, where the surprisal transformation of each probability is 
-  #                      W(p_m) = -log_M (p_m), m=1, ..., M,
-  #     where  W  is a function defined over the same range as ARGVALS.
+  #                      S(p_m) = -log_M (p_m), m=1, ..., M,
+  #     where  S  is a function defined over the same range as ARGVALS.
   #  The fitting criterion is penalized mean squared error:
-  #    PENSSE(Wlambda) <- \sum w_i[y_i - f(x_i)]^2 +
-  #                     \Wlambda * \int [L W(x)]^2 dx
+  #    PENSSE(Slambda) <- \sum w_i[y_i - f(x_i)]^2 +
+  #                     \Slambda * \int [L S(x)]^2 dx
   #  where L is a linear differential operator defined in argument Lfd,
   #  and w_i is a positive weight applied to the observation.
-  #  The function W(x) is expanded by the basis in functional data object
-  #    Wfd.
+  #  The function S(x) is expanded by the basis in functional data object
+  #    Sfd.
   #
   #  This version uses Numerical Recipes function lnsrch
   #
@@ -29,13 +29,13 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   #               via spline functions.  K is the number of basis functions
   #               in the spline expansions, and M is the number of choices
   #               for a particular question in a test or rating scale.
-  #  WFDPAR  ...  A functional parameter or fdPar object.  This object
+  #  SFDPAR  ...  A functional parameter or fdPar object.  This object
   #               contains the specifications for the functional data
   #               object to be estimated by smoothing the data.  
-  #               Note:  WFDPAR is only a container for its 
-  #               functional basis object WBASIS, the penalty matrix WPEN, 
-  #               and the smoothing parameter Wlambda.  A coefficient
-  #               matrix in WFDPAR defined by using a function data object
+  #               Note:  SFDPAR is only a container for its 
+  #               functional basis object SBASIS, the penalty matrix SPEN, 
+  #               and the smoothing parameter Slambda.  A coefficient
+  #               matrix in SFDPAR defined by using a function data object
   #               is discarded, and overwritten by argument BMAT0.
   #  WTVEC   ...  a vector of weights, a vector of N one's by default.
   #  CONV    ...  convergence criterion, 0.0001 by default
@@ -46,7 +46,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   #               enabling this option.
   
   #  Returns are:
-  #  WFD     ...  Functional data object for W.
+  #  SFD     ...  Functional data object for S.
   #               Its coefficient matrix an N by NCURVE (by NVAR) matrix
   #               (or array), depending on whether the functional
   #               observations are univariate or multivariate.
@@ -60,7 +60,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   #  FLIST objects are indexed linear with curves varying inside
   #  variables.
   
-  #  Last modified 14 August 2023 by Jim Ramsay
+  #  Last modified 3 November 2023 by Jim Ramsay
   
   #  check ARGVALS, a vector of length n
   
@@ -79,23 +79,23 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   if (ydim[1] != n) 
       stop("The length of ARGVALS  and the number of rows of Y differ.")
   
-  #  Check WfdPar and extract WBASIS, WNBASIS, Wlambda and WPENALTY.  
+  #  Check SfdPar and extract SBASIS, SNBASIS, Slambda and SPENALTY.  
   #  Note that the coefficient matrix is not used.
   
-  WfdPar   <- fdParcheck(WfdPar,M)
-  Wbasis   <- WfdPar$fd$basis
+  SfdPar   <- fdParcheck(SfdPar,M)
+  Sbasis   <- SfdPar$fd$basis
   
-  Wnbasis  <- Wbasis$nbasis
-  Wlambda  <- WfdPar$lambda
-  Wpenalty <- eval.penalty(Wbasis, WfdPar$Lfd)
+  Snbasis  <- Sbasis$nbasis
+  Slambda  <- SfdPar$lambda
+  Spenalty <- eval.penalty(Sbasis, SfdPar$Lfd)
   
-  #  Check BMAT0, the WNBASIS by M-1 coefficient matrix
+  #  Check BMAT0, the SNBASIS by M-1 coefficient matrix
   
   if (is.null(Bmat0)) stop("BMAT0 is  NULL.")
   
   Bmatdim <- dim(Bmat0)
-  if (Bmatdim[1] != Wnbasis) 
-    stop("The first dimension of BMAT0 is not equal to WNBASIS.")
+  if (Bmatdim[1] != Snbasis) 
+    stop("The first dimension of BMAT0 is not equal to SNBASIS.")
   if (Bmatdim[2] != M-1) 
     stop("The second dimension of BMAT0 is not equal to M - 1.")
   
@@ -116,7 +116,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   
   #  Set up the matrix of basis function values 
   
-  Phimat <- fda::eval.basis(argvals, Wbasis)
+  Phimat <- fda::eval.basis(argvals, Sbasis)
   
   #  check WTVEC
   
@@ -125,11 +125,11 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   
   #  initialize matrix Kmat defining penalty term
   
-  if (Wlambda > 0) 
+  if (Slambda > 0) 
   {
-    Kmat <- Wlambda*Wpenalty
+    Kmat <- Slambda*Spenalty
   } else {
-    Kmat <- matrix(0,Wnbasis,Wnbasis)
+    Kmat <- matrix(0,Snbasis,Snbasis)
   }
   
   #  Set up list object for data required by PENSSEfun
@@ -143,7 +143,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   #  evaluate log likelihood
   #    and its derivatives with respect to these coefficients
   
-  xold <- matrix(Bmat0, Wnbasis*(M-1),1)
+  xold <- matrix(Bmat0, Snbasis*(M-1),1)
   result    <- surp.fit(xold, surpList)
   PENSSE    <- result[[1]]
   DPENSSE   <- result[[2]]
@@ -193,7 +193,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
     check <- lnsrch_result$check
     if (check) stop("lnsrch failure")
     #  set up new Bmat and evaluate function, gradient and hessian
-    Bmatnew <- matrix(x,Wnbasis,M-1)
+    Bmatnew <- matrix(x,Snbasis,M-1)
     func_result <- surp.fit(Bmatnew, surpList)
     f     <- func_result[[1]]
     gvec  <- func_result[[2]]
@@ -236,8 +236,8 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   
   #  end of iteration loop, output results
   
-  Bmat <- matrix(xold, Wnbasis, M-1)
-  Wfd  <- fda::fd(Bmat, Wbasis)
+  Bmat <- matrix(xold, Snbasis, M-1)
+  Sfd  <- fda::fd(Bmat, Sbasis)
   surpResult <- surp.fit(Bmat, surpList)
   
   PENSSE   <- surpResult$PENSSE
@@ -248,7 +248,7 @@ smooth.surp <- function(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   D2SSE    <- surpResult$D2SSE
   DvecSmatDvecB <- surpResult$DvecSmatDvecB
 
-  surpFd <- list(Wfd=Wfd, Bmat=Bmat, f=f, gvec=gvec, hmat=hmat,
+  surpFd <- list(Sfd=Sfd, Bmat=Bmat, f=f, gvec=gvec, hmat=hmat,
                  PENSSE=PENSSE, DPENSSE=DPENSSE, D2PENSSE=D2PENSSE,
                  SSE=SSE, DSSE=DSSE, D2SSE=D2SSE,
                  DvecSmatDvecB=DvecSmatDvecB)

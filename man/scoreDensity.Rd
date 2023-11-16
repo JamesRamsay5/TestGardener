@@ -4,7 +4,7 @@
   Compute and plot a score density histogram and and curve.
 }
 \description{
-  The tasks of function \code{theta.density()} and plotting the density are combined.  
+  The tasks of function \code{index.density()} and plotting the density are combined.  
   The score density is plotted both as a histogram and as a smooth curve.  
   All the score types may be plotted: sum scores, expected test scores, 
   percentile score index values, and locations on the test information or 
@@ -44,20 +44,20 @@ http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
-  \code{\link{thetafun}},
-  \code{\link{theta2arclen}},
-  \code{\link{testscore}},
-  \code{\link{theta.distn}}
+  \code{\link{index_fun}},
+  \code{\link{index2info}},
+  \code{\link{mu}},
+  \code{\link{index_distn}}
 }
 \examples{
 #  Example 1.  Display probability density curves for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
-WfdList <- Quant_13B_problem_parList$WfdList
-theta   <- Quant_13B_problem_parList$theta
-Qvec    <- Quant_13B_problem_parList$Qvec
+SfdList <- Quant_13B_problem_parmList$SfdList
+index   <- Quant_13B_problem_parmList$index
+Qvec    <- Quant_13B_problem_parmList$Qvec
 #  plot the density for the score indices within interval c(0,100)
-theta_int <- theta[0 < theta & theta < 100]
+index_int <- index[0 < index & index < 100]
 oldpar <- par(no.readonly=TRUE)
-scoreDensity(theta_int)
+scoreDensity(index_int)
 par(oldpar)
 }

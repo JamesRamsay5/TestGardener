@@ -8,17 +8,17 @@ An N by n matrix of positive integer choice index values is transformed to
 an nbin by M matrix of probability values by iteravely minimizing the sum 
 of squared errors for bin values.}
 \usage{
-smooth.ICC(x, item, theta, dataList, thetaQnt=seq(0,100, len=2*nbin+1), 
+smooth.ICC(x, item, index, dataList, indexQnt=seq(0,100, len=2*nbin+1), 
                        wtvec=matrix(1,n,1), iterlim=20, conv=1e-4, dbglev=0)
 }
 \arguments{
   \item{x}{An ICC object}
   \item{item}{Index of item being set up.}
-  \item{theta}{A vector of length N containing score index values for each
+  \item{index}{A vector of length N containing score index values for each
   person.}
   \item{dataList}{A list object set up by function \code{make.dataList}
   containing objects set up prior to an analysis of the data.}
-  \item{thetaQnt}{A vector of length 2*nbin + 1 containing, in sequence,
+  \item{indexQnt}{A vector of length 2*nbin + 1 containing, in sequence,
   the lower boundary of a bin, its midpoint, and the upper boundary.}
   \item{wtvec}{A vector of length n containing wseights for items.}
   \item{iterlim}{An integer specifying the maximum number of optimizations.}

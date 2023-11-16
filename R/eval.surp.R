@@ -1,9 +1,9 @@
-eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
+eval.surp <- function(evalarg, Sfdobj, nderiv=0) {
   #  Evaluates a value of a surprisal coordinate functional data object. 
   #  Evaluates a value or a derivative of a surprisal coordinate functional  
   #  data object. 
   #  A positive functional data object h  is <- the form
-  #           h(x) <- (exp Wfdobj)(x)
+  #           h(x) <- (exp Sfdobj)(x)
   #  Note that the first two arguments may be interchanged.
   #  
   #
@@ -16,7 +16,7 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
   #  Returns:  An array of function values corresponding to the 
   #              argument values in EVALARG
   
-  #  Last modified 275 September 2023 by Jim Ramsay
+  #  Last modified 31 October 2023 by Jim Ramsay
   
   #  check arguments
   
@@ -31,9 +31,9 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
   #  Exchange the first two arguments if the first is an FD object
   #    and the second numeric
   
-  if (is.numeric(Wfdobj) && fda::is.fd(evalarg)) {
-    temp    <- Wfdobj
-    Wfdobj  <- evalarg
+  if (is.numeric(Sfdobj) && fda::is.fd(evalarg)) {
+    temp    <- Sfdobj
+    Sfdobj  <- evalarg
     evalarg <- temp
   }
   
@@ -56,7 +56,15 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
     stop('Argument EVALARG is not a vector.')
     
   evalarg  <- as.vector(evalarg)
-  basisfd  <- Wfdobj$basis
+  
+  #  check FDOBJ
+  
+  if (!fda::is.fd(Sfdobj)) 
+    stop('Argument FD is not a functional data object.')
+  
+  #  check Sfdobj$basis
+  
+  basisfd  <- Sfdobj$basis
   rangeval <- basisfd$rangeval
   if (min(evalarg) < rangeval[1] || max(evalarg) > rangeval[2]) {
     stop("Values in argument valarg outside of basis boundaries.")
@@ -64,14 +72,9 @@ eval.surp <- function(evalarg, Wfdobj, nderiv=0) {
   evalarg[evalarg < rangeval[1]-1e-10] <- NA
   evalarg[evalarg > rangeval[2]+1e-10] <- NA
   
-  #  check FDOBJ
-    
-  if (!fda::is.fd(Wfdobj)) 
-        stop('Argument FD is not a functional data object.')
-  
   #  compute Zmat, a M by M-1 orthonormal matrix
   
-  Bmat <- Wfdobj$coefs
+  Bmat <- Sfdobj$coefs
   M    <- dim(Bmat)[2] + 1
   if (M == 2) {
     root2 <- sqrt(2)

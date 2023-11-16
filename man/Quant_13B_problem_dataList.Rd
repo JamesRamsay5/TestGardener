@@ -14,10 +14,10 @@
 \details{
   A named list with 15 members:
   \describe{
-      \item{U:}{A matrix of response data with N rows and n columns where
+      \item{chcemat:}{A matrix of response data with N rows and n columns where
         N is the number of examinees or respondents and n is the number of items.
         Entries in the matrices are the indices of the options chosen.
-        Column i of U is expected to contain only the integers  
+        Column i of chcemat is expected to contain only the integers  
         \code{1,...,noption}.}  
       \item{optList:}{A list vector containing the numerical score values 
         assigned to the options for this question.}
@@ -27,7 +27,7 @@
        	Otherwise, it is NULL.}
       \item{grbg:}{A vector of length indicating which option for each item contains 
         missing or illegal choice values.  If 0, there is no such option.}
-      \item{WfdPar:}{An fdPar object for the defining the surprisal curves.}
+      \item{SfdPar:}{An fdPar object for the defining the surprisal curves.}
       \item{noption:}{A numeric vector of length n containing the numbers of 
         options for each item.}
       \item{nbin:}{The number of bins for binning the data.}
@@ -43,7 +43,7 @@
       \item{thetaQnt:}{A numeric vector of length 2*nbin + 1 containing 
         the bin boundaries alternating with the bin centers. These are initially 
         defined as \code{seq(0,100,len=2*nbin+1)}.}
-      \item{Wdim:}{The total dimension of the surprisal scores.}
+      \item{Sdim:}{The total dimension of the surprisal scores.}
       \item{PcntMarkers:}{The marker percentages for plotting: 
         5, 25, 50, 75 and 95.}
       \item{titlestr:}{A string containing a title for the analysis.}

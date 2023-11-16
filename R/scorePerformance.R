@@ -1,35 +1,35 @@
 scorePerformance <- function(dataList, simList) {
 
-sumscrsave <- simList$sumscr
-thetasave  <- simList$theta
-musave     <- simList$mu
-alsave     <- simList$al
-theta.pop  <- simList$thepop
-mu.pop     <- simList$mupop
-al.pop     <- simList$alpop
+sumscrsave <- simList$sumscrsave
+indexsave  <- simList$indexsave
+musave     <- simList$musave
+infosave   <- simList$infosave
+index.pop  <- simList$index.pop
+mu.pop     <- simList$mu.pop
+info.pop   <- simList$info.pop
 
-ntheta.pop <- dim(thetasave)[1]
-nsample    <- dim(thetasave)[2]
+nindex.pop <- dim(indexsave)[1]
+nsample    <- dim(indexsave)[2]
 
-thetares  <- thetasave  - matrix(theta.pop,ntheta.pop,nsample)
-mures     <- musave     - matrix(mu.pop,   ntheta.pop,nsample)
-sumscrres <- sumscrsave - matrix(mu.pop,   ntheta.pop,nsample)
+indexres  <- indexsave  - matrix(index.pop, nindex.pop, nsample)
+mures     <- musave     - matrix(mu.pop,    nindex.pop, nsample)
+sumscrres <- sumscrsave - matrix(mu.pop,    nindex.pop, nsample)
 
 #  compute bias's averaged over only samples
 
-thetabias  <- apply(thetares,  1, mean)
+indexbias  <- apply(indexres,  1, mean)
 mubias     <- apply(mures,     1, mean)
 sumscrbias <- apply(sumscrres, 1, mean)
 
 #  compute RMSE's averaged over only samples
 
-thetaRMSE  <- sqrt(apply( thetares^2, 1, mean))
+indexRMSE  <- sqrt(apply( indexres^2, 1, mean))
 muRMSE     <- sqrt(apply(    mures^2, 1, mean))
 sumscrRMSE <- sqrt(apply(sumscrres^2, 1, mean))
 
 #  compute Variance's averaged over only samples
 
-thetastd  <- sqrt( thetaRMSE^2  -  thetabias^2)
+indexstd  <- sqrt( indexRMSE^2  -  indexbias^2)
 mustd     <- sqrt(    muRMSE^2  -     mubias^2)
 sumscrstd <- sqrt(sumscrRMSE^2  - sumscrbias^2)
 
@@ -38,37 +38,37 @@ sumscrstd <- sqrt(sumscrRMSE^2  - sumscrbias^2)
 indbasis <- create.bspline.basis(c(0,100), 13)  
 indfdPar <- fdPar(indbasis, 2, 1e0)
 
-#  Lightly smooth bias results over theta's
+#  Lightly smooth bias results over index's
 
-thetabiasfd  <- smooth.basis(theta.pop,     thetabias, indfdPar)$fd
-mubiasfd     <- smooth.basis(theta.pop,        mubias, indfdPar)$fd
-sumscrbiasfd <- smooth.basis(theta.pop,    sumscrbias, indfdPar)$fd
+indexbiasfd  <- smooth.basis(index.pop,     indexbias, indfdPar)$fd
+mubiasfd     <- smooth.basis(index.pop,        mubias, indfdPar)$fd
+sumscrbiasfd <- smooth.basis(index.pop,    sumscrbias, indfdPar)$fd
 
-#  Lightly smooth RMSE results over theta's
+#  Lightly smooth RMSE results over index's
 
-thetaRMSEfd  <- smooth.basis(theta.pop,     thetaRMSE, indfdPar)$fd
-muRMSEfd     <- smooth.basis(theta.pop,        muRMSE, indfdPar)$fd
-sumscrRMSEfd <- smooth.basis(theta.pop,    sumscrRMSE, indfdPar)$fd
-#  Lightly smooth std. dev. results over theta's
+indexRMSEfd  <- smooth.basis(index.pop,     indexRMSE, indfdPar)$fd
+muRMSEfd     <- smooth.basis(index.pop,        muRMSE, indfdPar)$fd
+sumscrRMSEfd <- smooth.basis(index.pop,    sumscrRMSE, indfdPar)$fd
+#  Lightly smooth std. dev. results over index's
 
-thetastdfd   <- smooth.basis(theta.pop,     thetastd, indfdPar)$fd
-mustdfd      <- smooth.basis(theta.pop,        mustd, indfdPar)$fd
-sumscrstdfd  <- smooth.basis(theta.pop,    sumscrstd, indfdPar)$fd
+indexstdfd   <- smooth.basis(index.pop,     indexstd, indfdPar)$fd
+mustdfd      <- smooth.basis(index.pop,        mustd, indfdPar)$fd
+sumscrstdfd  <- smooth.basis(index.pop,    sumscrstd, indfdPar)$fd
 
 #  get results for arc length if required
 
-if (!is.null(alsave)) {
-    alres    <- alsave - matrix(al.pop,ntheta.pop,nsample)
-    albias   <- apply(alres, 1, mean)
-    alRMSE   <- sqrt(apply(alres^2, 1, mean))
-    alstd    <- sqrt(alRMSE^2 - albias^2)
-    albiasfd <- smooth.basis(theta.pop, albias, indfdPar)$fd
-    alRMSEfd <- smooth.basis(theta.pop, alRMSE, indfdPar)$fd
-    alstdfd  <- smooth.basis(theta.pop, alstd,  indfdPar)$fd
+if (!is.null(infosave)) {
+    infores    <- infosave - matrix(info.pop,nindex.pop,nsample)
+    infobias   <- apply(infores, 1, mean)
+    infoRMSE   <- sqrt(apply(infores^2, 1, mean))
+    infostd    <- sqrt(infoRMSE^2 - infobias^2)
+    infobiasfd <- smooth.basis(index.pop, infobias, indfdPar)$fd
+    infoRMSEfd <- smooth.basis(index.pop, infoRMSE, indfdPar)$fd
+    infostdfd  <- smooth.basis(index.pop, infostd,  indfdPar)$fd
 } else {
-    albiasfd <- NULL
-    alRMSEfd <- NULL
-    alstdfd  <- NULL
+    infobiasfd <- NULL
+    infoRMSEfd <- NULL
+    infostdfd  <- NULL
 }
 
 #  bundle these results into struct object simList
@@ -77,24 +77,24 @@ simListout <- simList
 
 indfine <- seq(0,100,len=101)
 
-simListout$thetaRMSE  <- eval.fd(indfine, thetaRMSEfd)
+simListout$indexRMSE  <- eval.fd(indfine, indexRMSEfd)
 simListout$muRMSE     <- eval.fd(indfine, muRMSEfd)
 simListout$sumscrRMSE <- eval.fd(indfine, sumscrRMSEfd)
-simListout$thetabias  <- eval.fd(indfine, thetabiasfd)
+simListout$indexbias  <- eval.fd(indfine, indexbiasfd)
 simListout$mubias     <- eval.fd(indfine, mubiasfd)
 simListout$sumscrbias <- eval.fd(indfine, sumscrbiasfd)
-simListout$thetastd   <- eval.fd(indfine, thetastdfd)
+simListout$indexstd   <- eval.fd(indfine, indexstdfd)
 simListout$mustd      <- eval.fd(indfine, mustdfd)
 simListout$sumscrstd  <- eval.fd(indfine, sumscrstdfd)
 
-if (!is.null(alsave)) {
-    simListout$alRMSE <- eval.fd(indfine, alRMSEfd)
-    simListout$albias <- eval.fd(indfine, albiasfd)
-    simListout$alstd  <- eval.fd(indfine, alstdfd)
+if (!is.null(infosave)) {
+    simListout$infoRMSE <- eval.fd(indfine, infoRMSEfd)
+    simListout$infobias <- eval.fd(indfine, infobiasfd)
+    simListout$infostd  <- eval.fd(indfine, infostdfd)
 } else {
-    simListout$alRMSE <- NULL
-    simListout$albias <- NULL
-    simListout$alstd  <- NULL
+    simListout$infoRMSE <- NULL
+    simListout$infobias <- NULL
+    simListout$infostd  <- NULL
 }
 
  return(simListout)

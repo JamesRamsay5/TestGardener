@@ -1,21 +1,21 @@
-smooth.ICC <- function(x, item, theta, dataList, 
-                       thetaQnt=seq(0,100, len=2*nbin+1), 
+smooth.ICC <- function(x, item, index, dataList, 
+                       indexQnt=seq(0,100, len=2*nbin+1), 
                        wtvec=matrix(1,n,1), iterlim=20, conv=1e-4, dbglev=0) {
   
   #  A version of Sbinsmth designed for a smoothing data for a single item
   #  defined by the contents of an ICC object.
   
   #  Arguments:
-  #  x        ... an ICC object containing information about single item
-  #  theta    ... A vector of length N of score index values within [0,100]
-  #  dataList ... A list object containing initial set up information
-  #  thetaQnt ... A vector of length 2*nbin+1
-  #  wtvec    ... A vector of weights for values to be smoothed
-  #  iterlim  ... Limit on iterations for smoothing function
-  #  conv     ... Criterion for convergence for smoothing function
-  #  dbglev   ... Output level during smoothing (0, 1, 2)
+  #  x          ... an ICC object containing information about single item
+  #  index    ... A vector of length N of score index values within [0,100]
+  #  dataList   ... A list object containing initial set up information
+  #  indexQnt ... A vector of length 2*nbin+1
+  #  wtvec      ... A vector of weights for values to be smoothed
+  #  iterlim    ... Limit on iterations for smoothing function
+  #  conv       ... Criterion for convergence for smoothing function
+  #  dbglev     ... Output level during smoothing (0, 1, 2)
   
-  # Last modified 7 August 2023 by Jim Ramsay
+  # Last modified 3 November 2023 by Jim Ramsay
 
   ICC <- x
   
@@ -34,25 +34,25 @@ smooth.ICC <- function(x, item, theta, dataList,
   nbin    <- dataList$nbin
   nitem   <- length(dataList$optList$optScr)
   WfdPar  <- dataList$WfdPar
-  U       <- dataList$U
+  chcemat <- dataList$chcemat
   noption <- dataList$noption
-  grbg    <- dataList$grbg
+  grbgvec <- dataList$grbgvec
 
   #  check objects from dataList
   
-  if (is.null(U))       stop("U is null.") 
+  if (is.null(chcemat)) stop("chcemat is null.") 
   if (is.null(indfine)) stop("indfine is null.")
   if (is.null(noption)) stop("noption is null.")
   if (is.null(nbin))    stop("nbin is null.")
   
   #  -----------------------------------------------------------------------------
-  #  Step 2. Bin the locations in theta into bins defined by the
-  #          bin edge and boundary vector thetaQnt
+  #  Step 2. Bin the locations in index into bins defined by the
+  #          bin edge and boundary vector indexQnt
   #  -----------------------------------------------------------------------------
 
-  #  bin boundaries, set at the corresponding quantiles in thetaQnt.
+  #  bin boundaries, set at the corresponding quantiles in indexQnt.
   
-  bdry <- thetaQnt[seq(1,2*nbin+1,by=2)]
+  bdry <- indexQnt[seq(1,2*nbin+1,by=2)]
   bdry[1]      <-   0
   bdry[nbin+1] <- 100
 
@@ -66,9 +66,9 @@ smooth.ICC <- function(x, item, theta, dataList,
   #  compute frequencies for each bin
   
   freq <- matrix(0,nbin,1)
-  freq[1] <- sum(theta < bdry[2])
+  freq[1] <- sum(index < bdry[2])
   for (k in 2:nbin) {
-    freq[k] <- sum(bdry[k-1] < theta & theta <= bdry[k])
+    freq[k] <- sum(bdry[k-1] < index & index <= bdry[k])
   }
   
   meanfreq <- mean(freq)
@@ -90,8 +90,8 @@ smooth.ICC <- function(x, item, theta, dataList,
     #  set some variable values for this item
     M    <- noption
     logM <- log(M)
-    #  extract active cases for (this item and corresponding theta value
-    Uvec     <- as.numeric(U[,item])
+    #  extract active cases for (this item and corresponding index value
+    chceveci <- as.numeric(chcemat[,item])
     #  bin frequencies (bin number nbin + 1 is the upper boundary)
     #  set up matrices to hold bin P and W values for each item and option
     Pbin <- matrix(0,nbin,M)  #  probabilities
@@ -101,16 +101,15 @@ smooth.ICC <- function(x, item, theta, dataList,
     #  transformation(s) to binned W values
     #  --------------------------------------------------------------------
     for (k in 1:nbin) {
-      #  index of theta values within this bin
-      indk   <- theta >= bdry[k] & theta <= bdry[k+1]
+      #  index of index values within this bin
+      indk   <- index >= bdry[k] & index <= bdry[k+1]
       if (sum(indk) > 0) {
         #  ------------------------------------------------------------
         #                 compute P values
         #  ------------------------------------------------------------
-        Uveck <- Uvec[indk]
         nk     <- sum(indk)
         for (m in 1:M) {
-          Pbin[k,m] <- sum(Uveck == m)/nk
+          Pbin[k,m] <- sum(chceveci[indk] == m)/nk
           if (Pbin[k,m] == 0) Pbin[k,m] <- NA
         }
         #  ------------------------------------------------------------
@@ -140,7 +139,7 @@ smooth.ICC <- function(x, item, theta, dataList,
     
     for (m in 1:M) {
       Smis.na <- is.na(Pbin[,m])
-      if (!grbg[item] || (grbg[item] && m != M)) {
+      if (!grbgvec[item] || (grbgvec[item] && m != M)) {
         Sbin[Smis.na,m] <- SurprisalMax
       }  else {
         #  garbage choices: compute sparse numeric values into 

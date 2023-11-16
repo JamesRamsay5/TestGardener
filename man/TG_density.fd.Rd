@@ -10,20 +10,21 @@
   defined by a functional parameter object \code{logdensfdPar} along with a
   normalizing constant \code{C}.
 
-  The density function $p(thetadens)$ has the form \code{p(thetadens) = C exp[W(thetadens)]}
-  where function $W(thetadens)$ is defined by the functional data object
+  The density function $p(indexdens)$ has the form 
+  \code{p(indexdens) = C exp[W(indexdens)]}
+  where function $W(indexdens)$ is defined by the functional data object
   \code{logdensfdPar}.
 }
 \usage{
-\method{TG_density}{fd}(thetadens, logdensfdPar, conv=0.0001, iterlim=20,
+\method{TG_density}{fd}(indexdens, logdensfdPar, conv=0.0001, iterlim=20,
            active=1:nbasis, dbglev=0)
 }
 \arguments{
-\item{thetadens}{
+\item{indexdens}{
 a set observations, which may be one of two forms:
 \enumerate{
-	\item a vector of observations $thetadens_i$
-	\item a two-column matrix, with the observations $thetadens_i$ in the
+	\item a vector of observations $indexdens_i$
+	\item a two-column matrix, with the observations $indexdens_i$ in the
 	first column, and frequencies $f_i$ in the second.
 }
 The first option corresponds to all $f_i = 1$.
@@ -56,7 +57,7 @@ turn off the output buffering option in S-PLUS.
 \value{
   a named list of length 4 containing:
   \item{Wfdobj}{
-    a functional data object defining function $W(thetadens)$ that that
+    a functional data object defining function $W(indexdens)$ that that
     optimizes the fit to the data of the monotone function that it defines.
   }
   \item{C}{
@@ -101,25 +102,25 @@ turn off the output buffering option in S-PLUS.
 #  set up range for density
 rangeval <- c(-3,3)
 #  set up some standard normal data
-thetadens <- rnorm(50)
+indexdens <- rnorm(50)
 #  make sure values within the range
-thetadens[thetadens < -3] <- -2.99
-thetadens[thetadens >  3] <-  2.99
-#  set up basis for W(thetadens)
+indexdens[indexdens < -3] <- -2.99
+indexdens[indexdens >  3] <-  2.99
+#  set up basis for W(indexdens)
 basisobj <- create.bspline.basis(rangeval, 11)
 #  set up initial value for Wfdobj
 Wfd0 <- fd(matrix(0,11,1), basisobj)
 logdensfdPar <- fdPar(Wfd0)
 #  estimate density
-denslist <- TG_density.fd(thetadens, logdensfdPar)
+denslist <- TG_density.fd(indexdens, logdensfdPar)
 #  plot density
-thetadensval <- seq(-3,3,.2)
-wval <- eval.fd(thetadensval, denslist$Wfdobj)
+indexdensval <- seq(-3,3,.2)
+wval <- eval.fd(indexdensval, denslist$Wfdobj)
 pval <- exp(wval)/denslist$C
 oldpar <- par(no.readonly=TRUE)
 on.exit(oldpar)
-plot(thetadensval, pval, type="l", ylim=c(0,0.4))
-points(thetadens,rep(0,50))
+plot(indexdensval, pval, type="l", ylim=c(0,0.4))
+points(indexdens,rep(0,50))
 }
 % docclass is function
 \keyword{smooth}

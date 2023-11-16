@@ -1,10 +1,10 @@
-SimulateData <- function(nsim, indfine, denscdf, WfdList) {
+SimulateData <- function(nsim, indfine, denscdf, SfdList) {
 
-  # Last modified 7 August 2023 by Jim Ramsay
+  # Last modified 31 October 2023 by Jim Ramsay
   
-  n       <- length(WfdList)
+  n       <- length(SfdList)
   noption <- rep(0,n)
-  for (i in 1:n) noption[i] <- WfdList[[i]]$M
+  for (i in 1:n) noption[i] <- SfdList[[i]]$M
   ndens   <- length(denscdf)
   Usim    <- matrix(0,nsim,n)
   nj2 <- 0
@@ -20,10 +20,10 @@ SimulateData <- function(nsim, indfine, denscdf, WfdList) {
     thetaj <- (indfine[j] + indfine[j-1])/2
     # print(c(j,thetaj,nthetaj,nj2))
     for (i in 1:n) {
-      WListi <- WfdList[[i]]
+      WListi <- SfdList[[i]]
       Mi <- WListi$M
       ind <- 1:Mi
-      surpij <- eval.surp(thetaj, WListi$Wfd)
+      surpij <- eval.surp(thetaj, WListi$Sfd)
       probij <- Mi^(-surpij)
       for (k in 1:nthetaj) {
         choiceij <- rmultinom(1, Mi, probij)

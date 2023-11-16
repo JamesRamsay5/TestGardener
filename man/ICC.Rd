@@ -36,7 +36,7 @@
   each item.}
 }
 \details{This object replaces one of the corresponding objects stored in  
-list object \code{WfdList}.}
+list object \code{SfdList}.}
 \value{An S3 object with class ICC.}
 \references{
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -49,21 +49,21 @@ http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
-  \code{\link{ICC.plot}}
+  \code{\link{ICC_plot}}
 }
 \examples{
 #  Example 1.  Display the item probability and surprisal curves for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 #  estimate the initial surprisal curves
-theta     <- Quant_13B_problem_dataList$percntrnk
-thetaQnt  <- Quant_13B_problem_parList$thetaQnt
-Qvec      <- Quant_13B_problem_parList$Qvec
-WfdResult <- Wbinsmth(theta, Quant_13B_problem_dataList)
+index     <- Quant_13B_problem_dataList$percntrnk
+indexQnt  <- Quant_13B_problem_parmList$indexQnt
+Qvec      <- Quant_13B_problem_parmList$Qvec
+SfdResult <- Sbinsmth(index, Quant_13B_problem_dataList)
 # set up item 1
-WfdList1  <- WfdResult$WfdList[[1]]
-Item      <- WfdList1$Item
-M         <- WfdList1$M
-Sfd       <- WfdList1$Sfd
+SfdList1  <- SfdResult$SfdList[[1]]
+Item      <- SfdList1$Item
+M         <- SfdList1$M
+Sfd       <- SfdList1$Sfd
 n         <- length(Quant_13B_problem_dataList)
 # set up item 1
 }

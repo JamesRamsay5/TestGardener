@@ -1,18 +1,18 @@
-TG_density.fd <- function(thetadens, logdensfdPar, conv=0.0001, iterlim=20,
+TG_density.fd <- function(indexdens, logdensfdPar, conv=0.0001, iterlim=20,
                       active=1:nbasis, dbglev=0) {
 # DENSITYFD estimates the density and log-density of a sample of scalar 
 # observations.
 
 #  These observations may be one of two forms:
-#   1.  a vector of observatons thetadens_i
-#   2.  a two-column matrix, with the observations thetadens_i in the
+#   1.  a vector of observatons indexdens_i
+#   2.  a two-column matrix, with the observations indexdens_i in the
 #       first column, and frequencies f_i in the second.
 #   Option 1. corresponds to all f_i = 1.
 
 #  Arguments are:
 #  THETADENS ... data value array, either a vector or a two-column
 #                matrix.
-#  WFDPAROBJ ... functional parameter object specifying the initial log
+#  SFDPAROBJ ... functional parameter object specifying the initial log
 #              density, the linear differential operator used to smooth
 #              smooth it, and the smoothing parameter.
 #  CONV      ... convergence criterion
@@ -34,7 +34,7 @@ TG_density.fd <- function(thetadens, logdensfdPar, conv=0.0001, iterlim=20,
 #  exponentiate the resulting vector, and then divide by the normalizing
 #  constant C.
 
-# last modified 19 October 2021 by Jim Ramsay
+# last modified 2 November 2023 by Jim Ramsay
 
 #  check logdensfdPar
 
@@ -48,7 +48,7 @@ if (!inherits(logdensfdPar, "fdPar")) {
 
 #  set up WFDOBJ
 
-Wfdobj   <- logdensfdPar$fd
+Sfdobj   <- logdensfdPar$fd
 
 #  set up LFDOBJ
 
@@ -57,20 +57,20 @@ Lfdobj <- int2Lfd(Lfdobj)
 
 #  set up BASIS
 
-basisobj <- Wfdobj$basis
+basisobj <- Sfdobj$basis
 nbasis   <- basisobj$nbasis
 rangex   <- basisobj$rangeval
 
-thetadens    <- as.matrix(thetadens)
-thetadensdim <- dim(thetadens)
-N    <- thetadensdim[1]
-m    <- thetadensdim[2]
+indexdens    <- as.matrix(indexdens)
+indexdensdim <- dim(indexdens)
+N    <- indexdensdim[1]
+m    <- indexdensdim[2]
 
 if (m > 2 && N > 2)
     	stop("Argument X must have either one or two columns.")
 
 if ((N == 1 | N == 2) & m > 1) {
-    thetadens <- t(thetadens)
+    indexdens <- t(indexdens)
     n <- N
     N <- m
     m <- n
@@ -79,29 +79,29 @@ if ((N == 1 | N == 2) & m > 1) {
 if (m == 1) {
     f <- rep(1,N)
 } else {
-    f    <- thetadens[,2]
+    f    <- indexdens[,2]
     fsum <- sum(f)
     f    <- f/fsum
-    thetadens    <- thetadens[,1]
+    indexdens    <- indexdens[,1]
 }
 f = as.matrix(f)
 
 #  check for values outside of the range of WFD0
 
-inrng <- (1:N)[thetadens >= rangex[1] & thetadens <= rangex[2]]
+inrng <- (1:N)[indexdens >= rangex[1] & indexdens <= rangex[2]]
 if (length(inrng) != N) {
     print(c(length(inrng), N))
-    print(c(rangex[1], rangex[2], min(thetadens), max(thetadens)))
+    print(c(rangex[1], rangex[2], min(indexdens), max(indexdens)))
     warning("Some values in X out of range and not used.")
 }
-thetadens     <- thetadens[inrng]
+indexdens     <- indexdens[inrng]
 f     <- f[inrng]
-nobs  <- length(thetadens)
+nobs  <- length(indexdens)
 
 #  set up some arrays
 
 climit <- c(rep(-50,nbasis),rep(400,nbasis))
-cvec0  <- Wfdobj$coefs
+cvec0  <- Sfdobj$coefs
 dbgwrd <- dbglev > 1
 
 zeromat <- zerobasis(nbasis)
@@ -114,7 +114,7 @@ if (lambda > 0) Kmat <- lambda*getbasispenalty(basisobj, Lfdobj)
 #  evaluate log likelihood
 #    and its derivatives with respect to these coefficients
 
-result <- loglfnden(thetadens, f, basisobj, cvec0)
+result <- loglfnden(indexdens, f, basisobj, cvec0)
 logl   <- result[[1]]
 Dlogl  <- result[[2]]
 
@@ -131,7 +131,7 @@ gvec0 <- t(zeromat) %*% as.matrix(gvec)
 
 #  compute the initial expected Hessian
 
-hmat <- Varfnden(thetadens, basisobj, cvec0)
+hmat <- Varfnden(indexdens, basisobj, cvec0)
 if (lambda > 0) hmat <- hmat + 2*Kmat
 hmat0 = t(zeromat) %*% hmat %*% zeromat
 
@@ -162,7 +162,7 @@ if (iterlim == 0) {
     Flist     <- Foldstr
     iterhist <- iterhist[1,]
     C        <- normden.phi(basisobj, cvec0)
-    return( list(Wfdobj=Wfdobj, C=C, Flist=Flist, iternum=iternum,
+    return( list(Sfdobj=Sfdobj, C=C, Flist=Flist, iternum=iternum,
                    iterhist=iterhist) )
 }
 
@@ -238,7 +238,7 @@ for (iter in 1:iterlim) {
         }
         cvecnew <- cvec + linemat[1,5]*deltac
         #  compute new function value and gradient
-	      result  <- loglfnden(thetadens, f, basisobj, cvecnew)
+	      result  <- loglfnden(indexdens, f, basisobj, cvecnew)
 	      logl    <- result[[1]]
 	      Dlogl   <- result[[2]]
         Flist$f <- -logl
@@ -275,7 +275,7 @@ for (iter in 1:iterlim) {
      	cvec  <- cvecnew
      	gvec  <- gvecnew
       gvec0 <- t(zeromat) %*% as.matrix(gvec)
-	    Wfdobj$coefs <- cvec
+	    Sfdobj$coefs <- cvec
      	status <- c(iternum, Flist$f, -logl, Flist$norm)
      	iterhist[iter+1,] <- status
      	if (dbglev > 0) {
@@ -291,13 +291,13 @@ for (iter in 1:iterlim) {
      	if (abs(Flist$f-Foldstr$f) < conv) {
           iterhist <- iterhist[1:(iternum+1),]
   	      C <- normden.phi(basisobj, cvec)
-	        denslist <- list("Wfdobj" = Wfdobj, "C" = C, "Flist" = Flist,
+	        denslist <- list("Sfdobj" = Sfdobj, "C" = C, "Flist" = Flist,
 			                     "iternum" = iternum, "iterhist" = iterhist)
 	        return( denslist )
      	}
      	if (Flist$f >= Foldstr$f) break
      	#  compute the Hessian
-     	hmat <- Varfnden(thetadens, basisobj, cvec)
+     	hmat <- Varfnden(indexdens, basisobj, cvec)
      	if (lambda > 0) hmat <- hmat + 2*Kmat
       hmat0 <- t(zeromat) %*% hmat %*% zeromat
      	#  evaluate the update vector
@@ -313,22 +313,22 @@ for (iter in 1:iterlim) {
   	}
       #  compute final normalizing constant
  	C <- normden.phi(basisobj, cvec)
-	denslist <- list("Wfdobj" = Wfdobj, "C" = C, "Flist" = Flist,
+	denslist <- list("Sfdobj" = Sfdobj, "C" = C, "Flist" = Flist,
 			             "iternum" = iternum, "iterhist" = iterhist)
  	return( denslist )
 }
 
 #  -----------------------------------------------------------------------------
 
-loglfnden <- function(thetadens, f, basisobj, cvec=FALSE) {
+loglfnden <- function(indexdens, f, basisobj, cvec=FALSE) {
 	#  Computes the log likelihood and its derivative with
 	#    respect to the coefficients in CVEC
-   	N       <- length(thetadens)
+   	N       <- length(indexdens)
    	nbasis  <- basisobj$nbasis
    	fmat    <- outer(f, rep(1,nbasis))
    	fsum    <- sum(f)
-   	nobs    <- length(thetadens)
-   	phimat  <- getbasismatrix(thetadens, basisobj)
+   	nobs    <- length(indexdens)
+   	phimat  <- getbasismatrix(indexdens, basisobj)
    	Cval    <- normden.phi(basisobj, cvec, )
    	logl    <- sum((phimat %*% cvec) * f - fsum*log(Cval)/N)
     EDw     <- expectden.phi(basisobj, cvec, Cval)
@@ -338,10 +338,10 @@ loglfnden <- function(thetadens, f, basisobj, cvec=FALSE) {
 
 #  -----------------------------------------------------------------------------
 
-Varfnden <- function(thetadens, basisobj, cvec=FALSE) {
+Varfnden <- function(indexdens, basisobj, cvec=FALSE) {
 	#  Computes the expected Hessian
    	nbasis  <- basisobj$nbasis
-   	nobs    <- length(thetadens)
+   	nobs    <- length(indexdens)
    	Cval    <- normden.phi(basisobj, cvec)
    	EDw     <- expectden.phi(basisobj, cvec, Cval)
    	EDwDwt  <- expectden.phiphit(basisobj, cvec, Cval)
@@ -354,7 +354,7 @@ Varfnden <- function(thetadens, basisobj, cvec=FALSE) {
 normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
 
 #  Computes integrals of
-#      p(thetadens) = exp phi"(thetadens) %*% cvec
+#      p(indexdens) = exp phi"(indexdens) %*% cvec
 #  by numerical integration using Romberg integration
 
   	#  check arguments, and convert basis objects to functional data objects
@@ -375,15 +375,15 @@ normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
   	#  matrix SMAT contains history of discrete approximations to the integral
   	smat <- matrix(0,JMAXP,1)
   	#  the first iteration uses just the }points
-  	thetadens  <- rng
-  	nthetadens <- length(thetadens)
-  	othetadens <- matrix(1,nthetadens,1)
-  	fthetadens <- getbasismatrix(thetadens, basisobj)
-  	wthetadens <- fthetadens %*% cvec
-  	wthetadens[wthetadens < -50] <- -50
-  	pthetadens <- exp(wthetadens)
+  	indexdens  <- rng
+  	nindexdens <- length(indexdens)
+  	oindexdens <- matrix(1,nindexdens,1)
+  	findexdens <- getbasismatrix(indexdens, basisobj)
+  	windexdens <- findexdens %*% cvec
+  	windexdens[windexdens < -50] <- -50
+  	pindexdens <- exp(windexdens)
   	smat <- matrix(0,JMAXP,1)
-  	smat[1]  <- width*sum(pthetadens)/2
+  	smat[1]  <- width*sum(pindexdens)/2
   	tnm <- 0.5
   	j   <- 1
 
@@ -392,15 +392,15 @@ normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
     	tnm  <- tnm*2
     	del  <- width/tnm
     	if (j == 2) {
-      		thetadens <- (rng[1] + rng[2])/2
+      		indexdens <- (rng[1] + rng[2])/2
     	} else {
-      		thetadens <- seq(rng[1]+del/2, rng[2], del)
+      		indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
-    	fthetadens <- getbasismatrix(thetadens, basisobj)
-    	wthetadens <- fthetadens %*% cvec
-    	wthetadens[wthetadens < -50] <- -50
-    	pthetadens <- exp(wthetadens)
-    	smat[j] <- (smat[j-1] + width*sum(pthetadens)/tnm)/2
+    	findexdens <- getbasismatrix(indexdens, basisobj)
+    	windexdens <- findexdens %*% cvec
+    	windexdens[windexdens < -50] <- -50
+    	pindexdens <- exp(windexdens)
+    	smat[j] <- (smat[j-1] + width*sum(pindexdens)/tnm)/2
     	if (j >= 5) {
       		ind <- (j-4):j
 			result <- polintarray(h[ind],smat[ind],0)
@@ -423,7 +423,7 @@ normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
 expectden.phi <- function(basisobj, cvec, Cval=1, nderiv=0,
                      JMAX=15, EPS=1e-7) {
     #  Computes expectations of basis functions with respect to density
-    #      p(thetadens) <- Cval^{-1} exp t(c)*phi(thetadens)
+    #      p(indexdens) <- Cval^{-1} exp t(c)*phi(indexdens)
     #  by numerical integration using Romberg integration
 
     #  check arguments, and convert basis objects to functional data objects
@@ -444,19 +444,19 @@ expectden.phi <- function(basisobj, cvec, Cval=1, nderiv=0,
     #  matrix SMAT contains the history of discrete approximations to the integral
     sumj <- matrix(0,1,nbasis)
     #  the first iteration uses just the }points
-    thetadens  <- rng
-    nthetadens <- length(thetadens)
-    othetadens <- matrix(1,nthetadens,nthetadens)
-    fthetadens <- getbasismatrix(thetadens, basisobj, 0)
-    wthetadens <- fthetadens %*% cvec
-    wthetadens[wthetadens < -50] <- -50
-    pthetadens <- exp(wthetadens)/Cval
+    indexdens  <- rng
+    nindexdens <- length(indexdens)
+    oindexdens <- matrix(1,nindexdens,nindexdens)
+    findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    windexdens <- findexdens %*% cvec
+    windexdens[windexdens < -50] <- -50
+    pindexdens <- exp(windexdens)/Cval
     if (nderiv == 0) {
-    	Dfthetadens <- fthetadens
+    	Dfindexdens <- findexdens
     } else {
-    	Dfthetadens <- getbasismatrix(thetadens, basisobj, 1)
+    	Dfindexdens <- getbasismatrix(indexdens, basisobj, 1)
     }
-    sumj <- t(Dfthetadens) %*% pthetadens
+    sumj <- t(Dfindexdens) %*% pindexdens
     smat <- matrix(0,JMAXP,nbasis)
     smat[1,]  <- width*as.vector(sumj)/2
     tnm <- 0.5
@@ -468,21 +468,21 @@ expectden.phi <- function(basisobj, cvec, Cval=1, nderiv=0,
       tnm  <- tnm*2
     	del  <- width/tnm
     	if (j == 2) {
-        thetadens <- (rng[1] + rng[2])/2
+        indexdens <- (rng[1] + rng[2])/2
     	} else {
-        thetadens <- seq(rng[1]+del/2, rng[2], del)
+        indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
-    	nthetadens <- length(thetadens)
-    	fthetadens <- getbasismatrix(thetadens, basisobj, 0)
-    	wthetadens <- fthetadens %*% cvec
-    	wthetadens[wthetadens < -50] <- -50
-    	pthetadens <- exp(wthetadens)/Cval
+    	nindexdens <- length(indexdens)
+    	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    	windexdens <- findexdens %*% cvec
+    	windexdens[windexdens < -50] <- -50
+    	pindexdens <- exp(windexdens)/Cval
     	if (nderiv == 0) {
-        Dfthetadens <- fthetadens
+        Dfindexdens <- findexdens
     	} else {
-        Dfthetadens <- getbasismatrix(thetadens, basisobj, 1)
+        Dfindexdens <- getbasismatrix(indexdens, basisobj, 1)
     	}
-    	sumj <- t(Dfthetadens) %*% pthetadens
+    	sumj <- t(Dfindexdens) %*% pindexdens
     	smat[j,] <- (smat[j-1,] + width*as.vector(sumj)/tnm)/2
     	if (j >= 5) {
         ind <- (j-4):j
@@ -509,7 +509,7 @@ expectden.phiphit <- function(basisobj, cvec, Cval=1, nderiv1=0, nderiv2=0,
 
 #  Computes expectations of cross product of basis functions with
 #  respect to density
-#      p(thetadens) = Cval^{-1} int [exp t(c) %*% phi(thetadens)] phi(thetadens) t(phi(thetadens)) dthetadens
+#      p(indexdens) = Cval^{-1} int [exp t(c) %*% phi(indexdens)] phi(indexdens) t(phi(indexdens)) dindexdens
 #  by numerical integration using Romberg integration
 
   	#  check arguments, and convert basis objects to functional data objects
@@ -529,24 +529,24 @@ expectden.phiphit <- function(basisobj, cvec, Cval=1, nderiv1=0, nderiv2=0,
   	h[2] <- 0.25
   	#  matrix SMAT contains history of discrete approximations to the integral
   	#  the first iteration uses just the }points
-  	thetadens  <- rng
-  	nthetadens <- length(thetadens)
-  	fthetadens <- getbasismatrix(thetadens, basisobj, 0)
-  	wthetadens <- fthetadens %*% cvec
-  	wthetadens[wthetadens < -50] <- -50
-  	pthetadens <- exp(wthetadens)/Cval
+  	indexdens  <- rng
+  	nindexdens <- length(indexdens)
+  	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+  	windexdens <- findexdens %*% cvec
+  	windexdens[windexdens < -50] <- -50
+  	pindexdens <- exp(windexdens)/Cval
   	if (nderiv1 == 0) {
-    	Dfthetadens1 <- fthetadens
+    	Dfindexdens1 <- findexdens
   	} else {
-    	Dfthetadens1 <- getbasismatrix(thetadens, basisobj, 1)
+    	Dfindexdens1 <- getbasismatrix(indexdens, basisobj, 1)
   	}
   	if (nderiv2 == 0) {
-    	Dfthetadens2 <- fthetadens
+    	Dfindexdens2 <- findexdens
   	} else {
-    	Dfthetadens2 <- getbasismatrix(thetadens, basisobj, 2)
+    	Dfindexdens2 <- getbasismatrix(indexdens, basisobj, 2)
   	}
   	oneb <- matrix(1,1,nbasis)
-  	sumj <- t(Dfthetadens1) %*% ((pthetadens %*% oneb) * Dfthetadens2)
+  	sumj <- t(Dfindexdens1) %*% ((pindexdens %*% oneb) * Dfindexdens2)
   	smat <- array(0,c(JMAXP,nbasis,nbasis))
   	smat[1,,]  <- width*as.matrix(sumj)/2
   	tnm <- 0.5
@@ -557,26 +557,26 @@ expectden.phiphit <- function(basisobj, cvec, Cval=1, nderiv1=0, nderiv2=0,
     	tnm  <- tnm*2
     	del  <- width/tnm
     	if (j == 2) {
-      		thetadens <- (rng[1] + rng[2])/2
+      		indexdens <- (rng[1] + rng[2])/2
     	} else {
-      		thetadens <- seq(rng[1]+del/2, rng[2], del)
+      		indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
-    	nthetadens <- length(thetadens)
-    	fthetadens <- getbasismatrix(thetadens, basisobj, 0)
-    	wthetadens <- fthetadens %*% cvec
-    	wthetadens[wthetadens < -50] <- -50
-    	pthetadens <- exp(wthetadens)/Cval
+    	nindexdens <- length(indexdens)
+    	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    	windexdens <- findexdens %*% cvec
+    	windexdens[windexdens < -50] <- -50
+    	pindexdens <- exp(windexdens)/Cval
     	if (nderiv1 == 0) {
-      		Dfthetadens1 <- fthetadens
+      		Dfindexdens1 <- findexdens
     	} else {
-      		Dfthetadens1 <- getbasismatrix(thetadens, basisobj, 1)
+      		Dfindexdens1 <- getbasismatrix(indexdens, basisobj, 1)
     	}
     	if (nderiv2 == 0) {
-      		Dfthetadens2 <- fthetadens
+      		Dfindexdens2 <- findexdens
     	} else {
-      		Dfthetadens2 <- getbasismatrix(thetadens, basisobj, 2)
+      		Dfindexdens2 <- getbasismatrix(indexdens, basisobj, 2)
     	}
-    	sumj <- t(Dfthetadens1) %*% ((pthetadens %*% oneb) * Dfthetadens2)
+    	sumj <- t(Dfindexdens1) %*% ((pindexdens %*% oneb) * Dfindexdens2)
     	smat[j,,] <- (smat[j-1,,] + width*as.matrix(sumj)/tnm)/2
     	if (j >= 5) {
       		ind <- (j-4):j

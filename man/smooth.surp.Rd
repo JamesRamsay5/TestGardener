@@ -10,7 +10,7 @@
   M-1 dimensional surprisal subspace that is within the space of non-negative M-dimensional vectors.
 }
 \usage{
-smooth.surp(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
+smooth.surp(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
             iterlim=50, dbglev=0)
 }
 \arguments{
@@ -24,15 +24,15 @@ smooth.surp(argvals, y, Bmat0, WfdPar, wtvec=NULL, conv=1e-4,
   \item{y}{
     A \code{nbin} by \code{M_i} matrix of surprisal values to be fit.  
   }
-  \item{Bmat0}{A \code{Wnbasis} by \code{M_i - 1} matrix containing starting
+  \item{Bmat0}{A \code{Snbasis} by \code{M_i - 1} matrix containing starting
   values for the iterative optimization of the least squares fit of the 
   surprisal curves to the surprisal data.
   }
-  \item{WfdPar}{
+  \item{SfdPar}{
     A functional parameter or fdPar object.  This object contains the
     specifications for the functional data object to be estimated by
     smoothing the data.  See comment lines in function fdPar for
-    details.  The functional data object WFD in WFDPAROBJ is used to
+    details.  The functional data object SFD in SFDPAROBJ is used to
     initialize the optimization process.  Its coefficient array contains
     the starting values for the iterative minimization of mean squared
     error.
@@ -120,7 +120,7 @@ sfdPar = fdPar(sfd, Lfd=2, lambda=0)
 result = smooth.surp(x, mnormdata, cmat, sfdPar)
 #  plot the data and the fits of the two surprisal curves
 xfine = seq(-2,2,len=51)
-sfine = eval.surp(xfine, result$Wfd)
+sfine = eval.surp(xfine, result$Sfd)
 matplot(xfine, sfine, type="l", lty=c(1,1), col=c(1,1))
 points(x, mnormdata[,1])
 points(x, mnormdata[,2])

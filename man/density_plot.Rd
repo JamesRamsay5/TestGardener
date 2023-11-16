@@ -9,7 +9,7 @@ score values that are not at the score boundaries as a smooth
 curve, and also plots the proportions of score values at both
 boundaries as points.  
 The score values are typically either the values of the score index 
-values theta or the arclength or information score values.  
+values index or the infoSurp or information score values.  
 }
 \usage{
 density_plot(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL, 
@@ -48,21 +48,21 @@ Juan Li and James Ramsay
 #  Example 1.  Display probability density curve for the 
 #  score index values for the short SweSAT multiple choice test with 
 #  24 items and 1000 examinees
-theta   <- Quant_13B_problem_parList$theta
-Qvec    <- Quant_13B_problem_parList$Qvec
+index <- Quant_13B_problem_parmList$index
+Qvec  <- Quant_13B_problem_parmList$Qvec
 #  plot the density for the score indices within interval c(0,100)
 oldpar <- par(no.readonly=TRUE)
 on.exit(oldpar)
-density_plot(theta, c(0,100), Qvec, xlabstr="Score index", 
+par(mfrow=c(2,1))
+density_plot(index, c(0,100), Qvec, xlabstr="Score index", 
              titlestr="SweSAT 13B Theta Density",  
              scrnbasis=11, nfine=101)
-#  Example 2.  Display probability density curve for the 
 #  arc length or information values
-theta_al  <- Quant_13B_problem_infoList$theta_al
-Qvec_al   <- Quant_13B_problem_infoList$Qvec_al
-arclength <- Quant_13B_problem_infoList$arclength
-#  plot the density for the score indices within interval c(0,arclength)
-density_plot(theta_al, c(0,arclength), Qvec_al, xlabstr="Score index", 
+scopevec <- Quant_13B_problem_infoList$scopevec
+Qinfovec <- Quant_13B_problem_infoList$Qinfovec
+infoSurp <- Quant_13B_problem_infoList$infoSurp
+#  plot the density for the score indices within interval c(0,infoSurp)
+density_plot(scopevec, c(0,infoSurp), Qinfovec, xlabstr="Score index", 
              titlestr="SweSAT 13B Theta Density",  
              scrnbasis=11, nfine=101)
 }

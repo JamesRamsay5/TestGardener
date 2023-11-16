@@ -13,7 +13,7 @@
 \details{
   A named list with 15 members. See below for a description of each member.
   \describe{
-    \item{U:}{An N by n matrix of integers indicating which option was chosen by one of 
+    \item{chcemat:}{An N by n matrix of integers indicating which option was chosen by one of 
       N examinees for a question.  The object should be in the matrix class and the 
       contents should be integers.  
       For any question the integers should be within the range 1 to the number of options.}
