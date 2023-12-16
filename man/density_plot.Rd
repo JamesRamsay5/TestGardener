@@ -27,7 +27,11 @@ density_plot(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   \item{nfine}{Number of plotting points}
 }
 \value{
-  A plot object.
+  A plot of the density function and a list vector \code{densfine} containing:
+  \item{densfine:}{Density values over a mesh of equally-spaced values 
+  of length 101.}
+  \item{N_min:}{The number of examinees estimated to have zero information.}
+  \item{N_max:}{The number of examinees estimated to have full information.}
 }
 \references{
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
@@ -35,8 +39,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics. Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{
 Juan Li and James Ramsay

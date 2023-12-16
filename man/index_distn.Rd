@@ -10,8 +10,8 @@
     In the score index case, these are usually only the values in the interior of 
     the interval [0,100].}
   \item{logdensbasis}{A functional basis object for representing the log density 
-    function.  The argument may also be a functional parameter object 
-    (\code{fdPar}) or a functional basis object (\code{Sbasis}).}
+    function.  The argument may also be a functional data object 
+    (\code{fd}) or a functional basis object (\code{Sbasis}).}
   \item{pvec}{A vector length NL containing the marker percentages.}
   \item{nfine}{The number of values in a fine grid, default as 101.}
 }
@@ -53,8 +53,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -69,7 +67,7 @@ http://testgardener.azurewebsites.net
 #  Assemble information for estimating index density
 indfine   <- seq(0,100,len=101)
 SfdList   <- Quant_13B_problem_parmList$SfdList
-index   <- Quant_13B_problem_parmList$index
+index     <- Quant_13B_problem_parmList$index
 N         <- length(index)
 #  Define the density for only interior index values
 inside    <- index > 0 & index < 100

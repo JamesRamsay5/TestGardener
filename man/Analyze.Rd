@@ -34,7 +34,7 @@
       \item{key:}{If the data are from a test of the multiple choices type
        	where the right answer is scored 1 and the wrong answers 0, this is a numeric vector 
        	of length n containing the indices the right answers.  Otherwise, it is NULL.}
-      \item{WfdPar:}{An fdPar object for the defining the surprisal curves.}
+      \item{Sfd:}{An fd object for the defining the surprisal curves.}
       \item{noption:}{A numeric vector of length n containing the numbers of options for 
       	each item.}
       \item{nbin:}{The number of bins for binning the data.}
@@ -109,12 +109,11 @@
   
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
   information-based psychometrics.  Psych, 2, 347-360.
-  
-  http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{make_dataList},
+        \link{TG_analysis},
         \link{index_distn},
         \link{index2info},
         \link{index_fun},
@@ -122,23 +121,30 @@
 }
 
 \examples{
+\dontrun{
   #  Example 1:  Input choice data and key for the short version of the 
   #  SweSAT quantitative multiple choice test with 24 items and 1000 examinees
   #  input the choice data as 1000 strings of length 24
+  #  setup the input data list object
   dataList <- Quant_13B_problem_dataList
+  #  define the initial examinee indices and bin locations
   index    <- dataList$percntrnk
   indexQnt <- dataList$indexQnt
-  ncycle <- 2
+  #  Set the number of cycles (default 10 but here 5)
+  ncycle <- 5
   parmListvec <- Analyze(index, indexQnt, ncycle=ncycle, dataList, 
                          verbose=TRUE) 
+  #  two column matrix containing the mean fit and arclength values
+  #  for each cycle
   HALsave <- matrix(0,ncycle,2)
   for (icycle in 1:ncycle) {
     HALsave[icycle,1] <- parmListvec[[icycle]]$meanF
     HALsave[icycle,2] <- parmListvec[[icycle]]$infoSurp
   }
+  #  plot the progress over the cycles of mean fit and arc length
   par(mfrow=c(2,1))
   plot(1:ncycle, HALsave[,1], type="b", lwd=2, 
        xlab="Cycle Number",ylab="Mean H")
   plot(1:ncycle, HALsave[,2], type="b", lwd=2, 
-       xlab="Cycle Number", ylab="Arc Length")
+       xlab="Cycle Number", ylab="Arc Length")}
 }

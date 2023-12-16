@@ -1,22 +1,25 @@
-index_search <- function(SfdList, chcemat, index, Fval, DFval, D2Fval, indexind=1:N) {
+index_search <- function(SfdList, chcemat, index, Fval, DFval, D2Fval, 
+                         indexind=1:N) {
   #  indexs_earch examines the 101 points of each examinee's log likelihood 
   #  curve for (multiple minima.  if (the value in vector index is more than 
   #  one away from the location of the minimum, index is replaced by the
   #  index of the point and Fval, DFval, and D2Fval are revised.
   #  Integer changecount indicate the number of values changed.
   
-  #  Last modified 3 November 2023
+  #  Last modified 21 November 2023
   
-  # determine the number of rows in data matrix chcemat and if (there is no subset
-  #  specified in argument indexind, search all of the rows of chcemat.
+  # determine the number of rows in data matrix chcemat and if (there is no 
+  #  subset specified in argument indexind, search all of the rows of chcemat.
   
   N <- nrow(chcemat)
   n <- ncol(chcemat)
   evalarg     <- seq(0,100,len=101)
   changeindex <- NULL
   for (j in indexind) {
+    # print(j)
     #  identify the minima
-    Ffine    <- Fcurve(SfdList, chcemat[j,])
+    chcevecj <- chcemat[j,]
+    Ffine    <- Fcurve(SfdList, chcevecj)
     Ffind    <- which.min(min(Ffine) == Ffine)
     Fminind  <- 0
     if (Ffind ==   1) Fminind <- Ffind
@@ -48,7 +51,7 @@ index_search <- function(SfdList, chcemat, index, Fval, DFval, D2Fval, indexind=
         for (item in 1:n) {
           SListi      <- SfdList[[item]]
           DSmatfinei  <- SListi$DSmatfine
-          DFval[j]    <-  DFval[j] +  DSmatfinei[indexgrid+1,chcemat[j,item]]
+          DFval[j]    <- DFval[j] +  DSmatfinei[indexgrid+1,chcemat[j,item]]
           D2Smatfinei <- SListi$D2Smatfine
           D2Fval[j]   <- D2Fval[j] + D2Smatfinei[indexgrid+1,chcemat[j,item]]
         }

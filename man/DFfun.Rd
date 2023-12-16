@@ -21,10 +21,10 @@ The analysis is within the closed interval [0,100].
   can be a vector of length \code{n}.}
 }
 \value{
-A named list for results \code{DF} and \code{D2F}:
-\item{DF:}{ First derivatives of the negative log likelihood values, 
+  A named list for results \code{DF} and \code{D2F}:
+  \item{DF:}{ First derivatives of the negative log likelihood values, 
    vector of size N}
-\item{D2F:}{Second derivatives of the negative log likelihood values, 
+  \item{D2F:}{Second derivatives of the negative log likelihood values, 
    vector of size N}
 }
 \references{
@@ -33,34 +33,25 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{make_dataList},
+        \link{index_fun},
         \link{Ffun},
         \link{Ffuns_plot}
   }
 }
 \examples{
-#  Example 1:
-#  Compute the first and second derivative values of the objective function for 
-#  locating each examinee for the 24-item short form of the SweSAT quantitative  
-#  test on thepercentile score index continuum.
-SfdList <- Quant_13B_problem_parmList$SfdList
-index <- Quant_13B_problem_parmList$index
-chcemat <- Quant_13B_problem_dataList$chcemat
-DFfunResult <- DFfun(index, SfdList, chcemat)
-DFval  <- DFfunResult$DF
-D2Fval <- DFfunResult$D2F
-print(paste("Mean               of objective gradient =",round(mean(DFval),4)))
-print(paste("Standard deviation of objective gradient =",round(sqrt(var(DFval)),4)))
-print(paste("Mean               of objective Hessian =",round(mean(D2Fval),4)))
-print(paste("Standard deviation of objective Hessian =",round(sqrt(var(D2Fval)),6)))
-#  Example 2:
-#  Compute the first and second derivative values of the objective function for 
-#  locating each examinee for the 13-item Symptom Distress scale  
-#  on the percentile score index continuum.
-#  Proceed as above changing "Quant" for "SDS".
+  #  Example 1:
+  #  Compute the first and second derivative values of the objective function  
+  #  for locating each examinee for the 24-item short form of the  
+  #  SweSAT quantitative test on the percentile score index continuum.
+  #  Use only the first five examinees.
+  chcemat <- Quant_13B_problem_dataList$chcemat
+  SfdList <- Quant_13B_problem_parmList$SfdList
+  index   <- Quant_13B_problem_parmList$index
+  DFfunResult <- DFfun(index[1:5], SfdList, chcemat[1:5,])
+  DFval  <- DFfunResult$DF
+  D2Fval <- DFfunResult$D2F
 }

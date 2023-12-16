@@ -27,7 +27,7 @@
        	where the right answer is scored 1 and the wrong answers 0, this is 
        	a numeric vector of length n containing the indices the right answers.  
        	Otherwise, it is NULL.}
-      \item{SfdPar:}{An fdPar object for the defining the surprisal curves.}
+      \item{Sfd:}{An fd object for the defining the surprisal curves.}
       \item{noption:}{A numeric vector of length n containing the numbers of 
         options for each item.}
       \item{nbin:}{The number of bins for binning the data.}
@@ -96,8 +96,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \seealso{
   \code{\link{dataSimulation}}

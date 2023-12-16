@@ -35,12 +35,12 @@ DFfun <- function(index, SfdList, chcemat) {
 
   for (item in 1:n) {
     if (N == 1) {
-      chcematveci <- as.integer(chcemat[item])
+      chceveci <- as.integer(chcemat[item])
     } else {
-      chcematveci <- as.integer(chcemat[,item])
+      chceveci <- as.integer(chcemat[,item])
     }
 
-    if (!is.null(chcematveci)) {
+    if (!is.null(chceveci)) {
       #  extract the surprisal curves for this item
       WStri     <- SfdList[[item]]
       Sfdi      <- WStri$Sfd
@@ -52,14 +52,13 @@ DFfun <- function(index, SfdList, chcemat) {
       if (Mi > 1) {
         #  select values of first and second derivatives of curve for the selected option
         if (N == 1) {
-          Rveci  <-  DWmati[chcematveci]
-          R2veci <- D2Wmati[chcematveci]
+          Rveci  <-  DWmati[chceveci]
+          R2veci <- D2Wmati[chceveci]
         } else {
           Wmati  <- rbind(DWmati,D2Wmati)
-          for (j in 1:N)
-          {
-            Rveci[j]  <-  DWmati[j,chcematveci[j]]
-            R2veci[j] <- D2Wmati[j,chcematveci[j]]
+          for (j in 1:N) {
+            Rveci[j]  <-  DWmati[j,chceveci[j]]
+            R2veci[j] <- D2Wmati[j,chceveci[j]]
           }
         }
         # update fit derivative values

@@ -1,4 +1,4 @@
-smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
+smooth.surp <- function(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
                        iterlim=50, dbglev=0) {
   #  Smooths the relationship of Y to ARGVALS using weights in STVEC by fitting 
   #     surprisal functions to a set of surprisal transforms of choice 
@@ -6,8 +6,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   #                      S(p_m) = -log_M (p_m), m=1, ..., M,
   #     where  S  is a function defined over the same range as ARGVALS.
   #  The fitting criterion is penalized mean squared error:
-  #    PENSSE(Slambda) <- \sum w_i[y_i - f(x_i)]^2 +
-  #                     \Slambda * \int [L S(x)]^2 dx
+  #    PENSSE <- \sum w_i[y_i - f(x_i)]^2
   #  where L is a linear differential operator defined in argument Lfd,
   #  and w_i is a positive weight applied to the observation.
   #  The function S(x) is expanded by the basis in functional data object
@@ -29,13 +28,10 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   #               via spline functions.  K is the number of basis functions
   #               in the spline expansions, and M is the number of choices
   #               for a particular question in a test or rating scale.
-  #  SFDPAR  ...  A functional parameter or fdPar object.  This object
+  #  SFD     ...  A functional data object.  This object
   #               contains the specifications for the functional data
   #               object to be estimated by smoothing the data.  
-  #               Note:  SFDPAR is only a container for its 
-  #               functional basis object SBASIS, the penalty matrix SPEN, 
-  #               and the smoothing parameter Slambda.  A coefficient
-  #               matrix in SFDPAR defined by using a function data object
+  #               Note:    A coefficient matrix in SFD 
   #               is discarded, and overwritten by argument BMAT0.
   #  WTVEC   ...  a vector of weights, a vector of N one's by default.
   #  CONV    ...  convergence criterion, 0.0001 by default
@@ -60,7 +56,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   #  FLIST objects are indexed linear with curves varying inside
   #  variables.
   
-  #  Last modified 3 November 2023 by Jim Ramsay
+  #  Last modified 12 December 2023 by Jim Ramsay
   
   #  check ARGVALS, a vector of length n
   
@@ -79,15 +75,8 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   if (ydim[1] != n) 
       stop("The length of ARGVALS  and the number of rows of Y differ.")
   
-  #  Check SfdPar and extract SBASIS, SNBASIS, Slambda and SPENALTY.  
-  #  Note that the coefficient matrix is not used.
-  
-  SfdPar   <- fdParcheck(SfdPar,M)
-  Sbasis   <- SfdPar$fd$basis
-  
+  Sbasis   <- Sfd$basis
   Snbasis  <- Sbasis$nbasis
-  Slambda  <- SfdPar$lambda
-  Spenalty <- eval.penalty(Sbasis, SfdPar$Lfd)
   
   #  Check BMAT0, the SNBASIS by M-1 coefficient matrix
   
@@ -111,7 +100,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
     root2 <- sqrt(2)
     Zmat <- matrix(1/c(root2,-root2),2,1)
   } else {
-    Zmat <- zerobasis(M)
+    Zmat <- fda::zerobasis(M)
   }
   
   #  Set up the matrix of basis function values 
@@ -125,12 +114,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   
   #  initialize matrix Kmat defining penalty term
   
-  if (Slambda > 0) 
-  {
-    Kmat <- Slambda*Spenalty
-  } else {
-    Kmat <- matrix(0,Snbasis,Snbasis)
-  }
+  Kmat <- matrix(0,Snbasis,Snbasis)
   
   #  Set up list object for data required by PENSSEfun
   
@@ -143,8 +127,8 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   #  evaluate log likelihood
   #    and its derivatives with respect to these coefficients
   
-  xold <- matrix(Bmat0, Snbasis*(M-1),1)
-  result    <- surp.fit(xold, surpList)
+  Bvecold   <- matrix(Bmat0, Snbasis*(M-1),1)
+  result    <- surp.fit(Bvecold, surpList)
   PENSSE    <- result[[1]]
   DPENSSE   <- result[[2]]
   D2PENSSE  <- result[[3]]
@@ -168,7 +152,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
   
   iternum <- 0
   status <- c(iternum, Foldlist$f, Foldlist$norm)
-  if (dbglev >= 1) {
+  if (dbglev > 0) {
     cat("\n")
     cat("\nIter.   PENSSE   Grad Length")
     cat("\n")
@@ -188,12 +172,12 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
     iternum <- iternum + 1
     #  take optimal stepsize
     lnsrch_result <- 
-      lnsrch(xold, fold, gvec, pvec, surp.fit, surpList, STEPMAX)
-    x     <- lnsrch_result$x
+      fda::lnsrch(Bvecold, fold, gvec, pvec, surp.fit, surpList, STEPMAX)
+    Bvec     <- lnsrch_result$x
     check <- lnsrch_result$check
     if (check) stop("lnsrch failure")
     #  set up new Bmat and evaluate function, gradient and hessian
-    Bmatnew <- matrix(x,Snbasis,M-1)
+    Bmatnew <- matrix(Bvec,Snbasis,M-1)
     func_result <- surp.fit(Bmatnew, surpList)
     f     <- func_result[[1]]
     gvec  <- func_result[[2]]
@@ -205,8 +189,9 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
     Flist$f    <- f
     Flist$grad <- gvec
     Flist$norm <- sqrt(mean(gvec^2))
-    xold <- x
-    fold <- f
+    #  store current values for next iteration
+    Bvecold <- Bvec
+    fold    <- f
     #  display results at this iteration if dbglev > 0
     status <- c(iternum, Flist$f, Flist$norm)
     if (dbglev > 0) {
@@ -233,10 +218,11 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
     }
     Foldlist <- Flist
   }
+  if (dbglev > 0) cat("\n")
   
   #  end of iteration loop, output results
   
-  Bmat <- matrix(xold, Snbasis, M-1)
+  Bmat <- matrix(Bvecold, Snbasis, M-1)
   Sfd  <- fda::fd(Bmat, Sbasis)
   surpResult <- surp.fit(Bmat, surpList)
   
@@ -259,7 +245,7 @@ smooth.surp <- function(argvals, y, Bmat0, SfdPar, wtvec=NULL, conv=1e-4,
 
 # ------------------------------------------------------------------
 
-surp.fit <- function(x, surpList) {
+surp.fit <- function(Bvec, surpList) {
   
   #  This function is called within smooth.surp() to
   #  evaluate fit at each iteration
@@ -278,7 +264,7 @@ surp.fit <- function(x, surpList) {
   n       <- length(argvals)
   M       <- surpList$M
   K       <- dim(Phimat)[2]
-  Bmat    <- matrix(x, K, M-1)
+  Bmat    <- matrix(Bvec, K, M-1)
   
   #  compute fit, gradient and hessian
   

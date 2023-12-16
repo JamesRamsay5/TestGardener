@@ -80,7 +80,7 @@ eval.surp <- function(evalarg, Sfdobj, nderiv=0) {
     root2 <- sqrt(2)
     Zmat <- matrix(1/c(root2,-root2),2,1)
   } else {
-    Zmat <- zerobasis(M)
+    Zmat <- fda::zerobasis(M)
   }
   
   #  Set up coefficient array for FD

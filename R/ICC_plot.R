@@ -289,7 +289,7 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
       # print("itemStr")
       if (!is.null(titlestr)) {
         # a scale title is supplied
-        # print("titlestr")
+        print("titlestr")
         if (scopei != 0) {
           # print("scope")
           # a vector of scope value is supplied
@@ -302,8 +302,8 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
                           round(scopei,1),sep="")
         }
       } else {
-        # print("no itemstr")
-        if (!(scopei == 0)) {
+        # print("no itemstr line 305")
+        if (!(is.na(scopei))) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste(titlestr,         ' ',iplot,': ',"scope ",
@@ -317,8 +317,8 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
     } else 
       if (!is.null(titlestr)) {
         # a scale title is supplied
-        # print("titlestr")
-        if (!(scopei == 0)) {
+        # print("titlestr line 320")
+        if (!(is.na(scopei))) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste(titlestr," item ",iplot,": ","scope ",
@@ -330,8 +330,7 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
         }
       } else {
         # print("no titlestr")
-        # print(scopei)
-        if (!(scopei == 0)) {
+        if (!(is.na(scopei))) {
           # print("scope")
           # a vector of scope value is supplied
           ttllab <- paste("item",iplot,': ',"scope ",

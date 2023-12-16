@@ -28,7 +28,7 @@ export(Analyze,
   Sbinsmth, 
   Sbinsmth_nom,
   TestInfo_svd, 
-  TGanalysis,
+  TG_analysis,
   TG_density.fd)
 
 import(fda)

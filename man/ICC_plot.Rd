@@ -1,7 +1,6 @@
 \name{ICC_plot}
 \alias{ICC_plot}
-\title{Plot probability and surprisal curves for a selection of test or scale 
-       items.}
+\title{Plot probability and surprisal curves for test or scale items.}
 \usage{
   ICC_plot(scrfine, SfdList, dataList, Qvec, 
            binctr=NULL, data_point = FALSE, ci = FALSE, 
@@ -72,8 +71,6 @@ option characteristic curves.
 
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
   information-based psychometrics.  Psych, 2, 347-360.
-
-  http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -85,36 +82,25 @@ option characteristic curves.
 \examples{
 #  Example 1.  Display the item surprisal curves for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
+dataList <- Quant_13B_problem_dataList
 SfdList  <- Quant_13B_problem_parmList$SfdList
 Qvec     <- Quant_13B_problem_parmList$Qvec
 binctr   <- Quant_13B_problem_parmList$binctr
-titlestr <- "Quant_13B_problem"
-
-#  plot the curves for the first question over the score index
-
-oldpar  <- par(no.readonly=TRUE)
-indfine <- seq(0,100,len=101)
-dataList <- Quant_13B_problem_dataList
-
-ICC_plot(indfine, SfdList, dataList, Qvec, binctr, 
-         data_point = TRUE, plotType = c("S", "P"), 
-         Srng=c(0,4), plotindex=1:24)
-         
-#  plot the curves for the first question over test information
-
-infofine     <- Quant_13B_problem_infoList$infofine
+infoSurpvec  <- Quant_13B_problem_infoList$infoSurpvec
 Qinfovec     <- Quant_13B_problem_infoList$Qinfovec
 bininfoctr   <- Quant_13B_problem_infoList$bininfoctr
-
-ICC_plot(infofine, SfdList, dataList, Qinfovec, bininfoctr,
+titlestr <- "Quant_13B_problem"
+#  plot the curves for the first question over the score index
+oldpar  <- par(no.readonly=TRUE)
+indfine <- seq(0,100,len=101)
+ICC_plot(indfine, SfdList, dataList, Qvec, binctr, 
+         data_point = TRUE, plotType = c("S", "P"), 
+         Srng=c(0,4), plotindex=1)
+#  plot the curves for the first question over test information
+ICC_plot(infoSurpvec, SfdList, dataList, Qinfovec, bininfoctr,
           data_point = TRUE, plotType = c("S", "P"), 
-          Srng=c(0,4), plotindex=1:4)
-          
+          Srng=c(0,4), plotindex=1)
 par(oldpar)
-
-#  Example 2.  Display the item probability and surprisal curves for the 
-# Symptom Distress Scale with 13 items and 473 respondents.
-# Proceed as above changing "Quant" to "SDS"
 }
 
 

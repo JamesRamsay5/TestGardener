@@ -16,7 +16,7 @@
   \code{logdensfdPar}.
 }
 \usage{
-\method{TG_density}{fd}(indexdens, logdensfdPar, conv=0.0001, iterlim=20,
+\method{TG_density}{fd}(indexdens, logdensfd, conv=0.0001, iterlim=20,
            active=1:nbasis, dbglev=0)
 }
 \arguments{
@@ -29,8 +29,8 @@ a set observations, which may be one of two forms:
 }
 The first option corresponds to all $f_i = 1$.
 }
-\item{logdensfdPar}{
-a functional parameter object specifying the initial
+\item{logdensfd}{
+a functional data object specifying the initial
 value, basis object, roughness penalty and smoothing
 parameter defining function $W(t).$
 }
@@ -95,32 +95,14 @@ turn off the output buffering option in S-PLUS.
   exponentiate the resulting vector, and then divide by the normalizing
   constant \code{C}.
 }
+\references{
+  Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 
+  Journal of Educational and Behavioral Statistics, 45, 297-315.
+  
+  Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
+  information-based psychometrics.  Psych, 2, 347-360.
+ }
+\author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{intensity.fd}}
 }
-\examples{
-#  set up range for density
-rangeval <- c(-3,3)
-#  set up some standard normal data
-indexdens <- rnorm(50)
-#  make sure values within the range
-indexdens[indexdens < -3] <- -2.99
-indexdens[indexdens >  3] <-  2.99
-#  set up basis for W(indexdens)
-basisobj <- create.bspline.basis(rangeval, 11)
-#  set up initial value for Wfdobj
-Wfd0 <- fd(matrix(0,11,1), basisobj)
-logdensfdPar <- fdPar(Wfd0)
-#  estimate density
-denslist <- TG_density.fd(indexdens, logdensfdPar)
-#  plot density
-indexdensval <- seq(-3,3,.2)
-wval <- eval.fd(indexdensval, denslist$Wfdobj)
-pval <- exp(wval)/denslist$C
-oldpar <- par(no.readonly=TRUE)
-on.exit(oldpar)
-plot(indexdensval, pval, type="l", ylim=c(0,0.4))
-points(indexdens,rep(0,50))
-}
-% docclass is function
-\keyword{smooth}

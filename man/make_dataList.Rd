@@ -15,7 +15,7 @@
 \usage{
   make_dataList(chcemat, scoreList, noption, sumscr_rng=NULL, 
                 titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                nbin=nbinDefault(N), NumBasis=7, SfdPar=NULL,
+                nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
                 jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
                 verbose=FALSE)
 }
@@ -62,11 +62,7 @@
     surprisal curves. The default is computed by a function that uses the 
     number of examinees.  
     }
-  \item{SfdPar}{A functional parameter object specifying a basis, a linear 
-    differential operator, a smoothing parameter, a boolian constant
-    indicating estimation, and a penalty matrix.  The default object defines
-    an order 5 spline with operator \code{Lfd = 3} and smoothing parameter
-    \code{1e4}. The number of basis functions depends on the size of N.}
+  \item{Sfd}{A functional data object.}
   \item{jitterwrd}{A boolian constant: TRUE implies adding a small random value 
     to each sum score value prior to computing percent rank values.}
   \item{PcntMarkers}{Used in plots of curves to display marker or reference 
@@ -120,10 +116,10 @@
   \item{optList:}{A list vector containing the numerical score values 
     assigned to the options for this question.}
   \item{key:}{If the data are from a test of the multiple choices type
-      where the right answer is scored 1 and the wrong answers 0, this is 
-      a numeric vector of length n containing the indices the right answers.  
-      Otherwise, it is NULL.}
-  \item{SfdPar:}{An fdPar object for the defining the surprisal curves.}
+    where the right answer is scored 1 and the wrong answers 0, this is 
+    a numeric vector of length n containing the indices the right answers.  
+    Otherwise, it is NULL.}
+  \item{Sfd:}{A fd object for the defining the surprisal curves.}
   \item{noption:}{A numeric vector of length n containing the numbers of 
     options for each item.}
   \item{nbin:}{The number of bins for binning the data.}
@@ -153,34 +149,37 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
-  \code{\link{Analyze}}
+  \code{\link{TG_analysis},
+        \link{Analyze},
+        \link{index_distn},
+        \link{index2info},
+        \link{index_fun},
+        \link{Sbinsmth}}
 }
 \examples{
   #  Example 1:  Input choice data and key for the short version of the 
   #  SweSAT quantitative multiple choice test with 24 items and 1000 examinees
   #  input the choice data as 1000 strings of length 24
-  chcevec <- as.numeric(scan("data/Quant_13B_problem_chcemat.txt","o"))
-  chcemat <- matrix(chcevec,1000,24,byrow=TRUE)
+  #  set up index and key data
+  chcemat <- Quant_13B_problem_chcemat
+  key     <- Quant_13B_problem_key
+  # number of examinees and of items
   N <- nrow(chcemat)
   n <- ncol(chcemat)
-  knostring <- scan("data/Quant_13B_problem_key.txt", "o") 
-  key       <- as.integer(unlist(stringr::str_split(knostring,"")))
-
+  # number of options per item and option weights
   noption <- rep(0,n)
   for (i in 1:n) noption[i]  <- 4
-
   scoreList <- list() # option scores
   for (item in 1:n){
     scorei <- rep(0,noption[item])
     scorei[Quant_13B_problem_key[item]] <- 1
     scoreList[[item]] <- scorei
   }
-  Quant_13B_problem_dataList <- 
-        make_dataList(chcemat, scoreList, noption)
+  # Use the input information to define the 
+  # big three list object containing info about the input data
+  dataList <- make_dataList(chcemat, scoreList, noption)
   }
 

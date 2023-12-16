@@ -1,5 +1,4 @@
-dataSimulation <- function(dataList, parmList, index.pop=seq(0,100,len=101), 
-                           nsample=1000) {
+dataSimulation <- function(dataList, parmList, nsample=1000) {
   
   #  Simulate data, analyze each simulated sample, and print results
   
@@ -11,7 +10,7 @@ dataSimulation <- function(dataList, parmList, index.pop=seq(0,100,len=101),
   
   #  info from dataList
   
-  ScoreList <- dataList$optList$optScr
+  ScoreList <- dataList$ScoreList
   scrrng    <- dataList$scrrng
   Wdim      <- dataList$Wdim
   
@@ -32,11 +31,12 @@ dataSimulation <- function(dataList, parmList, index.pop=seq(0,100,len=101),
   
   #  define population index values 
   
-  nindex  <- length(index.pop)
+  nindex <- nfine
   
   #  compute population values for index, mu and arc length
   #  corresponding to nfine equally spaced values of index.
   
+  index.pop=seq(0,100,len=101)
   mu.pop       <- mu(index.pop, SfdList, dataList$optList)
   result       <- index2info(index.pop, Qvec, SfdList, binctr)
   scopevec.pop <- result$scopevec 
@@ -113,11 +113,10 @@ dataSimulation <- function(dataList, parmList, index.pop=seq(0,100,len=101),
   simList <- list(
     sumscr     = sumscrsave,
     index      = indexsave,
-    musave     = musave,
-    infosave   = infosave,
+    mu         = musave,
+    info       = infosave,
     index.pop  = index.pop,
     mu.pop     = mu.pop,
-    info.pop   = info.pop,
     n          = n,
     nindex     = nindex,
     indfine    = indfine, 

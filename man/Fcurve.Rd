@@ -25,8 +25,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -34,11 +32,11 @@ http://testgardener.azurewebsites.net
 }
 \examples{
 #  Compute a grid of values of the objective function for locating each  
-#  examinee or respondent for the 24-item short form of the SweSAT quantitative  
-# test on the percentile score index continuum [0,100].
+#  examinee or respondent for the 24-item short form of the SweSAT   
+#  quantitative test on the percentile score index continuum [0,100].
+chcemat <- Quant_13B_problem_dataList$chcemat
 SfdList <- Quant_13B_problem_parmList$SfdList
 index   <- Quant_13B_problem_parmList$index
-chcemat <- Quant_13B_problem_dataList$chcemat
 n       <- ncol(chcemat)
 #  Fitting function for the first examinee
 j <- 1
@@ -56,7 +54,8 @@ plot(indfine, Fcurve1,   type="l", xlab="", ylab="Fitting curve",
 plot(indfine, DFcurve1,  type="l", xlab="", ylab="First derivative")
 points(index[1], 0, pch="o")
 abline(0,0,lty=2)
-plot(indfine, D2Fcurve1, type="l", xlab="Score index", ylab="Second derivative")
+plot(indfine, D2Fcurve1, type="l", 
+     xlab="Score index", ylab="Second derivative")
 abline(0,0,lty=2)
 points(index[1], 0, pch="o")
 par(oldpar)

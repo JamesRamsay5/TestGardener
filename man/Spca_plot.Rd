@@ -29,8 +29,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics. Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -60,7 +58,4 @@ varprop    <- Results$varpropvarmx
 Spca_plot(Results$harmvarmxfd, nharm=3, titlestr)
 print("Proportions of variance accounted for and their sum:")
 print(round(100*c(varprop,sum(varprop)),1))
-#  Example 2.  Display the test information curve for the 
-# Symptom Distress Scale with 13 items and 473 respondents.
-# Proceed as above changing "Quant" to "SDS"
 }

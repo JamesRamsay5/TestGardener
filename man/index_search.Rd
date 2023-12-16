@@ -45,8 +45,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -57,17 +55,15 @@ http://testgardener.azurewebsites.net
 #  fitting function and replace them as well as their function and
 #  derivative values associated with the fine grid value nearest the 
 #  the global minimum.
+chcemat <- Quant_13B_problem_chcemat
+key     <- Quant_13B_problem_key
 SfdList <- Quant_13B_problem_parmList$SfdList
-index <- Quant_13B_problem_parmList$index
+index   <- Quant_13B_problem_parmList$index
 Fval    <- Quant_13B_problem_parmList$Fval
 DFval   <- Quant_13B_problem_parmList$DFval
 D2Fval  <- Quant_13B_problem_parmList$D2Fval
-Result  <- index_search(SfdList, Quant_13B_problem_chcemat, index, 
-                          Fval, DFval, D2Fval, indexind=1:1000)
+Result  <- index_search(SfdList, chcemat, index, Fval, DFval, D2Fval)
 changeindex <- Result$changeindex
 print(paste("Number changed =",length(changeindex)))
 change  <- index[changeindex] - Result$index[changeindex]
-oldpar <- par(no.readonly=TRUE)
-hist(change,101)
-par(oldpar)
 }

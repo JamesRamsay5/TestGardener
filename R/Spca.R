@@ -1,6 +1,6 @@
 Spca <- function(SfdList, Sdim=NULL, nharm=2, rotate=TRUE) {
   
-  #  Last modified 10 October 2023 by Jim Ramsay
+  #  Last modified 12 December 2023 by Jim Ramsay
   
   #  set up the dimension of the over-space containing the test info curve
   
@@ -41,16 +41,16 @@ Spca <- function(SfdList, Sdim=NULL, nharm=2, rotate=TRUE) {
   Snbasis <- 7
   Snorder <- 4
   Sbasis  <- fda::create.bspline.basis(c(0,100), Snbasis, Snorder) 
-  SfdPar  <- fda::fdPar(fd(matrix(0,Snbasis,1),Sbasis))
+  Sfd     <- fda::fd(matrix(0,Snbasis,1),Sbasis)
   
   #  smooth all Sdim surprisal curves to get best fitting fd curves
   
-  Sfd <- fda::smooth.basis(indfine, Smat_full, SfdPar)$fd
+  Sfd <- fda::smooth.basis(indfine, Smat_full, Sfd)
   
   #  functional PCA of the fd versions of surprisal curves
   #  the output is nharm principal component functions
   
-  pcaList <- fda::pca.fd(Sfd, nharm, SfdPar, FALSE)
+  pcaList <- fda::pca.fd(Sfd, nharm, Sfd, FALSE)
   
   #  set up the unrotated harmonic functional data object
   

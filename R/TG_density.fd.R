@@ -1,4 +1,4 @@
-TG_density.fd <- function(indexdens, logdensfdPar, conv=0.0001, iterlim=20,
+TG_density.fd <- function(indexdens, logdensfd, conv=0.0001, iterlim=20,
                       active=1:nbasis, dbglev=0) {
 # DENSITYFD estimates the density and log-density of a sample of scalar 
 # observations.
@@ -10,50 +10,35 @@ TG_density.fd <- function(indexdens, logdensfdPar, conv=0.0001, iterlim=20,
 #   Option 1. corresponds to all f_i = 1.
 
 #  Arguments are:
-#  THETADENS ... data value array, either a vector or a two-column
+#  INDEXDENS ... data value array, either a vector or a two-column
 #                matrix.
-#  SFDPAROBJ ... functional parameter object specifying the initial log
+#  SFD       ... functional data object specifying the initial log
 #              density, the linear differential operator used to smooth
-#              smooth it, and the smoothing parameter.
+#              smooth it, and the smoothing ameter.
 #  CONV      ... convergence criterion
 #  ITERLIM   ... iteration limit for scoring iterations
-#  ACTIVE    ... indices among 1:NBASIS of parameters to optimize
+#  ACTIVE    ... indices among 1:NBASIS of ameters to optimize
 #  DBGLEV    ... level of output of computation history
 
 #  Returns:
 #  A list containing
-#  WFDOBJ ...   functional data basis object defining final density
-#  C      ...   normalizing constant for density p = exp(WFDOBJ)/C
+#  SFDOBJ ...   functional data basis object defining final density
+#  C      ...   normalizing constant for density p = exp(SFDOBJ)/C
 #  FLIST  ...   Struct object containing
 #               FSTR$f     final log likelihood
 #               FSTR$norm  final norm of gradient
 #  ITERNUM   Number of iterations
 #  ITERHIST  History of iterations
 
-#  To plot the density function or to evaluate it, evaluate WFDOBJ,
+#  To plot the density function or to evaluate it, evaluate SFDOBJ,
 #  exponentiate the resulting vector, and then divide by the normalizing
 #  constant C.
 
-# last modified 2 November 2023 by Jim Ramsay
+# last modified 13 December 2023 by Jim Ramsay
 
-#  check logdensfdPar
+#  set up SFDOBJ
 
-if (!inherits(logdensfdPar, "fdPar")) {
-	if (inherits(logdensfdPar, "fd") || inherits(logdensfdPar, "basisfd")) {
-	    logdensfdPar <- fdPar(logdensfdPar)
-	} else {
-          stop("WFDPAROBJ is not a fdPar object")
-      }
-}
-
-#  set up WFDOBJ
-
-Sfdobj   <- logdensfdPar$fd
-
-#  set up LFDOBJ
-
-Lfdobj <- logdensfdPar$Lfd
-Lfdobj <- int2Lfd(Lfdobj)
+Sfdobj   <- logdensfd
 
 #  set up BASIS
 
@@ -84,9 +69,9 @@ if (m == 1) {
     f    <- f/fsum
     indexdens    <- indexdens[,1]
 }
-f = as.matrix(f)
+f <- as.matrix(f)
 
-#  check for values outside of the range of WFD0
+#  check for values outside of the range of SFD0
 
 inrng <- (1:N)[indexdens >= rangex[1] & indexdens <= rangex[2]]
 if (length(inrng) != N) {
@@ -104,12 +89,7 @@ climit <- c(rep(-50,nbasis),rep(400,nbasis))
 cvec0  <- Sfdobj$coefs
 dbgwrd <- dbglev > 1
 
-zeromat <- zerobasis(nbasis)
-
-#  initialize matrix Kmat defining penalty term
-
-lambda <- logdensfdPar$lambda
-if (lambda > 0) Kmat <- lambda*getbasispenalty(basisobj, Lfdobj)
+zeromat <- fda::zerobasis(nbasis)
 
 #  evaluate log likelihood
 #    and its derivatives with respect to these coefficients
@@ -120,25 +100,20 @@ Dlogl  <- result[[2]]
 
 #  compute initial badness of fit measures
 
-fun  <- -logl
-gvec <- -Dlogl
-if (lambda > 0) {
-   gvec <- gvec + 2*(Kmat %*% cvec0)
-   fun    <- fun + t(cvec0) %*% Kmat %*% cvec0
-}
+fun     <- -logl
+gvec    <- -Dlogl
 Foldstr <- list(f = fun, norm = sqrt(mean(gvec^2)))
-gvec0 <- t(zeromat) %*% as.matrix(gvec)
+gvec0   <- t(zeromat) %*% as.matrix(gvec)
 
 #  compute the initial expected Hessian
 
 hmat <- Varfnden(indexdens, basisobj, cvec0)
-if (lambda > 0) hmat <- hmat + 2*Kmat
-hmat0 = t(zeromat) %*% hmat %*% zeromat
+hmat0 <- t(zeromat) %*% hmat %*% zeromat
 
 #  evaluate the initial update vector for correcting the initial bmat
 
 deltac0  <- -solve(hmat0,gvec0)
-deltac   <- zeromat %*% as.matrix(deltac0)
+deltac   <-  zeromat %*% as.matrix(deltac0)
 cosangle <- -sum(gvec0*deltac0)/sqrt(sum(gvec0^2)*sum(deltac0^2))
 
 #  initialize iteration status arrays
@@ -219,7 +194,7 @@ for (iter in 1:iterlim) {
       linemat[1,5]  <- trial
       #  Main iteration loop for linesrch
       for (stepiter in 1:STEPMAX) {
-        #  ensure that step does not go beyond limits on parameters
+        #  ensure that step does not go beyond limits on ameters
         limflg  <- 0
         #  check the step size
         result <- fda::stepchk(linemat[1,5], cvec, deltac, limwrd, ind,
@@ -243,10 +218,6 @@ for (iter in 1:iterlim) {
 	      Dlogl   <- result[[2]]
         Flist$f <- -logl
         gvecnew <- -as.matrix(Dlogl)
-        if (lambda > 0) {
-            gvecnew <- gvecnew + 2*Kmat %*% cvecnew
-            Flist$f <- Flist$f + t(cvecnew) %*% Kmat %*% cvecnew
-        }
         gvecnew0 <- t(zeromat) %*% gvecnew
         Flist$norm <- sqrt(mean(gvecnew0^2))
         #  compute new directional derivative
@@ -259,7 +230,7 @@ for (iter in 1:iterlim) {
 	         cat("\n")
 	      }
         #  compute next step
-	      result  <- stepit(linemat, ips, dblwrd, MAXSTEP)
+	      result  <- fda::stepit(linemat, ips, dblwrd, MAXSTEP)
 	      linemat <- result$linemat
 	      ips     <- result$ips
 	      ind     <- result$ind
@@ -270,7 +241,7 @@ for (iter in 1:iterlim) {
         #  end of line search loop
      	}
 
-    	#  update current parameter vectors
+    	#  update current ameter vectors
 
      	cvec  <- cvecnew
      	gvec  <- gvecnew
@@ -298,7 +269,6 @@ for (iter in 1:iterlim) {
      	if (Flist$f >= Foldstr$f) break
      	#  compute the Hessian
      	hmat <- Varfnden(indexdens, basisobj, cvec)
-     	if (lambda > 0) hmat <- hmat + 2*Kmat
       hmat0 <- t(zeromat) %*% hmat %*% zeromat
      	#  evaluate the update vector
      	deltac0 <- -solve(hmat0,gvec0)
@@ -328,7 +298,7 @@ loglfnden <- function(indexdens, f, basisobj, cvec=FALSE) {
    	fmat    <- outer(f, rep(1,nbasis))
    	fsum    <- sum(f)
    	nobs    <- length(indexdens)
-   	phimat  <- getbasismatrix(indexdens, basisobj)
+   	phimat  <- fda::getbasismatrix(indexdens, basisobj)
    	Cval    <- normden.phi(basisobj, cvec, )
    	logl    <- sum((phimat %*% cvec) * f - fsum*log(Cval)/N)
     EDw     <- expectden.phi(basisobj, cvec, Cval)
@@ -378,7 +348,7 @@ normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
   	indexdens  <- rng
   	nindexdens <- length(indexdens)
   	oindexdens <- matrix(1,nindexdens,1)
-  	findexdens <- getbasismatrix(indexdens, basisobj)
+  	findexdens <- fda::getbasismatrix(indexdens, basisobj)
   	windexdens <- findexdens %*% cvec
   	windexdens[windexdens < -50] <- -50
   	pindexdens <- exp(windexdens)
@@ -396,7 +366,7 @@ normden.phi <- function(basisobj, cvec, JMAX=15, EPS=1e-7) {
     	} else {
       		indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
-    	findexdens <- getbasismatrix(indexdens, basisobj)
+    	findexdens <- fda::getbasismatrix(indexdens, basisobj)
     	windexdens <- findexdens %*% cvec
     	windexdens[windexdens < -50] <- -50
     	pindexdens <- exp(windexdens)
@@ -447,14 +417,14 @@ expectden.phi <- function(basisobj, cvec, Cval=1, nderiv=0,
     indexdens  <- rng
     nindexdens <- length(indexdens)
     oindexdens <- matrix(1,nindexdens,nindexdens)
-    findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    findexdens <- fda::getbasismatrix(indexdens, basisobj, 0)
     windexdens <- findexdens %*% cvec
     windexdens[windexdens < -50] <- -50
     pindexdens <- exp(windexdens)/Cval
     if (nderiv == 0) {
     	Dfindexdens <- findexdens
     } else {
-    	Dfindexdens <- getbasismatrix(indexdens, basisobj, 1)
+    	Dfindexdens <- fda::getbasismatrix(indexdens, basisobj, 1)
     }
     sumj <- t(Dfindexdens) %*% pindexdens
     smat <- matrix(0,JMAXP,nbasis)
@@ -473,14 +443,14 @@ expectden.phi <- function(basisobj, cvec, Cval=1, nderiv=0,
         indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
     	nindexdens <- length(indexdens)
-    	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    	findexdens <- fda::getbasismatrix(indexdens, basisobj, 0)
     	windexdens <- findexdens %*% cvec
     	windexdens[windexdens < -50] <- -50
     	pindexdens <- exp(windexdens)/Cval
     	if (nderiv == 0) {
         Dfindexdens <- findexdens
     	} else {
-        Dfindexdens <- getbasismatrix(indexdens, basisobj, 1)
+        Dfindexdens <- fda::getbasismatrix(indexdens, basisobj, 1)
     	}
     	sumj <- t(Dfindexdens) %*% pindexdens
     	smat[j,] <- (smat[j-1,] + width*as.vector(sumj)/tnm)/2
@@ -531,19 +501,19 @@ expectden.phiphit <- function(basisobj, cvec, Cval=1, nderiv1=0, nderiv2=0,
   	#  the first iteration uses just the }points
   	indexdens  <- rng
   	nindexdens <- length(indexdens)
-  	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+  	findexdens <- fda::getbasismatrix(indexdens, basisobj, 0)
   	windexdens <- findexdens %*% cvec
   	windexdens[windexdens < -50] <- -50
   	pindexdens <- exp(windexdens)/Cval
   	if (nderiv1 == 0) {
     	Dfindexdens1 <- findexdens
   	} else {
-    	Dfindexdens1 <- getbasismatrix(indexdens, basisobj, 1)
+    	Dfindexdens1 <- fda::getbasismatrix(indexdens, basisobj, 1)
   	}
   	if (nderiv2 == 0) {
     	Dfindexdens2 <- findexdens
   	} else {
-    	Dfindexdens2 <- getbasismatrix(indexdens, basisobj, 2)
+    	Dfindexdens2 <- fda::getbasismatrix(indexdens, basisobj, 2)
   	}
   	oneb <- matrix(1,1,nbasis)
   	sumj <- t(Dfindexdens1) %*% ((pindexdens %*% oneb) * Dfindexdens2)
@@ -562,19 +532,19 @@ expectden.phiphit <- function(basisobj, cvec, Cval=1, nderiv1=0, nderiv2=0,
       		indexdens <- seq(rng[1]+del/2, rng[2], del)
     	}
     	nindexdens <- length(indexdens)
-    	findexdens <- getbasismatrix(indexdens, basisobj, 0)
+    	findexdens <- fda::getbasismatrix(indexdens, basisobj, 0)
     	windexdens <- findexdens %*% cvec
     	windexdens[windexdens < -50] <- -50
     	pindexdens <- exp(windexdens)/Cval
     	if (nderiv1 == 0) {
       		Dfindexdens1 <- findexdens
     	} else {
-      		Dfindexdens1 <- getbasismatrix(indexdens, basisobj, 1)
+      		Dfindexdens1 <- fda::getbasismatrix(indexdens, basisobj, 1)
     	}
     	if (nderiv2 == 0) {
       		Dfindexdens2 <- findexdens
     	} else {
-      		Dfindexdens2 <- getbasismatrix(indexdens, basisobj, 2)
+      		Dfindexdens2 <- fda::getbasismatrix(indexdens, basisobj, 2)
     	}
     	sumj <- t(Dfindexdens1) %*% ((pindexdens %*% oneb) * Dfindexdens2)
     	smat[j,,] <- (smat[j-1,,] + width*as.matrix(sumj)/tnm)/2

@@ -53,8 +53,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -63,4 +61,28 @@ http://testgardener.azurewebsites.net
   \code{\link{DFfun}},
   \code{\link{index2info}},
   \code{\link{scoreDensity}}
+}
+\examples{
+  #  Optimize the indices defining the data fits for the first five examinees
+  #  input the choice indices in the 1000 by 24 choice index matrix
+  chcemat   <- Quant_13B_problem_chcemat
+  #  First set up the list object for surprisal curves computed from 
+  #  initial index estimates.
+  SfdList   <- Quant_13B_problem_dataList$SfdList
+  #  Their initial values are the percent rank values ranging over [0,100]
+  index_in  <- Quant_13B_problem_dataList$percntrnk[1:5]
+  #  set up choice indices for first five examinees
+  chcemat_in <- chcemat[1:5,]
+  #  optimize the initial indices
+  indexfunList <- index_fun(index_in, SfdList, chcemat_in)
+  #  optimal index values
+  index_out    <- indexfunList$index_out
+  #  The surprisal data fit values
+  Fval_out     <- indexfunList$Fval
+  #  The surprisal data fit first derivative values
+  DFval_out    <- indexfunList$DFval
+  #  The surprisal data fit second derivative values
+  D2Fval_out   <- indexfunList$D2Fval
+  #  The number of index values that have not reached the convergence criterion
+  active_out   <- indexfunList$active
 }

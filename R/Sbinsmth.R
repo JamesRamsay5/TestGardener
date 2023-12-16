@@ -1,8 +1,21 @@
 Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList, 
-                     indexQnt=seq(0,100, len=2*nbin+1), wtvec=matrix(1,n,1),
+                     indexQnt=seq(0,100,len=2*nbin+1), wtvec=matrix(1,n,1),
                      iterlim=20, conv=1e-4, dbglev=0) {
+  # Compute smooth surprisal curves for binned data
   
-  # Last modified 3 November 2023 by Jim Ramsay
+  #  Arguments:
+  #  index    ... vector of length N of score index values
+  #  dataList ... List vector containing specifications of objects required
+  #               to make an analysis and computed from input data
+  #  SfdList  ... List vector containing objects for each item.  Ordinarily
+  #               computed instead in Sbinsmth,
+  #  indexQnt ... Sequence of boundary - binctr pairs followed by final boundary
+  #  wtvec    ... Possible weights for items, but ordinarily all ones
+  #  iterlim  ... Maximum number of iterations for optimising curves
+  #  conv     ... Convergence criterion for iterations
+  #  dbglev   ... Amoount of printed history of optimizations. None if zero
+  
+  # Last modified 15 December 2023 by Jim Ramsay
 
   #  -----------------------------------------------------------------------------
   #  Step 1.       Set up  objects required for subsequent steps
@@ -15,19 +28,16 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
   
   #  objects from dataList
   
-  n       <- length(SfdList)
-  indfine <- seq(0,100,len=101)
+  nitem   <- length(SfdList)
   nbin    <- dataList$nbin
-  nitem   <- length(dataList$noption)
-  SfdPar  <- dataList$SfdPar
+  Sbasis  <- dataList$Sbasis
   chcemat <- dataList$chcemat
   noption <- dataList$noption
   grbgvec <- dataList$grbgvec
 
   #  check objects from dataList
   
-  if (is.null(chcemat))       stop("chcemat is null.") 
-  if (is.null(indfine)) stop("indfine is null.")
+  if (is.null(chcemat)) stop("chcemat is null.") 
   if (is.null(noption)) stop("noption is null.")
   if (is.null(nbin))    stop("nbin is null.")
   
@@ -44,10 +54,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
 
   #  bin centers
   
-  aves <- rep(0,nbin)
-  for (k in 1:nbin) {
-    aves[k] <- (bdry[k]+bdry[k+1])/2
-  }
+  binctr <- indexQnt[seq(2,2*nbin,by=2)]
 
   #  compute frequencies for each bin
   
@@ -59,27 +66,23 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
   
   meanfreq <- mean(freq)
   
-  #  set up objects for required defining SfdPar for each item
-  
-  Sbasis    <- SfdPar$fd$basis
-  Snbasis   <- Sbasis$nbasis
-  SLfd      <- SfdPar$Lfd
-  Slambda   <- SfdPar$lambda
-  Sestimate <- SfdPar$estimate
-  Spenmat   <- SfdPar$penmat
-  
   #  -----------------------------------------------------------------------------
   #  Step 3.  Loop through the items to define the negative-surprisal S-curves
   #           for each question.
   #  -----------------------------------------------------------------------------
   
   for (item in 1:nitem) {
-    if (dbglev > 0) {
-      # print(paste("Item",item))
-    }
+    outputwrd <- FALSE
+    # outputwrd <- (item == 24)
+    if (outputwrd) print(paste("Item",item))
     #  set some variable values for this item
-    Mi    <- noption[item]
+    SListi   <- SfdList[[item]]
+    Mi       <- SListi$M
+    Sfdi     <- SListi$Sfd
+    Sbasisi  <- Sfdi$basis
+    Snbasisi <- Sbasisi$nbasis
     logMi <- log(Mi)
+    Zmati <- fda::zerobasis(Mi)
     #  extract active cases for (this item and corresponding index value
     chceveci <- as.numeric(chcemat[,item])
     #  bin frequencies (bin number nbin + 1 is the upper boundary)
@@ -92,7 +95,11 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  --------------------------------------------------------------------
     for (k in 1:nbin) {
       #  index of index values within this bin
-      indk   <- index >= bdry[k] & index <= bdry[k+1]
+      if (k == 1) {
+        indk <- index <= bdry[2]
+      } else {
+        indk <- index > bdry[k] & index <= bdry[k+1]
+      }
       if (sum(indk) > 0) {
         #  ------------------------------------------------------------
         #                 compute P values
@@ -108,6 +115,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
         Sbin[k,] <- -log(Pbin[k,])/logMi
       } else {
         Pbin[k,] <- NA
+        Sbin[k,] <- NA
       }
     } # end of bin loop
 
@@ -139,8 +147,8 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
         nonindm <- (1:nbin)[Smis.na]
         if (indmlen > 3) {
           SY <- Sbin[indm,m];
-          SX <- cbind(rep(1,indmlen), aves[indm])
-          BX <- lsfit(aves[indm], SY)$coefficients
+          SX <- cbind(rep(1,indmlen), binctr[indm])
+          BX <- lsfit(binctr[indm], SY)$coefficients
           Sbin[indm,m]    <- SX %*% BX
           Sbin[nonindm,m] <- SurprisalMax
         } else {
@@ -151,12 +159,15 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     
     #  apply surprisal smoothing
     
-    SListi  <- SfdList[[item]]
-    Sfdi    <- SListi$Sfd
     Bmat0   <- Sfdi$coefs
-    result  <- smooth.surp(aves, Sbin, Bmat0, SfdPar)
+    #  suprisal smooth
+    if (outputwrd) dbglev <- 1 else dbglev <- 0
+    #  optimize fit of smooth surprisal curves
+    result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, dbglev=dbglev)
+    #  retrieve results
     Sfdi    <- result$Sfd
     Bmati   <- result$Bmat
+    if (outputwrd) print(round(Zmati %*% t(Bmati),1))
     SSE     <- result$SSE
     hmat    <- result$hmat
     DvecSmatDvecB <- result$DvecSmatDvecB
@@ -165,9 +176,10 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  Step 4  Compute S and P values for bin point and each mesh point
     #  --------------------------------------------------------------------
      
+    indfine    <- seq(0,100,len=101)
     Smatfine   <- eval.surp(indfine, Sfdi)
     DSmatfine  <- eval.surp(indfine, Sfdi, 1)
-    if (Snbasis > 2) {
+    if (Snbasisi > 2) {
       D2Smatfine <- eval.surp(indfine, Sfdi, 2)
     } else {
       D2Smatfine <- NULL
@@ -204,7 +216,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     DPbinDS <- matrix(0,nbin,Mi)
     for (m in 1:Mi) {
       Pbinfit[,m] <- pracma::interp1(as.numeric(indfine), as.numeric(Pmatfine[,m]), 
-                                     as.numeric(aves))
+                                     as.numeric(binctr))
     }
     #  compute derivatives for all options (except for diagonal)
     DPbinDS <- logMi*Pbinfit
@@ -217,8 +229,8 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  --------------------------------------------------------------------
     
     SListi  <- list(
-      Sfd        = Sfdi,       # functional data object 
       M          = Mi,         # the number of options
+      Sfd        = Sfdi,       # functional data object for surprisal smooth
       Pbin       = Pbin,       # proportions at each bin
       Sbin       = Sbin,       # negative surprisals at each bin
       indfine    = indfine,    # 101 equally spaced plotting points
@@ -228,14 +240,16 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
       D2Smatfine = D2Smatfine, # 2nd derivative of S functions over fine mesh
       PStdErr    = PStdErr,    # Probabilities over fine mesh
       SStdErr    = SStdErr,    # S functions over fine mesh
-      infoSurp   = infoSurp   # arc length of item information curve
+      infoSurp   = infoSurp    # arc length of item information curve
     )
 
     SfdList[[item]] = SListi
     
+    if (outputwrd) readline(prompt = "Press return to continue ")
+    
   }
 
-  return(list(SfdList=SfdList, aves=aves, bdry=bdry, freq=freq))
+  return(list(SfdList=SfdList, binctr=binctr, bdry=bdry, freq=freq))
 
 }
 

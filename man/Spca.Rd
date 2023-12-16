@@ -36,8 +36,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics. Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -47,9 +45,9 @@ http://testgardener.azurewebsites.net
 #  Example 1.  Display the test information curve for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 #  plot a two-dimension version of manifold curve
-SfdList    <- Quant_13B_problem_parmList$SfdList
+SfdList  <- Quant_13B_problem_parmList$SfdList
 index    <- Quant_13B_problem_parmList$index
-infoSurp   <- Quant_13B_problem_parmList$infoSurp 
+infoSurp <- Quant_13B_problem_parmList$infoSurp 
 oldpar <- par(no.readonly=TRUE)
 on.exit(oldpar)
 Results <- Spca(SfdList, nharm=2, rotate=FALSE)
@@ -58,13 +56,10 @@ print("Proportions of variance accounted for and their sum:")
 print(round(100*c(varprop,sum(varprop)),1))
 #  plot a three-dimension version of manifold curve
 SfdList   <- Quant_13B_problem_parmList$SfdList
-index   <- Quant_13B_problem_parmList$index
+index     <- Quant_13B_problem_parmList$index
 infoSurp  <- Quant_13B_problem_parmList$infoSurp 
 Results   <- Spca(SfdList, nharm=3, rotate=FALSE)
-varprop <- Results$varpropvarmx
+varprop   <- Results$varpropvarmx
 print("Proportions of variance accounted for and their sum:")
 print(round(100*c(varprop,sum(varprop)),1))
-#  Example 2.  Display the test information curve for the 
-# Symptom Distress Scale with 13 items and 473 respondents.
-# Proceed as above changing "Quant" to "SDS"
 }

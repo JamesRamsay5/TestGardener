@@ -6,7 +6,7 @@ chcemat_simulate <- function(index.pop, SfdList) {
 #  over the score values in SCRFINE of the probabilities in the MI
 #  columns of matrix Pmati.
 
-#  Last modified on 2 November 2023 by Jim Ramsay
+#  Last modified on 15 December 2023 by Jim Ramsay
 
   nfine   <- 101
   n       <- length(SfdList)

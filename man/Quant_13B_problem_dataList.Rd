@@ -27,7 +27,7 @@
        	Otherwise, it is NULL.}
       \item{grbg:}{A vector of length indicating which option for each item contains 
         missing or illegal choice values.  If 0, there is no such option.}
-      \item{SfdPar:}{An fdPar object for the defining the surprisal curves.}
+      \item{Sfd:}{An fd object for the defining the surprisal curves.}
       \item{noption:}{A numeric vector of length n containing the numbers of 
         options for each item.}
       \item{nbin:}{The number of bins for binning the data.}

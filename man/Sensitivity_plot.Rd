@@ -57,8 +57,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -68,15 +66,12 @@ http://testgardener.azurewebsites.net
 }
 \examples{
 #  Example 1.  Display the option sensitivity curves for the 
-#  short SweSAT multiple choice test with 24 items and 1000 examinees
-SfdList <- Quant_13B_problem_parmList$SfdList
-Qvec    <- Quant_13B_problem_parmList$Qvec
-scrfine <- seq(0,100,len=101)
-oldpar <- par(no.readonly=TRUE)
-Sensitivity_plot(scrfine, SfdList, Qvec, Quant_13B_problem_dataList, 
-                 plotindex=1:3)
+#  short SweSAT multiple choice test with 24 items and 1000 examinees.
+dataList <- Quant_13B_problem_dataList
+SfdList  <- Quant_13B_problem_parmList$SfdList
+Qvec     <- Quant_13B_problem_parmList$Qvec
+scrfine  <- seq(0,100,len=101)
+oldpar   <- par(no.readonly=TRUE)
+Sensitivity_plot(scrfine, SfdList, Qvec, dataList, plotindex=1)
 par(oldpar)
-#  Example 2.  Display the option sensitivity curves for the 
-#  Symptom Distress Scale with 13 items and 473 respondents
-#  Proceed as above changing "Quant" to "SDS".
 }

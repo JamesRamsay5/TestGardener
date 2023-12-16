@@ -57,12 +57,12 @@ index_density.plot <- function(scrvec, scrrng, scrfine, densfine, Qvec,
   
   # Plot proportions
   
-  # after_stat(count) <- NULL
+  ..count.. <- NULL
   df1 <- data.frame(scrvec=scrvec)
   df2 <- data.frame(scrfine=scrfine, densfine=densfine)
   dens.plot <- ggplot2::ggplot(df1, ggplot2::aes(scrvec)) +
     ggplot2::geom_histogram(binwidth = binwidth, color="black", fill=NA, 
-    ggplot2::aes(y=(afterstat(count)/sum(afterstat(count)))), na.rm = TRUE)
+    ggplot2::aes(y=(..count..)/sum(..count..)), na.rm = TRUE)
   dens.plot <- dens.plot +  
     ggplot2::geom_line(data=df2, ggplot2::aes(x=scrfine,y=densfine, color="red"), 
                        linewidth=2,na.rm = TRUE) +  

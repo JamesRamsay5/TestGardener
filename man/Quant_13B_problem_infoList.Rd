@@ -2,7 +2,7 @@
 \alias{Quant_13B_problem_infoList}
 \docType{data}
 \title{
-  Arclength or information arameter list for 24 items from the quantitative 
+  Arclength or information parameter list for 24 items from the quantitative 
   SweSAT subtest.
 }
 \description{

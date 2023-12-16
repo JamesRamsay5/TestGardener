@@ -110,8 +110,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics. Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -121,26 +119,21 @@ http://testgardener.azurewebsites.net
 \examples{
 #  Example 1.  Display the item probability and surprisal curves for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
-#  estimate the initial surprisal curves
-index     <- Quant_13B_problem_dataList$percntrnk
-indexQnt  <- Quant_13B_problem_parmList$indexQnt
-Qvec        <- Quant_13B_problem_parmList$Qvec
-SfdResult   <- Sbinsmth(index, Quant_13B_problem_dataList)
+#  and estimate the initial surprisal curves. 
+#  The percent rank values for the jittered sum scores
+dataList    <- Quant_13B_problem_dataList
+index       <- dataList$percntrnk
+#  The bin locations for these score index values
+indexQnt    <- dataList$indexQnt
+#  The five marker percentage locations for (5, 25, 50, 75, 95)
+Qvec        <- dataList$Qvec
+#  Carry out the surprisal smoothing operation
+SfdResult   <- Sbinsmth(index, dataList)
+#  Set up the list object for the estimated surprisal curves
 SfdList     <- SfdResult$SfdList
 #  plot the curves for the first question
-binctr    <- Quant_13B_problem_parmList$binctr
+binctr    <- dataList$binctr
 scrfine   <- seq(0,100,len=101)
-ICC_plot(scrfine, SfdList, Quant_13B_problem_dataList, Qvec, binctr, 
-         plotindex=1, plotrange=c(0,100))
-#  estimate the final surprisal curves
-index    <- Quant_13B_problem_parmList$index
-indexQnt <- Quant_13B_problem_parmList$indexQnt
-Qvec     <- Quant_13B_problem_parmList$Qvec
-SfdList  <- Quant_13B_problem_parmList$SfdList
-#  plot the curves for the first question
-ICC_plot(scrfine, SfdList, Quant_13B_problem_dataList, Qvec, binctr, 
-         plotindex=1, plotrange=c(0,100))
-#  Example 2.  Display the item probability and surprisal curves for the 
-# Symptom Distress Scale with 13 items and 473 respondents.
-# Proceed as above changing "Quant" to "SDS"
+ICC_plot(scrfine, SfdList, dataList, Qvec, binctr, plotindex=1, 
+         plotrange=c(0,100))
 }

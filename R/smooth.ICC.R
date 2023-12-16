@@ -58,9 +58,9 @@ smooth.ICC <- function(x, item, index, dataList,
 
   #  bin centers
   
-  aves <- rep(0,nbin)
+  binctr <- rep(0,nbin)
   for (k in 1:nbin) {
-    aves[k] <- (bdry[k]+bdry[k+1])/2
+    binctr[k] <- (bdry[k]+bdry[k+1])/2
   }
 
   #  compute frequencies for each bin
@@ -149,8 +149,8 @@ smooth.ICC <- function(x, item, index, dataList,
         nonindm <- (1:nbin)[Smis.na]
         if (indmlen > 3) {
           WY <- Sbin[indm,m];
-          WX <- cbind(rep(1,indmlen), aves[indm])
-          BX <- lsfit(aves[indm], WY)$coefficients
+          WX <- cbind(rep(1,indmlen), binctr[indm])
+          BX <- lsfit(binctr[indm], WY)$coefficients
           Sbin[indm,m]    <- WX %*% BX
           Sbin[nonindm,m] <- SurprisalMax
         } else {
@@ -163,7 +163,7 @@ smooth.ICC <- function(x, item, index, dataList,
     
     Sfd    <- ICC$Wfd
     Bmat0  <- Sfd$coefs
-    result <- smooth.surp(aves, Sbin, Bmat0, WfdPar)
+    result <- smooth.surp(binctr, Sbin, Bmat0, WfdPar)
     Sfd    <- result$Wfd
     Bmati  <- result$Bmat
     SSE    <- result$SSE
@@ -206,7 +206,7 @@ smooth.ICC <- function(x, item, index, dataList,
     DPbinDW <- matrix(0,nbin,M)
     for (m in 1:M) {
       Pbinfit[,m] <- pracma::interp1(as.numeric(indfine), as.numeric(Pmatfine[,m]), 
-                                     as.numeric(aves))
+                                     as.numeric(binctr))
     }
     #  compute derivatives for all options (except for diagonal)
     DPbinDW <- logM*Pbinfit
@@ -231,7 +231,7 @@ smooth.ICC <- function(x, item, index, dataList,
       optStr     = ICC$optStr   # List vector of option labels
     )
 
-  return(list(ICC=ICC, aves=aves, bdry=bdry, freq=freq))
+  return(list(ICC=ICC, binctr=binctr, bdry=bdry, freq=freq))
 
 }
 

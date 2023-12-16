@@ -41,7 +41,7 @@ index2info <- function(index, Qvec, SfdList, binctr, itemindex=1:n,
     # SDIM          ... The dimension of the over space containing the 
     #                   surprisal curves.
     
-    #  Last modified 9 November 2023
+    #  Last modified 12 December 2023
     
     #  ------------------------------------------------------------------------
     #                              check inputs  
@@ -139,19 +139,18 @@ index2info <- function(index, Qvec, SfdList, binctr, itemindex=1:n,
     #  ------------------------------------------------------------------------
     
     Snbasis.rng <- 11
-    Sbasis.rng  <- create.bspline.basis(plotrng,Snbasis.rng)
-    Sfd.rng     <- fd(matrix(0,Snbasis.rng,1), Sbasis.rng)
-    SfdPar.rng  <- fdPar(Sfd.rng)
+    Sbasis.rng  <- fda::create.bspline.basis(plotrng,Snbasis.rng)
+    Sfd.rng     <- fda::fd(matrix(0,Snbasis.rng,1), Sbasis.rng)
     
     #  ------------------------------------------------------------------------
     #  Compute the monotone functional data object transforming the score index 
     #  values to arc length values over the plotting range.
     #  ------------------------------------------------------------------------
     
-    infoSurpfd.rng <- smooth.morph(indfine.rng, infoSurpvec.rng, 
-                                   c(0,infoSurp.rng), SfdPar.rng)$Wfd
+    infoSurpfd.rng <- fda::smooth.morph(indfine.rng, infoSurpvec.rng, 
+                                   c(0,infoSurp.rng), Sfd.rng)$Wfd
     #  evaluate the monotone function at arc length
-    monfnmax        <- monfn(infoSurp.rng, infoSurpfd.rng)
+    monfnmax        <- fda::monfn(infoSurp.rng, infoSurpfd.rng)
     
     #  ------------------------------------------------------------------------
     #  compute arc length values corresponding to estimated marker index values
@@ -196,16 +195,15 @@ index2info <- function(index, Qvec, SfdList, binctr, itemindex=1:n,
     # arc length values. 
     #  ------------------------------------------------------------------------
     
-    Sbasis.info <- create.bspline.basis(c(0,infoSurp.rng), Snbasis.rng)
-    SfdPar.info <- fdPar(fd(matrix(0,Snbasis.rng,1),Sbasis.info))
-    Sfd.info    <- smooth.morph(infoSurpvec.rng, indfine.rng, plotrng, 
-                                SfdPar.info)$Wfd
-    monfnmax          <- monfn(infoSurp.rng, Sfd.info)
+    Sbasis.info <- fda::create.bspline.basis(c(0,infoSurp.rng), Snbasis.rng)
+    Sfd.info    <- fda::fd(matrix(0,Snbasis.rng,1),Sbasis.info)
+    Sfd.info    <- fda::smooth.morph(infoSurpvec.rng, indfine.rng, plotrng, 
+                                     Sfd.info)$Wfd
+    monfnmax          <- fda::monfn(infoSurp.rng, Sfd.info)
     infoSurpfine.rng  <- seq(0,infoSurp.rng,leng=nfine)
-    print(length(infoSurpfine.rng))
     plotwidth         <- plotrng[2] - plotrng[1]
     infofine.rng      <- plotrng[1] + 
-                         monfn(infoSurpfine.rng, Sfd.info)*plotwidth/monfnmax
+      fda::monfn(infoSurpfine.rng, Sfd.info)*plotwidth/monfnmax
     
     #  ------------------------------------------------------------------------
     #  return a list object infoList to contain all the objects

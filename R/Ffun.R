@@ -30,13 +30,13 @@ Ffun <- function(index, SfdList, chcemat) {
   for (item in 1:n) {
     #  be sure that chcemat contains only integers
     if (N == 1) {
-      chcematveci <- as.integer(chcemat[item])
+      chceveci <- as.integer(chcemat[item])
     } else {
-      chcematveci <- as.integer(chcemat[,item])
+      chceveci <- as.integer(chcemat[,item])
     }
     #  Now compute increment to fit values for this item
-    #  provided chcematveci is not NchcematLL
-    if (!is.null(chcematveci)) {
+    #  provided chceveci is not NULL
+    if (!is.null(chceveci)) {
       #  extract the surprisal curves for this item
       SStri     <- SfdList[[item]]
       Sfdi      <- SStri$Sfd
@@ -47,15 +47,15 @@ Ffun <- function(index, SfdList, chcemat) {
       if (Mi > 1) {
         #  select values of curve for the selected option
         if (N == 1) {
-          Sveci <- Smati[chcematveci]
+          Sveci <- Smati[chceveci]
         } else {
           for (j in 1:N)
           {
-            if (chcematveci[j] > Mi)
+            if (chceveci[j] > Mi)
             {
-              stop(paste("Item: ", item, " chcematveci(",j,") > Mi",sep = ""))
+              stop(paste("Item: ", item, " chceveci(",j,") > Mi",sep = ""))
             }
-            Sveci[j] <- Smati[j,chcematveci[j]]
+            Sveci[j] <- Smati[j,chceveci[j]]
           }
         }
         # update fit values

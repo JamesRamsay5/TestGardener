@@ -31,13 +31,11 @@ each person's option choice for each item.}
   
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
   information-based psychometrics.  Psych, 2, 347-360.
-  
-  http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{dataSimulation}},
-  \code{\link{chce_simulate}}
+  \code{\link{chcemat_simulate}}
 }
 \examples{
 # example code to be set up 

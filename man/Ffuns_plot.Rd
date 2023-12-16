@@ -39,8 +39,6 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
@@ -51,9 +49,9 @@ http://testgardener.azurewebsites.net
 \examples{
 #  Example 1.  Display fit criterion values and derivatives for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
+chcemat   <- Quant_13B_problem_dataList$chcemat
 index     <- Quant_13B_problem_parmList$index
 SfdList   <- Quant_13B_problem_parmList$SfdList
-chcemat   <- Quant_13B_problem_dataList$chcemat
 plotindex <- 1:3
 indfine   <- seq(0,100,len=101)
 Ffuns_plot(indfine, index, SfdList, chcemat, plotindex)

@@ -8,7 +8,7 @@ Fcurve <- function(SfdList, chcevec, nderiv=0) {
   #  chcevec         ... The N by n matrix of choice indices
   #. nderiv    ... The order of derivative selected from 0, 1 or 2.
   
-  #  Last updated 3 November 2023
+  #  Last updated 21 November 2023
   
   #. Deal with a single choice vector that is numeric
   if (!is.matrix(chcevec)) chcevec <- t(as.matrix(chcevec))
@@ -18,20 +18,21 @@ Fcurve <- function(SfdList, chcevec, nderiv=0) {
   
   Ffine <- matrix(0,101,1)
   for (item in 1:nitem) {
-    chceveci <- chcevec[,item]
-    if (!is.null(chceveci)) {
+    # print(item)
+    chceij <- chcevec[,item]
+    if (!is.null(chceij)) {
       SListi    <- SfdList[[item]]
       if (nderiv == 0) {
         Smati <- SListi$Smatfine
-        Ffine <- Ffine + Smati[,chceveci]
+        Ffine <- Ffine + Smati[,chceij]
       }
       if (nderiv == 1) {
         DSmati <- SListi$DSmatfine
-        Ffine  <- Ffine + DSmati[,chceveci]
+        Ffine  <- Ffine + DSmati[,chceij]
       }
       if (nderiv == 2) {
         D2Smati <- SListi$D2Smatfine
-        Ffine   <- Ffine + D2Smati[,chceveci]
+        Ffine   <- Ffine + D2Smati[,chceij]
       }
     }
   }

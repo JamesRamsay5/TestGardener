@@ -26,7 +26,7 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   scrdens <- scrvec[scrrng[1] < scrvec & scrvec < scrrng[2]]
   #  set up the basis object for the spline function representing
   #  the density function
-  logdensbasis <- create.bspline.basis(scrrng, scrnbasis)    
+  logdensbasis <- fda::create.bspline.basis(scrrng, scrnbasis)    
   #  compute the values of the density function
   
   densResults  <- index_distn(scrdens, logdensbasis)
@@ -44,4 +44,5 @@ density_plot <- function(scrvec, scrrng, Qvec, xlabstr=NULL, titlestr=NULL,
   for (k in 1:5) lines(c(Qvec[k],Qvec[k]), c(0,pmax), lty=2)
   points(scrrng[1], N_min/N, pch="o", lwd=2)
   points(scrrng[2], N_max/N, pch="o", lwd=2)
+  return(list(densfine=densfine, N_min=N_min, N_max=N_max))
 }

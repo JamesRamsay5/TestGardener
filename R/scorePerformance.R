@@ -36,24 +36,24 @@ sumscrstd <- sqrt(sumscrRMSE^2  - sumscrbias^2)
 #  Set up bases for returning smooth performance curves
 
 indbasis <- create.bspline.basis(c(0,100), 13)  
-indfdPar <- fdPar(indbasis, 2, 1e0)
+indfd <- fd(matrix(0, 13, 1),indbasis, 2, 1e0)
 
 #  Lightly smooth bias results over index's
 
-indexbiasfd  <- smooth.basis(index.pop,     indexbias, indfdPar)$fd
-mubiasfd     <- smooth.basis(index.pop,        mubias, indfdPar)$fd
-sumscrbiasfd <- smooth.basis(index.pop,    sumscrbias, indfdPar)$fd
+indexbiasfd  <- smooth.basis(index.pop,     indexbias, indfd)$fd
+mubiasfd     <- smooth.basis(index.pop,        mubias, indfd)$fd
+sumscrbiasfd <- smooth.basis(index.pop,    sumscrbias, indfd)$fd
 
 #  Lightly smooth RMSE results over index's
 
-indexRMSEfd  <- smooth.basis(index.pop,     indexRMSE, indfdPar)$fd
-muRMSEfd     <- smooth.basis(index.pop,        muRMSE, indfdPar)$fd
-sumscrRMSEfd <- smooth.basis(index.pop,    sumscrRMSE, indfdPar)$fd
+indexRMSEfd  <- smooth.basis(index.pop,     indexRMSE, indfd)$fd
+muRMSEfd     <- smooth.basis(index.pop,        muRMSE, indfd)$fd
+sumscrRMSEfd <- smooth.basis(index.pop,    sumscrRMSE, indfd)$fd
 #  Lightly smooth std. dev. results over index's
 
-indexstdfd   <- smooth.basis(index.pop,     indexstd, indfdPar)$fd
-mustdfd      <- smooth.basis(index.pop,        mustd, indfdPar)$fd
-sumscrstdfd  <- smooth.basis(index.pop,    sumscrstd, indfdPar)$fd
+indexstdfd   <- smooth.basis(index.pop,     indexstd, indfd)$fd
+mustdfd      <- smooth.basis(index.pop,        mustd, indfd)$fd
+sumscrstdfd  <- smooth.basis(index.pop,    sumscrstd, indfd)$fd
 
 #  get results for arc length if required
 
@@ -62,9 +62,9 @@ if (!is.null(infosave)) {
     infobias   <- apply(infores, 1, mean)
     infoRMSE   <- sqrt(apply(infores^2, 1, mean))
     infostd    <- sqrt(infoRMSE^2 - infobias^2)
-    infobiasfd <- smooth.basis(index.pop, infobias, indfdPar)$fd
-    infoRMSEfd <- smooth.basis(index.pop, infoRMSE, indfdPar)$fd
-    infostdfd  <- smooth.basis(index.pop, infostd,  indfdPar)$fd
+    infobiasfd <- smooth.basis(index.pop, infobias, indfd)$fd
+    infoRMSEfd <- smooth.basis(index.pop, infoRMSE, indfd)$fd
+    infostdfd  <- smooth.basis(index.pop, infostd,  indfd)$fd
 } else {
     infobiasfd <- NULL
     infoRMSEfd <- NULL

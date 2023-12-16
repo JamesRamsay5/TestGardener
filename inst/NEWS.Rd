@@ -1,5 +1,29 @@
 \name{NEWS}
 \title{Recent changes to the TestGardner package}
+\section{Changes in TestGardener version 3.2.7 (2023-22-11)}{
+\itemize{
+  \item{The demo codes for the Quant_13B_problem data and the
+  SDS data have been removed.  They are extensive analyses rather than
+  the single topic examples that demos need to be. But the examples
+  in the .Rd files have been extended, revised and supplied with
+  more comments so that they can serve the demo process.}
+  \item{Likewise the vignette for the Quant_13B_problem data has
+  been renewed in order to speed up the checking and installing
+  processes.  These vignette RMarkdown codes will be provided instead
+  in gitHub and possibly CRAN along with other sample analyses in
+  RMarkdown format.
+  }
+  \item{We made the code more readable and interpretable by changing
+  object names derived from mathematics to names that describe what
+  the purpose of the object is.  For example, "theta" was changed to
+  "index" since these values are score index values, and "arclength"
+  was changed to "infoSurp".  Likewise, the many objects names beginning
+  with capital "W" all pertain to surprisal values, matrices, lists and
+  other structures.  For example, a functional data basis object is
+  names "Sbasis", a functional data curve is "Sfd" and a functional
+  fdPar object to "SfdPar".}
+}
+}
 \section{Changes in TestGardener version 3.2.5 (2023-04-10)}{
 \itemize{
   \item{Extensive work on the test vignette Quant_13B_problem.Rmd and on the 

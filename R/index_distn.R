@@ -3,7 +3,7 @@ index_distn <- function(indexdens, logdensbasis,
   #  Compute cumulative density functions and probability density functions
   #  for the values in THETADENS using the basis object LOGDENSBASIS.
 
-  # Last modified 7 March 2023 by Jim Ramsay
+  # Last modified 12 December 2023 by Jim Ramsay
   
   #  check logdensfd
   
@@ -20,13 +20,12 @@ index_distn <- function(indexdens, logdensbasis,
   indrng  <- logdensbasis$rangeval # updated by Juan Li 2020-12-09
   indfine <- seq(indrng[1],indrng[2],len=nfine) # updated by Juan Li 2020-12-09
 
-  #  set up basis and fdPar objects
+  #  set up basis and fd objects
 
   #  Estimate log density function and norming constant
   
   logdensfd    <- fda::fd(matrix(0,logdensbasis$nbasis,1), logdensbasis)
-  logdensfdPar <- fda::fdPar(logdensfd)
-  rsList       <- TG_density.fd(indexdens, logdensfdPar, dbglev=0)
+  rsList       <- TG_density.fd(indexdens, logdensfd, dbglev=0)
   logdensfd    <- rsList$Sfdobj
   C            <- rsList$C
 
@@ -44,20 +43,17 @@ index_distn <- function(indexdens, logdensbasis,
   
   #  functional probability curves
   
-  pdf_fd <- smooth.basis(indfine, pdffine, logdensbasis)$fd
+  pdf_fd <- fda::smooth.basis(indfine, pdffine, logdensbasis)$fd
 
   #  compute cdf_fd using smooth.morph
   
   Snbasis <- 7
-  Sbasis  <- create.bspline.basis(indrng, Snbasis)
-  Sfd     <- fd(matrix(0,Snbasis,1),Sbasis)
-  SfdPar  <- fdPar(Sfd)
+  Sbasis  <- fda::create.bspline.basis(indrng, Snbasis)
+  Sfd     <- fda::fd(matrix(0,Snbasis,1),Sbasis)
   
-  indexsort <- sort(indexdens[indexdens > indrng[1] & 
-                                  indexdens < indrng[2]])
-  Nsort       <- length(indexsort)
-  prbvec      <- (1:Nsort)/(Nsort+1)
-  
+  indexsort <- sort(indexdens[indexdens > indrng[1] & indexdens < indrng[2]])
+  Nsort     <- length(indexsort)
+  prbvec    <- (1:Nsort)/(Nsort+1)
   denscdf   <- unique(cdffine)
   indcdf    <- seq(indrng[1],indrng[2],len=length(denscdf))
   

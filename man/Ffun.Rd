@@ -27,28 +27,22 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
   \code{\link{make_dataList},
+        \link{index_fun},
         \link{Ffun},
         \link{Ffuns_plot}
   }
 }
 \examples{
-#  Example 1:  Compute the values of the objective function for locating each  
-#  examinee or respondent for the 24-item short form of the SweSAT quantitative  
-# test on the percentile score index continuum [0,100].
-SfdList <- Quant_13B_problem_parmList$SfdList
-index   <- Quant_13B_problem_parmList$index
-chcemat <- Quant_13B_problem_dataList$chcemat
-Fval    <- Ffun(index, SfdList, chcemat)
-print(paste("Mean               of objective function =",round(mean(Fval),2)))
-print(paste("Standard deviation of objective function =",round(sqrt(var(Fval)),2)))
-#  Example 2:  Compute the values of the objective function for locating each  
-#  examinee or respondent for the 13-item Symptom Distress Scale  
-# on the percentile score index continuum [0,100].
-#  Proceed as above changing "Quant" for "SDS".
+  #  Example 1:  Compute the values of the objective function for locating each  
+  #  examinee or respondent for the 24-item short form of the SweSAT quantitative  
+  #  test on the percentile score index continuum [0,100].
+  #  Use only the first five examinees
+  chcemat <- Quant_13B_problem_dataList$chcemat
+  SfdList <- Quant_13B_problem_parmList$SfdList
+  index   <- Quant_13B_problem_parmList$index
+  Fval    <- Ffun(index[1:5], SfdList, chcemat[1:5,])
 }

@@ -1,7 +1,7 @@
 
 make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL, 
                           titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                          nbin=nbinDefault(N), NumBasis=7, SfdPar=NULL,
+                          nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
                           jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
                           verbose=FALSE) {
   
@@ -52,7 +52,7 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #. nbin        ...  The number of bins containing proportions of choices.
   #. NumBasis    ...  The number of spline basis functions to use for 
   #.                  surprisal values.  Defaults to 7.
-  #. SfdPar      ...  A functional parameter object to be used for representing
+  #. Sfd         ...  A functional data object to be used for representing
   #.                  surprisal curves.  May be NULL in which case the spline  
   #                   basis has NumBasis basis functions and is of order 5.
   #. jitterwrd   ...  A logical object indicating whether a small jittering
@@ -62,26 +62,43 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #                   in plots.  Defaults to c(5, 25, 50, 75, 95).
   #. verbose     ...  Extra displays are provided.  Defaults to FALSE.
   
-  #  Last modified 2 November 2023 by Jim Ramsay
+  #  Last modified 16 December 2023 by Jim Ramsay
+  
+  #. Dimensions of index matrix
   
   N <- nrow(chcemat)
   n <- ncol(chcemat)
   
-  # check chcemat 
+  #. --------------------------------------------------------------------------
+  #.                          Check Arguments
+  #. -------------------------------------------------------------------------- 
   
-  if (is.null(chcemat)) stop("chcemat is NULL")
-  if (min(chcemat) < 1) stop(paste("Zero data values encountered in chcemat.",
-                             "Are they score values?"))
-  chcematnumeric <- is.numeric(chcemat)
-  if (max(abs(floor(chcematnumeric)-chcematnumeric)) > 0) 
-    stop("Non-integer values found in chcemat.")
-  if (any(is.na(chcemat))) stop("A value in chcemat is NA")
+  #  Check index matrix chcemat (short for "choice matrix")
+  
+  if (is.null(chcemat)) stop("Index matrix chcemat is NULL")
+  if (min(chcemat) < 1) stop("Non-positive index values encountered.")
+  # if (any(!is.integer(chcemat))) stop("Non-integer values found in chcemat.")
+  if (any(is.na(chcemat))) stop("One or more values in chcemat are NA")
   if (N < 100) warning(paste("Number of rows < 100,", 
                   "A TestGardener analysis is not likely to succeed."))
   
-  #  check scoreList is.numeric and the test is all multiple choice items
+  #.    Check vector noption, containingthe number of options in each item
+  #.    Garbage options indicating missing of illegal values are not added.
+
+  if (is.null(noption))          stop("Vector noption is NULL.")
+  if (length(noption) != n)      stop("Argument noption is not of length n.")
+  if (any(is.na(noption)))       stop("A value in noption is NA.")
+  if (min(noption) < 2)          stop("Values less than 2 in noption.")
+  # if (any(!is.integer(noption))) stop("Non-integer values in noption.")
+  
+  # compute dimension of ambient space
+  
+  Sdim  <- sum(noption) 
+  
+  #  Check if scoreList is.numeric and the test is all multiple choice items
   
   if (is.numeric(scoreList)) {
+    #. scoreList is in key format, numeric vector
     print(paste("Argument scoreList is numeric,",
                 "and chcemat has multiple choice data."))
     key <- scoreList
@@ -100,7 +117,8 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
       }
     }
     if (keyerror) stop("")
-    #  Set up scoreList as a list with values 0 or 1
+    #  Set up key as scoreList,  a numbered list.
+    #. each list element is a vector with values 0 or 1
     scoreList <- vector("list",n)
     for (i in 1:n) {
       scoreveci  <- rep(0,noption[i])
@@ -135,9 +153,11 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   if (is.numeric(sumscr_rng) & length(sumscr_rng) != 2) 
     stop("Argument sumscr_rng is not of length 2.")
   
+  #. --------------------------------------------------------------------------
   #  Construct logical vector grbgvec indicating items with missing or 
   #  illegal choices and therefore needing an extra garbage option
   #. If so, update noption by one.
+  #. --------------------------------------------------------------------------
   
   grbgvec <- rep(FALSE, n)
   for (item in 1:n) {
@@ -154,19 +174,20 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
     }
   }
   
-  # compute dimension of ambient space
-  
-  Sdim  <- sum(noption) 
-  
-  ## compute sum scores for both examinees and items
+  #. --------------------------------------------------------------------------
+  #         Compute sum scores for both examinees and items
+  #. --------------------------------------------------------------------------
   
   scrvec <- matrix(0,N,1)
   itmvec <- matrix(0,n,1)
   for (item in 1:n) {
     for (j in 1:N) {
-      scoreij      <- chcemat[j,item]
-      scrvec[j]    <- scrvec[j]    + scoreij
-      itmvec[item] <- itmvec[item] + scoreij
+      scorevec <- scoreList[[item]]
+      scoreij  <- scorevec[chcemat[j,item]]
+      if (!is.na(scoreij)) { 
+        scrvec[j] <- scrvec[j] + scoreij
+        itmvec[item] <- itmvec[item] + scoreij
+      }
     }
   }
   
@@ -177,33 +198,55 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   if (is.null(sumscr_rng)) sumscr_rng <- c(scrmin,scrmax)
   nfine   <- 101
   scrfine <- seq(sumscr_rng[1],sumscr_rng[2],len=nfine)
-    
+  
   #  initial set of bin centres and boundaries
   
   indexQnt <- seq(0,100,len=2*nbin+1)
   
-  ##  jitter sum scores if required
+  #. --------------------------------------------------------------------------
+  #  jitter sum scores to break up ties in integer valued sum scores
+  #  if jitterwrd is TRUE, the jitter values are set up here
+  #  if jitterwrd is FALSE, sum scores are not jittered
+  #  if jitterwrd is a numeric vector of length N containing jitter values
+  #    these are used.  This allows multiple data analyses without
+  #    change of jitter values.
+  #  if jitterwrd is not logical and is not a numeric vector of length N
+  #    an error is declared.
+  #. --------------------------------------------------------------------------
   
-  if (jitterwrd) {
-    scrjit <- scrvec + rnorm(N)*0.1
+  if (is.logical(jitterwrd)) {
+    if (jitterwrd) {
+      jitter <- rnorm(N)*0.1
+    } else {
+      jitter <- rep(0,N)
+    }
+    scrjit <- scrvec + jitter
     scrjit[scrjit < scrmin] <- scrmin
     scrjit[scrjit > scrmax] <- scrmax
   } else {
-    scrjit = scan("scrjit.txt",0)
+    if (is.numeric(jitterwrd) && length(jitterwrd) == N) {
+      scrjit <- scrvec + jitterwrd
+      scrjit[scrjit < scrmin] <- scrmin
+      scrjit[scrjit > scrmax] <- scrmax
+    } else {
+      stop(paste("jitterwrd is not logicial",
+                 "and is not a numeric vector of length N"))
+    }
   }
   
-  ##  compute ranks for jittered sum scores
+  #  compute ranks for jittered sum scores
   
   scrrnk <- matrix(0,N,1)
   for (j in 1:N) scrrnk[j] <- sum(scrjit <= scrjit[j])
   percntrnk <- 100*scrrnk/N
   
-  ##  Basis and bin setup for S function and index estimation cycle
+  #. --------------------------------------------------------------------------
+  ##     Set up spline basis and bins for initial surprisal curves.
+  #. --------------------------------------------------------------------------
   
   #  number of basis functions.  If NULL, this is assigned according to size of N
   
-  if (is.null(SfdPar)) {
-    #  Default fdPar objects for representing functions
+  if (is.null(Sfd)) {
     if (round(NumBasis) == NumBasis) {
       #  NumBasis is an integer
       if (NumBasis < 2) 
@@ -214,19 +257,19 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
       Snbasis <- NumBasis
       Snorder <- min(Snbasis, 5)
       Sbasis  <- fda::create.bspline.basis(c(0,100), Snbasis, Snorder) 
-      SfdPar  <- fdPar(Sbasis)
     } else {
       stop("Number of basis functions is not an integer.")
     }
   } else {
-    if (inherits(SfdPar, "basisfd") || inherits(SfdPar, "fd"))
-      SfdPar <- fdPar(SfdPar)
-    if (!inherits(SfdPar, "fdPar")) stop("SfdPar is not an fdPar object.")
+    if (!inherits(Sfd, "fd")) stop("Sfd is not an fd object.")
   }
   
-  ##  Sbinsmth.init computes an approximation to optimal Bmat
+  #. --------------------------------------------------------------------------
+  #     Sbinsmth.init computes initial approximations to surprisal curves
+  #.    using functional data smoothing.
+  #. --------------------------------------------------------------------------
   
-  SfdList <- Sbinsmth.init(percntrnk, nbin, SfdPar, grbgvec, chcemat, noption) 
+  SfdList <- Sbinsmth.init(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) 
   
   ##  Construct dataList object to define data Listucture
   
@@ -239,7 +282,7 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
                    SfdList     = SfdList,
                    key         = key,
                    grbgvec     = grbgvec,
-                   SfdPar      = SfdPar, 
+                   Sfd      = Sfd, 
                    nbin        = nbin, 
                    sumscr_rng  = sumscr_rng, 
                    scrfine     = scrfine,
@@ -251,7 +294,8 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
                    Sdim        = Sdim, 
                    PcntMarkers = PcntMarkers,
                    N           = N,
-                   n           = n)
+                   n           = n,
+                   NumBasis    = NumBasis)
   
   return(dataList)
   
@@ -259,30 +303,34 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
 
 #  ---------------------------------------------------------------
 
-Sbinsmth.init <- function(percntrnk, nbin, SfdPar, grbgvec, chcemat, noption) {
- 
-  # Last modified 2 November 2023 by Jim Ramsay
+Sbinsmth.init <- function(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) {
+  
+  # Last modified 26 November 2023 by Jim Ramsay
   
   #  This version of Sbinsmth() uses direct least squares smoothing of the
   #  surprisal values at bin centers to generate dependent variables for
   #  a model for the vectorized K by M-1 parameter matrix Bmat.
   
-  nitem <- ncol(chcemat)
+  nitem     <- ncol(chcemat)
   chartList <- vector("list", nitem)
   indfine   <- seq(0,100, len=101)
   indexQnt  <- seq(0,100, len=2*nbin+1)  
   bdry      <- indexQnt[seq(1,2*nbin+1,by=2)]
-  aves      <- indexQnt[seq(2,2*nbin,  by=2)]  
-  freq <- matrix(0,nbin,1)
-  freq[1] <- sum(percntrnk < bdry[2])
+  binctr    <- indexQnt[seq(2,2*nbin,  by=2)]  
+  freq      <- matrix(0,nbin,1)
+  freq[1]   <- sum(percntrnk < bdry[2])
   for (k in 2:nbin) {
     freq[k] <- sum(bdry[k-1] < percntrnk & percntrnk <= bdry[k])
   }
   meanfreq <- mean(freq)
   SfdList  <- vector("list", nitem)
-  Sfd      <- SfdPar$fd
   Sbasis   <- Sfd$basis
   Snbasis  <- Sbasis$nbasis
+  
+  #. --------------------------------------------------------------------------
+  #. loop through items to compute their surprisal curve approximations
+  #. --------------------------------------------------------------------------
+  
   for (item in 1:nitem) {
     Mi    <- noption[item]
     logMi <- log(Mi)
@@ -333,8 +381,8 @@ Sbinsmth.init <- function(percntrnk, nbin, SfdPar, grbgvec, chcemat, noption) {
         nonindm <- (1:nbin)[Smis.na]
         if (indmlen > 3) {
           SY <- Sbin[indm,m];
-          SX <- cbind(rep(1,indmlen), aves[indm])
-          BX <- lsfit(aves[indm], SY)$coefficients
+          SX <- cbind(rep(1,indmlen), binctr[indm])
+          BX <- lsfit(binctr[indm], SY)$coefficients
           Sbin[indm,m]    <- SX %*% BX
           Sbin[nonindm,m] <- SurprisalMax
         } else {
@@ -353,11 +401,11 @@ Sbinsmth.init <- function(percntrnk, nbin, SfdPar, grbgvec, chcemat, noption) {
     }
     
     #  apply conventional smoothing of surprisal values
-    Sfdi     <- fda::smooth.basis(aves, Sbin, SfdPar)$fd
+    Sfdi     <- fda::smooth.basis(binctr, Sbin, Sfd)$fd
     #  compute spline basis functions at bin centres
-    Phimati  <- fda::eval.basis(aves, SfdPar$fd$basis)
+    Phimati  <- fda::eval.basis(binctr, Sfd$fd$basis)
     #  evaluate smooth at bin centres
-    Smathati <- fda::eval.fd(aves, Sfdi)
+    Smathati <- fda::eval.fd(binctr, Sfdi)
     #  map this into zero-row-sum space
     Smatctri <- Smathati %*% Zmati
     #  regress the centred data on the negative of basis values
@@ -379,7 +427,7 @@ Sbinsmth.init <- function(percntrnk, nbin, SfdPar, grbgvec, chcemat, noption) {
     )
     SfdList[[item]] <- SListi
   }
-  
+
   return(SfdList)
   
 }

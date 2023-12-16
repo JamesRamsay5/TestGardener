@@ -58,25 +58,25 @@ Journal of Educational and Behavioral Statistics, 45, 297-315.
 
 Ramsay, J. O., Li J. and Wiberg, M. (2020) Better rating scale scores with 
 information-based psychometrics.  Psych, 2, 347-360.
-
-http://testgardener.azurewebsites.net
 }
 \author{Juan Li and James Ramsay}
 \seealso{
-  \code{\link{Spca_plot}}
+  \code{\link{Analyze}}
 }
 \examples{
-#  Example 1.  Display the scope or information curve for the 
-#  short SweSAT multiple choice test with 24 items and 1000 examinees
-indfine     <- seq(0,100,len=101)
-index       <- Quant_13B_problem_parmList$index
-Qvec        <- Quant_13B_problem_parmList$Qvec
-SfdList     <- Quant_13B_problem_parmList$SfdList
-binctr      <- Quant_13B_problem_parmList$binctr
-infoList    <- index2info(index, Qvec, SfdList, binctr)
-names(infoList)
-# Plot the shape of the information curve
-oldpar <- par(no.readonly=TRUE)
-Scope_plot(infoList$infoSurp, infoList$infoSurpVec)
-par(oldpar)
+  #  Example 1.  Display the scope or information curve for the 
+  #  short SweSAT multiple choice test with 24 items and 1000 examinees.
+  #  The scope curve is constructed using the complete analysis cycles.
+  #  Set up the required arguments using the converged parmList object.
+  indfine     <- seq(0,100,len=101)
+  index       <- Quant_13B_problem_parmList$index
+  Qvec        <- Quant_13B_problem_parmList$Qvec
+  SfdList     <- Quant_13B_problem_parmList$SfdList
+  binctr      <- Quant_13B_problem_parmList$binctr
+  #  Carry out the construction of the information results.
+  infoList    <- index2info(index, Qvec, SfdList, binctr)
+  # Plot the shape of the information curve
+  oldpar <- par(no.readonly=TRUE)
+  Scope_plot(infoList$infoSurp, infoList$infoSurpvec)
+  par(oldpar)
 }
