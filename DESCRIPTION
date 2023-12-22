@@ -13,7 +13,13 @@ Authors@R: c(person("James", "Ramsay", role=c("aut","cre"),
                      email="Joakim.Wallmark@umu.se"),
              person("Spencer", "Graves", role="ctb",
                      email="spencer.graves@effectivedefense.org"))
-Depends: R (>= 3.5), fda, ggplot2, rgl, plotly
+Author: James Ramsay [aut, cre],
+  Juan Li [ctb],
+  Marie Wiberg [ctb],
+  Joakim Wallmark [ctb],
+  Spencer Graves [ctb]
+Maintainer: James Ramsay <james.ramsay@mcgill.ca>
+Depends: R (>= 3.5), fda, rgl, ggplot2, plotly
 Description: Develop, evaluate, and score multiple choice examinations, 
  psychological scales, questionnaires, and similar types of data involving
  sequences of choices among one or more sets of answers.
@@ -38,5 +44,4 @@ Imports:
   rmarkdown,
 LazyData: true
 NeedsCompilation: no
-StagedInstall: no
 

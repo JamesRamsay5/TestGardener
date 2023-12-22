@@ -15,7 +15,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
   #  conv     ... Convergence criterion for iterations
   #  dbglev   ... Amoount of printed history of optimizations. None if zero
   
-  # Last modified 15 December 2023 by Jim Ramsay
+  # Last modified 19 December 2023 by Jim Ramsay
 
   #  -----------------------------------------------------------------------------
   #  Step 1.       Set up  objects required for subsequent steps
@@ -78,11 +78,11 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  set some variable values for this item
     SListi   <- SfdList[[item]]
     Mi       <- SListi$M
+    Zmati    <- SListi$Zmat
     Sfdi     <- SListi$Sfd
     Sbasisi  <- Sfdi$basis
     Snbasisi <- Sbasisi$nbasis
     logMi <- log(Mi)
-    Zmati <- fda::zerobasis(Mi)
     #  extract active cases for (this item and corresponding index value
     chceveci <- as.numeric(chcemat[,item])
     #  bin frequencies (bin number nbin + 1 is the upper boundary)
@@ -163,7 +163,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  suprisal smooth
     if (outputwrd) dbglev <- 1 else dbglev <- 0
     #  optimize fit of smooth surprisal curves
-    result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, dbglev=dbglev)
+    result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, Zmati, dbglev=dbglev)
     #  retrieve results
     Sfdi    <- result$Sfd
     Bmati   <- result$Bmat
@@ -177,10 +177,10 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     #  --------------------------------------------------------------------
      
     indfine    <- seq(0,100,len=101)
-    Smatfine   <- eval.surp(indfine, Sfdi)
-    DSmatfine  <- eval.surp(indfine, Sfdi, 1)
+    Smatfine   <- eval.surp(indfine, Sfdi, Zmati)
+    DSmatfine  <- eval.surp(indfine, Sfdi, Zmati, 1)
     if (Snbasisi > 2) {
-      D2Smatfine <- eval.surp(indfine, Sfdi, 2)
+      D2Smatfine <- eval.surp(indfine, Sfdi, Zmati, 2)
     } else {
       D2Smatfine <- NULL
     }
@@ -231,6 +231,7 @@ Sbinsmth <- function(index, dataList, SfdList=dataList$SfdList,
     SListi  <- list(
       M          = Mi,         # the number of options
       Sfd        = Sfdi,       # functional data object for surprisal smooth
+      Zmat       = Zmati,
       Pbin       = Pbin,       # proportions at each bin
       Sbin       = Sbin,       # negative surprisals at each bin
       indfine    = indfine,    # 101 equally spaced plotting points

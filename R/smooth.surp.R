@@ -1,4 +1,4 @@
-smooth.surp <- function(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
+smooth.surp <- function(argvals, y, Bmat0, Sfd, Zmat, wtvec=NULL, conv=1e-4,
                        iterlim=50, dbglev=0) {
   #  Smooths the relationship of Y to ARGVALS using weights in STVEC by fitting 
   #     surprisal functions to a set of surprisal transforms of choice 
@@ -33,6 +33,7 @@ smooth.surp <- function(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
   #               object to be estimated by smoothing the data.  
   #               Note:    A coefficient matrix in SFD 
   #               is discarded, and overwritten by argument BMAT0.
+  #  ZMAT    ... An M by M-1 matrix satisfying Z'Z = I and Z'1 = 0.
   #  WTVEC   ...  a vector of weights, a vector of N one's by default.
   #  CONV    ...  convergence criterion, 0.0001 by default
   #  ITERLIM ...  maximum number of iterations, 50 by default.
@@ -93,16 +94,6 @@ smooth.surp <- function(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
   cvec <- as.vector(Bmat0)
   npar <- length(cvec)
   
-  #  Set up the transformation from dimension M-1 to M
-  #  where M-vectors sum to zero
-  
-  if (M == 2) {
-    root2 <- sqrt(2)
-    Zmat <- matrix(1/c(root2,-root2),2,1)
-  } else {
-    Zmat <- fda::zerobasis(M)
-  }
-  
   #  Set up the matrix of basis function values 
   
   Phimat <- fda::eval.basis(argvals, Sbasis)
@@ -120,6 +111,7 @@ smooth.surp <- function(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
   
   surpList <- list(argvals=argvals, y=y, wtvec=wtvec, Kmat=Kmat,
                    Zmat=Zmat, Phimat=Phimat, M=M)
+  
   #  --------------------------------------------------------------------
   #              loop through variables and curves
   #  --------------------------------------------------------------------

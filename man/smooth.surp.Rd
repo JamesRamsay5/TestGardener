@@ -12,7 +12,7 @@
   vectors.
 }
 \usage{
-smooth.surp(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
+smooth.surp(argvals, y, Bmat0, Sfd, Zmat, wtvec=NULL, conv=1e-4,
             iterlim=50, dbglev=0)
 }
 \arguments{
@@ -33,6 +33,8 @@ smooth.surp(argvals, y, Bmat0, Sfd, wtvec=NULL, conv=1e-4,
   \item{Sfd}{
     A functional data object used toinitialize the optimization process.  
   }
+  \item{Zmat}{An \code{M by M-1} matrix satisfying \code{Zmat'Zmat <- I} and 
+    \code{Zmat'1 <- 0}.}
   \item{wtvec}{
     A vector of weights to be used in the smoothing.
   }
@@ -77,35 +79,37 @@ information-based psychometrics.  Psych, 2, 347-360.
 \examples{
   oldpar <- par(no.readonly=TRUE)
   #  evaluation points
-  x = seq(-2,2,len=11)
+  x <- seq(-2,2,len=11)
   #  evaluate a standard normal distribution function
-  p = pnorm(x)
+  p <- pnorm(x)
   #  combine with 1-p
-  mnormp = cbind(p,1-p)
+  mnormp <- cbind(p,1-p)
+  M <- 2
   #  convert to surprisal values
-  mnorms = -log2(mnormp)
+  mnorms <- -log2(mnormp)
   #  plot the surprisal values
   matplot(x, mnorms, type="l", lty=c(1,1), col=c(1,1), 
           ylab="Surprisal (2-bits)")
   # add some log-normal error
-  mnormdata = exp(log(mnorms) + rnorm(11)*0.1)
+  mnormdata <- exp(log(mnorms) + rnorm(11)*0.1)
   #  set up a b-spline basis object
-  nbasis = 7
-  sbasis = create.bspline.basis(c(-2,2),nbasis)
+  nbasis <- 7
+  sbasis <- create.bspline.basis(c(-2,2),nbasis)
   #  define an initial coefficient matrix
-  cmat = matrix(0,7,1)
+  cmat <- matrix(0,7,1)
   #  set up a fd object for suprisal smoothing
-  Sfd = fd(cmat, sbasis)
+  Sfd <- fd(cmat, sbasis)
+  Zmat <- fda::zerobasis(M)
   #  smooth the noisy data
-  result = smooth.surp(x, mnormdata, cmat, Sfd)
+  result <- smooth.surp(x, mnormdata, cmat, Sfd, Zmat)
   #  plot the data and the fits of the two surprisal curves
-  xfine = seq(-2,2,len=51)
-  sfine = eval.surp(xfine, result$Sfd)
+  xfine <- seq(-2,2,len=51)
+  sfine <- eval.surp(xfine, result$Sfd)
   matplot(xfine, sfine, type="l", lty=c(1,1), col=c(1,1))
   points(x, mnormdata[,1])
   points(x, mnormdata[,2])
   #  convert the surprisal fit values to probabilities
-  pfine = 2^(-sfine)
+  pfine <- 2^(-sfine)
   #  check that they sum to one
   apply(pfine,1,sum)
   par(oldpar)

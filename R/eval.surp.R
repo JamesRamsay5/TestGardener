@@ -1,4 +1,4 @@
-eval.surp <- function(evalarg, Sfdobj, nderiv=0) {
+eval.surp <- function(evalarg, Sfdobj, Zmat, nderiv=0) {
   #  Evaluates a value of a surprisal coordinate functional data object. 
   #  Evaluates a value or a derivative of a surprisal coordinate functional  
   #  data object. 
@@ -10,13 +10,14 @@ eval.surp <- function(evalarg, Sfdobj, nderiv=0) {
   #  Arguments:
   #  EVALARG ... A vector of values at which all functions are to 
   #              evaluated.
-  #  WFDOBJ  ... Functional data object.  It must define a single
+  #  SFDOBJ  ... Functional data object.  It must define a single
   #              functional data observation.
+  #  ZMAT    ... An M by M-1 matrix satisfying Z'Z = I and Z'1 = 0.
   #  NDERIV  ... The order of the derivative.  Must be 0, 1 or 2.
   #  Returns:  An array of function values corresponding to the 
   #              argument values in EVALARG
   
-  #  Last modified 31 October 2023 by Jim Ramsay
+  #  Last modified 19 December 2023 by Jim Ramsay
   
   #  check arguments
   
@@ -74,18 +75,12 @@ eval.surp <- function(evalarg, Sfdobj, nderiv=0) {
   
   #  compute Zmat, a M by M-1 orthonormal matrix
   
-  Bmat <- Sfdobj$coefs
-  M    <- dim(Bmat)[2] + 1
-  if (M == 2) {
-    root2 <- sqrt(2)
-    Zmat <- matrix(1/c(root2,-root2),2,1)
-  } else {
-    Zmat <- fda::zerobasis(M)
-  }
+  M     <- nrow(Zmat)
+  Bmat  <- Sfdobj$coefs
+  BZmat <- Bmat %*% t(Zmat)
   
   #  Set up coefficient array for FD
   
-  BZmat    <- Bmat %*% t(Zmat)
   Xmat     <- fda::eval.basis(evalarg, basisfd) %*% BZmat
   MXmat    <- M^Xmat
   sum0     <- rowSums(MXmat)

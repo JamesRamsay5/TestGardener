@@ -9,12 +9,15 @@ value of the index set the values of the curves are a surprisal vector.
 See Details below for further explanations.
 }
 \usage{
-eval.surp(evalarg, Sfdobj, nderiv = 0)
+eval.surp(evalarg, Sfdobj, Zmat, nderiv = 0)
 }
 \arguments{
-  \item{evalarg}{a vector or matrix of argument values at which the functional data
-    object is to be evaluated.}
-  \item{Sfdobj}{a functional data object of dimension \code{M-1} to be evaluated.}
+  \item{evalarg}{a vector or matrix of argument values at which the functional 
+    data object is to be evaluated.}
+  \item{Sfdobj}{a functional data object of dimension \code{M-1} to be 
+  evaluated.}
+  \item{Zmat}{An \code{M by M-1} matrix satisfying \code{Zmat'Zmat = I} and 
+  \code{Zmat'1 = 0}.}
   \item{nderiv}{An integer defining a derivatve of \code{Sfdobj} in
   the set \code{c(0,1,2)}.}
 }

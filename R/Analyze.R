@@ -40,7 +40,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   #  extract information about surprisal smoothing for each item
   
   SfdList <- dataList$SfdList
-  n <- length(SfdList)
+  n       <- length(SfdList)
   
   #  compute the dimension of the space within which the surprisal curves
   #  vary
@@ -65,7 +65,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   
   for (icycle in 1:ncycle) {
     
-    if (verbose) print(paste('----------  Cycle ',icycle,'-----------'))
+    print(paste('----------  Cycle ',icycle,'-----------'))
     
     #  ----------------------------------------------------------
     #  Step 1:  Bin the data, and smooth the binned data
@@ -89,12 +89,12 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     freq      <- SfdResult$freq
     SfdList   <- SfdResult$SfdList
     
-    print("Step 1 finished")
+    # print("Step 1 finished")
     
-    print("bin frequencies:")
-    print(t(freq))
-    print("bin ctrs:")
-    print(round(binctr,1))
+    # print("bin frequencies:")
+    # print(t(freq))
+    # print("bin ctrs:")
+    # print(round(binctr,1))
           
     #  ----------------------------------------------------------
     #  Step 2:  compute mean value of objective function 
@@ -102,7 +102,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     
     # print("step 2")
     
-    if (verbose) print("Compute mean examinee fits")
+    # if (verbose) print("Compute mean examinee fits")
     
     Fvec  <- Ffun(index, SfdList, chcemat)
     meanF <- mean(Fvec)
@@ -117,7 +117,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     
     # print("step 3")
     
-    if (verbose) print("Optimize examinee data fits")
+    # if (verbose) print("Optimize examinee data fits")
 
     # optimize score index values
     
@@ -145,37 +145,48 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     if (icycle < ncycle) {
     # print("step 4")
     
-    if (verbose) print("Compute score index density")
+    # if (verbose) print("Compute score index density")
     
     # use only interior score index values
     indexdens <- index[0 < index & index < 100]
     # estimate the cumulative density denscdf over values indcdf
     index_distnList <- index_distn(indexdens, logdensbasis)
-    denscdf         <- index_distnList$denscdf
-    indcdf          <- index_distnList$indcdf
-    # adjusted marker score index values are computed by interpolation
-    Qvec <- pracma::interp1(as.numeric(denscdf), 
-                            as.numeric(indcdf), markers)
+    denscdf         <- as.numeric(index_distnList$denscdf)
+    indcdf          <- as.numeric(index_distnList$indcdf)
+    
+    # # adjusted marker score index values are computed by interpolation
+    Qvec <- pracma::interp1(denscdf, indcdf, markers)
+    
+    density_plot(index, c(0,100), Qvec, xlabstr="Score index",
+                 titlestr=paste("Current index density, cycle",icycle),
+                 scrnbasis=11, nfine=101)
     
     # This interpolation adjusts bin boundaries and centres to define
     # a new vector indexQnt
-    # print(round(as.numeric(denscdf),3))
+    # print(round(denscdf,3))
     # print(round(indcdf,3))
+    
+    #. compute 2*nbin - 1 inner boundary/center pair locations by interpolation
+    
     # innerindex <- seq(2,2*nbin,1)
     # innerQnt   <- indexQnt[innerindex]
-    # # print(innerQnt)
-    # # print(range(innerQnt))
-    # innerQnt <- pracma::interp1(as.numeric(denscdf), as.numeric(indcdf/100),
+    # innerQnt   <- pracma::interp1(as.numeric(denscdf), as.numeric(indcdf/100),
     #                             innerQnt/100)*100
+    # #. define new version of complete indexQnt
     # indexQnt[innerindex] <- innerQnt
-    # binctr <- indexQnt[seq(2,2*nbin,  2)]
-    # bdry   <- indexQnt[seq(1,2*nbin+1,2)]
-    # print(round(binctr,))
-    density_plot(index, c(0,100), Qvec, xlabstr="Score index",
-                 titlestr=paste("Cycle",icycle),
-                 scrnbasis=11, nfine=101)
     
-    readline(prompt = "Enter to continue:")
+    #. bin centres
+    plot(indcdf, denscdf, type="b", xlim=c(0,100), ylim=c(0,1))
+    for (i in seq(1,2*nbin+1,2)) lines(c(indexQnt[i],indexQnt[i]), c(0,1))
+    binctr <- indexQnt[seq(2,2*nbin,  2)]
+    #. bin boundaries
+    bdry   <- indexQnt[seq(1,2*nbin+1,2)]
+    # print("Bin boundaries")
+    # print(round(bdry,1))
+    # print("Bin centres")
+    # print(round(binctr,1))
+
+    # readline(prompt = "Enter to continue:")
 
     # print("Step 4 finished")
       
@@ -222,7 +233,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     #  Step 7:  set up the parameter list parmListi for this cycle
     #  -----------------------------------------------------------
 
-    # print("step 6")
+    # print("step 7")
     
     parmListi <- list(
       index      = index,

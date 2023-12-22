@@ -36,7 +36,7 @@ sumscrstd <- sqrt(sumscrRMSE^2  - sumscrbias^2)
 #  Set up bases for returning smooth performance curves
 
 indbasis <- create.bspline.basis(c(0,100), 13)  
-indfd <- fd(matrix(0, 13, 1),indbasis, 2, 1e0)
+indfd    <- fd(matrix(0,13,1), indbasis)
 
 #  Lightly smooth bias results over index's
 

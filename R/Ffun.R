@@ -1,6 +1,6 @@
 Ffun <- function(index, SfdList, chcemat) {
 	
-# Last modified 16 November 2023 by Jim Ramsay
+# Last modified 19 December 2023 by Jim Ramsay
 
   if (is.null(ncol(chcemat))) {
     N <- 1
@@ -41,20 +41,19 @@ Ffun <- function(index, SfdList, chcemat) {
       SStri     <- SfdList[[item]]
       Sfdi      <- SStri$Sfd
       Mi        <- SStri$M
+      Zmati     <- SStri$Zmat
       #  evaluate surprisal curves at the score index values in theta
-      Smati     <- eval.surp(index, Sfdi)
+      Smati     <- eval.surp(index, Sfdi, Zmati)
       #  Mi must be greater than 1, if not, abort
       if (Mi > 1) {
         #  select values of curve for the selected option
         if (N == 1) {
           Sveci <- Smati[chceveci]
         } else {
-          for (j in 1:N)
-          {
-            if (chceveci[j] > Mi)
-            {
-              stop(paste("Item: ", item, " chceveci(",j,") > Mi",sep = ""))
-            }
+          for (j in 1:N) {
+            # if (chceveci[j] > Mi) {
+            #   stop(paste("Item: ", item, " chceveci(",j,") > Mi",sep = ""))
+            # }
             Sveci[j] <- Smati[j,chceveci[j]]
           }
         }

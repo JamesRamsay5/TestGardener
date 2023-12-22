@@ -15,9 +15,8 @@
 \usage{
   make_dataList(chcemat, scoreList, noption, sumscr_rng=NULL, 
                 titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
-                jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-                verbose=FALSE)
+                nbin=nbinDefault(N), NumBasis=7, jitterwrd=TRUE, 
+                PcntMarkers=c( 5, 25, 50, 75, 95), verbose=FALSE)
 }
 \arguments{
   \item{chcemat}{An N by n matrix.  Column \code{i} must contain the integers 
@@ -62,7 +61,6 @@
     surprisal curves. The default is computed by a function that uses the 
     number of examinees.  
     }
-  \item{Sfd}{A functional data object.}
   \item{jitterwrd}{A boolian constant: TRUE implies adding a small random value 
     to each sum score value prior to computing percent rank values.}
   \item{PcntMarkers}{Used in plots of curves to display marker or reference 

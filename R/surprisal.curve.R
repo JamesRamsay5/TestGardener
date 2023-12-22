@@ -13,7 +13,7 @@ surprisal.curve <- function(ST, bdry) {
   #  Select log base M
   M <- 3
   #   define orthonormal map from dimension 3 to dimension 2
-  Zmat <- zerobasis(M) 
+  Zmat <- fda::zerobasis(M) 
   #  set up 101 points for plotting coordinate lines
   coordvalues <- seq(-bdry,bdry, length.out = 101)
   #  set up range a number of vector values

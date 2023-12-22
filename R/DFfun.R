@@ -1,27 +1,24 @@
 DFfun <- function(index, SfdList, chcemat) {
 
-# Last modified 2 November 2023 by Jim Ramsay
+# Last modified 19 December 2023 by Jim Ramsay
 
   if (is.null(ncol(chcemat)))
   {
     N <- 1
     n <- length(chcemat)
-  } else
-  {
+  } else {
     if (ncol(chcemat)==1)
     {
       N <- 1
       n <- length(chcemat)
-    } else
-    {
+    } else {
       N <- nrow(chcemat)
       n <- ncol(chcemat)
     }
   }
 
   # loop through items to compute DF and D2F
-  if (N == 1)
-  {
+  if (N == 1) {
     DF     <- 0
     D2F    <- 0
     Rveci  <- 0
@@ -40,34 +37,35 @@ DFfun <- function(index, SfdList, chcemat) {
       chceveci <- as.integer(chcemat[,item])
     }
 
-    if (!is.null(chceveci)) {
+    # if (!is.null(chceveci)) {
       #  extract the surprisal curves for this item
-      WStri     <- SfdList[[item]]
-      Sfdi      <- WStri$Sfd
-      Mi        <- WStri$M
+      SStri     <- SfdList[[item]]
+      Sfdi      <- SStri$Sfd
+      Mi        <- SStri$M
+      Zmati     <- SStri$Zmat
       #  evaluate surprisal curves at the score index values in index
-      DWmati    <- eval.surp(index, Sfdi, 1)
-      D2Wmati   <- eval.surp(index, Sfdi, 2)
+      DSmati    <- eval.surp(index, Sfdi, Zmati, 1)
+      D2Smati   <- eval.surp(index, Sfdi, Zmati, 2)
       #  Mi must be greater than 1, if not, abort
-      if (Mi > 1) {
+      # if (Mi > 1) {
         #  select values of first and second derivatives of curve for the selected option
         if (N == 1) {
-          Rveci  <-  DWmati[chceveci]
-          R2veci <- D2Wmati[chceveci]
+          Rveci  <-  DSmati[chceveci]
+          R2veci <- D2Smati[chceveci]
         } else {
-          Wmati  <- rbind(DWmati,D2Wmati)
+          Smati  <- rbind(DSmati,D2Smati)
           for (j in 1:N) {
-            Rveci[j]  <-  DWmati[j,chceveci[j]]
-            R2veci[j] <- D2Wmati[j,chceveci[j]]
+            Rveci[j]  <-  DSmati[j,chceveci[j]]
+            R2veci[j] <- D2Smati[j,chceveci[j]]
           }
         }
         # update fit derivative values
         DF  <- DF  +  Rveci
         D2F <- D2F + R2veci
-      } else {
-        stop("Mi = 1. Binary data should use Mi = 2.")
-      }
-    }
+      # } else {
+      #   stop("Mi = 1. Binary data should use Mi = 2.")
+      # }
+    # }
   }
   return(list(DF=DF, D2F=D2F))
 }

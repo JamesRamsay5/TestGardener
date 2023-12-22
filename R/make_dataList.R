@@ -1,9 +1,8 @@
 
 make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL, 
                           titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                          nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
-                          jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-                          verbose=FALSE) {
+                          nbin=nbinDefault(N), NumBasis=7, jitterwrd=TRUE, 
+                          PcntMarkers=c( 5, 25, 50, 75, 95), verbose=FALSE) {
   
   #' This function sets up the information required to analyze a set of data.
   #' The information is stored in the struct object dataStr.
@@ -62,7 +61,7 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #                   in plots.  Defaults to c(5, 25, 50, 75, 95).
   #. verbose     ...  Extra displays are provided.  Defaults to FALSE.
   
-  #  Last modified 16 December 2023 by Jim Ramsay
+  #  Last modified 18 December 2023 by Jim Ramsay
   
   #. Dimensions of index matrix
   
@@ -246,22 +245,18 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   
   #  number of basis functions.  If NULL, this is assigned according to size of N
   
-  if (is.null(Sfd)) {
-    if (round(NumBasis) == NumBasis) {
-      #  NumBasis is an integer
-      if (NumBasis < 2) 
-        stop("There must be at least two spline basis functions.")
-      if (NumBasis > 7) 
-        warning("More than 7 basis functions may cause instability 
+  if (round(NumBasis) == NumBasis) {
+    #  NumBasis is an integer
+    if (NumBasis < 2) 
+      stop("There must be at least two spline basis functions.")
+    if (NumBasis > 7) 
+      warning("More than 7 basis functions may cause instability 
                 in optimization.")
-      Snbasis <- NumBasis
-      Snorder <- min(Snbasis, 5)
-      Sbasis  <- fda::create.bspline.basis(c(0,100), Snbasis, Snorder) 
-    } else {
-      stop("Number of basis functions is not an integer.")
-    }
+    Snbasis <- NumBasis
+    Snorder <- min(Snbasis, 5)
+    Sbasis  <- fda::create.bspline.basis(c(0,100), Snbasis, Snorder) 
   } else {
-    if (!inherits(Sfd, "fd")) stop("Sfd is not an fd object.")
+    stop("Number of basis functions is not an integer.")
   }
   
   #. --------------------------------------------------------------------------
@@ -269,33 +264,33 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #.    using functional data smoothing.
   #. --------------------------------------------------------------------------
   
-  SfdList <- Sbinsmth.init(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) 
+  SfdList <- Sbinsmth.init(percntrnk, nbin, Sbasis, grbgvec, noption, chcemat) 
   
   ##  Construct dataList object to define data Listucture
   
   dataList <- list(chcemat     = chcemat, 
-                   scoreList   = scoreList,
-                   noption     = noption, 
-                   titlestr    = titlestr,
-                   itemlabvec  = itemlabvec,
-                   optlabList  = optlabList,
-                   SfdList     = SfdList,
                    key         = key,
-                   grbgvec     = grbgvec,
-                   Sfd      = Sfd, 
-                   nbin        = nbin, 
-                   sumscr_rng  = sumscr_rng, 
-                   scrfine     = scrfine,
-                   scrvec      = scrvec,
-                   scrjit      = scrjit,
-                   itmvec      = itmvec, 
-                   percntrnk   = percntrnk, 
-                   indexQnt    = indexQnt,
-                   Sdim        = Sdim, 
-                   PcntMarkers = PcntMarkers,
+                   titlestr    = titlestr,
                    N           = N,
                    n           = n,
-                   NumBasis    = NumBasis)
+                   noption     = noption, 
+                   Sdim        = Sdim, 
+                   grbgvec     = grbgvec,
+                   scoreList   = scoreList,
+                   nbin        = nbin, 
+                   NumBasis    = NumBasis,
+                   Sbasis      = Sbasis,
+                   itemlabvec  = itemlabvec,
+                   optlabList  = optlabList,
+                   scrvec      = scrvec,
+                   itmvec      = itmvec, 
+                   scrjit      = scrjit,
+                   sumscr_rng  = sumscr_rng, 
+                   SfdList     = SfdList,
+                   scrfine     = scrfine,
+                   indexQnt    = indexQnt,
+                   percntrnk   = percntrnk, 
+                   PcntMarkers = PcntMarkers)
   
   return(dataList)
   
@@ -303,7 +298,7 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
 
 #  ---------------------------------------------------------------
 
-Sbinsmth.init <- function(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) {
+Sbinsmth.init <- function(percntrnk, nbin, Sbasis, grbgvec, noption, chcemat) {
   
   # Last modified 26 November 2023 by Jim Ramsay
   
@@ -324,7 +319,6 @@ Sbinsmth.init <- function(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) {
   }
   meanfreq <- mean(freq)
   SfdList  <- vector("list", nitem)
-  Sbasis   <- Sfd$basis
   Snbasis  <- Sbasis$nbasis
   
   #. --------------------------------------------------------------------------
@@ -335,6 +329,7 @@ Sbinsmth.init <- function(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) {
     Mi    <- noption[item]
     logMi <- log(Mi)
     chcematveci <- as.numeric(chcemat[,item])
+    Zmati <- fda::zerobasis(Mi)
     Pbin  <- matrix(0,nbin,Mi)  #  probabilities
     Sbin  <- matrix(0,nbin,Mi)  #  transformation of probability
     for (k in 1:nbin) {
@@ -391,33 +386,32 @@ Sbinsmth.init <- function(percntrnk, nbin, Sfd, grbgvec, noption, chcemat) {
       }
     }
     
-    #  generate a map into M-vectors with zero row sums
-    
-    if (Mi == 2) {
-      root2 <- sqrt(2)
-      Zmati <- matrix(1/c(root2,-root2),2,1)
-    } else {
-      Zmati <- fda::zerobasis(Mi)
-    }
-    
     #  apply conventional smoothing of surprisal values
-    Sfdi     <- fda::smooth.basis(binctr, Sbin, Sfd)$fd
+    #  here the bin values are smoothed and the number of
+    #  coefficients Sfdiniti will be M.
+    Sfdiniti     <- fda::smooth.basis(binctr, Sbin, Sbasis)$fd
     #  compute spline basis functions at bin centres
-    Phimati  <- fda::eval.basis(binctr, Sfd$fd$basis)
+    Phimati  <- fda::eval.basis(binctr, Sbasis)
     #  evaluate smooth at bin centres
-    Smathati <- fda::eval.fd(binctr, Sfdi)
+    Smathati <- fda::eval.fd(binctr, Sfdiniti)
     #  map this into zero-row-sum space
     Smatctri <- Smathati %*% Zmati
     #  regress the centred data on the negative of basis values
     Result <- lsfit(-Phimati, Smatctri, intercept=FALSE)
+    #  the coefficients of the regression are the initial values
+    #  for subsequent surprisal smoothing in function Sbinsmth
     Bmati  <- Result$coefficient
-    Sfdi   <- fda::fd(Bmati, Sbasis)
+    #  Define Sfdi, the functional data object that will be the initial 
+    #  estimate of the Mi - 1 surprisal curves for item i.
+    #  Here Sfdi is defined with Mi - 1 coefficients
+    Sfdi <- fda::fd(Bmati, Sbasis)
     
     #  store objects in SListi
     
     SListi <- list(
       Sfd        = Sfdi,       #  functional data object for (options
       M          = Mi,         #  the number of options
+      Zmat       = Zmati,
       Pbin       = Pbin,       # proportions at each bin
       Sbin       = Sbin,       # negative surprisals at each bin
       Pmatfine   = NULL,   

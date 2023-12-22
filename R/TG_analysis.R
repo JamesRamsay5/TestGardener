@@ -1,9 +1,8 @@
-TG_analysis <- function(chcemat, scoreList, noption, sumscr_rng=NULL, 
+TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,  
                         titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                        nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
+                        nbin=nbinDefault(N), sumscr_rng=NULL,
                         jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-                        ncycle=10, cyclechoice=ncycle, 
-                        itdisp=FALSE, verbose=FALSE) {
+                        cyclechoice=ncycle, itdisp=FALSE, verbose=FALSE) {
   
   #. Arguments:
   #. chcemat     ... An N by n matrix.  Column i must contain the integers 
@@ -32,9 +31,9 @@ TG_analysis <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #.                 Although this object might seem redundant, it is needed
   #.                 for checking the consistencies among other objects and
   #.                 as an aid for detecting missing and illegal choices.
-  #. sumscr_rng  ... A vector of length 2 indicating the initial and final
-  #.                 sum score values.  Default is NULL the whole sum score
-  #.                 is used.
+  #. NumBasis    ... The number of spline basis functions to use for 
+  #.                 surprisal values.  Defaults to 7.
+  #. ncycle      ... The number of cycles in the analysis.  Defaults to 10.
   #. titlestr    ... A title string for the data and their analyses.
   #.                 Default is NULL.
   #. itemlabvec  ... A character value containing labels for the items.
@@ -43,35 +42,36 @@ TG_analysis <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   #.                 character vector of length M_i.
   #.                 Default is NULL, and option numbers are used.
   #. nbin        ... The number of bins containing proportions of choices.
-  #. NumBasis    ... The number of spline basis functions to use for 
-  #.                 surprisal values.  Defaults to 7.
-  #. Sfd         ... A functional data object to be used for representing
-  #.                 surprisal curves.  May be NULL in which case the spline  
-  #                  basis has NumBasis basis functions and is of order 5.
+  #. sumscr_rng  ... A vector of length 2 indicating the initial and final
+  #.                 sum score values.  Default is NULL the whole sum score
+  #.                 is used.
   #. jitterwrd   ... A logical object indicating whether a small jittering
   #.                 perturbation should be used to break up ties.  
   #                  Defaults to TRUE.
   #. PcntMarkers ... A vector of percentages inside of [0,100] that appear
   #                  in plots.  Defaults to c(5, 25, 50, 75, 95).
   #. verbose     ... Extra displays are provided.  Defaults to FALSE.
-  #. ncycle      ... The number of cycles in the analysis.  Defaults to 10.
   #. choicecycle ... A number within 1 to 10 indicating which cycle will be 
   #.                 used to represent the TestGardener results.  
   #.                 Defaults to ncycle.
 
-  #  Last modified 3 November 2023 by Jim Ramsay
+  #  Last modified 19 December 2023 by Jim Ramsay
   
   N <- nrow(chcemat)
   n <- ncol(chcemat)
   
-  print(paste("Number of basis functions =",NumBasis))
+  # print(paste("Number of basis functions =",NumBasis))
+  
+  # print("enterng make_dataList")
   
   dataList <- make_dataList(chcemat, scoreList, noption, sumscr_rng=sumscr_rng,
                             titlestr=titlestr, itemlabvec=itemlabvec, 
                             optlabList=optlabList,
-                            nbin, NumBasis=NumBasis, Sfd=Sfd,
+                            nbin, NumBasis=NumBasis, 
                             jitterwrd=jitterwrd, PcntMarkers=PcntMarkers)
 
+  # print("dataList completed")
+  
   #  ----------------------------------------------------------------------------
   #  compute the initial option surprisal curves using the 
   #  percentage ranks as initial estimates of index

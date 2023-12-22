@@ -9,12 +9,11 @@
   values.
 }
 \usage{
-  TG_analysis(chcemat, scoreList, noption, sumscr_rng=NULL, 
-             titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-             nbin=nbinDefault(N), NumBasis=7, Sfd=NULL,
-             jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-             ncycle=10, cyclechoice=ncycle, 
-             itdisp=FALSE, verbose=FALSE)
+  TG_analysis(chcemat, scoreList, noption, NumBasis=7, ncycle=10,  
+              titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
+              nbin=nbinDefault(N), sumscr_rng=NULL,
+              jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
+              cyclechoice=ncycle, itdisp=FALSE, verbose=FALSE)
 }
 \arguments{
   \item{chcemat}{An N by n matrix.  Column i must contain the integers 
@@ -38,9 +37,11 @@
   containing the right answer indices.  List object
   scoreList is mandatory because these weights define the
   person scores for the surprisal curve estimation process.}
-  \item{sumscr_rng}{A vector of length 2 indicating the initial and final
-  sum score values.  Default is NULL the whole sum score
-  is used.}
+  \item{noption}{A numeric vector of length \code{n} containing the 
+  number of options for each item.}
+  \item{NumBasis}{The number of spline basis functions to use for 
+  surprisal values.  Defaults to 7.}
+  \item{ncycle}{The number of cycles in the analysis.  Defaults to 10.}
   \item{titlestr}{A title string for the data and their analyses.
   Default is NULL.}
   \item{itemlabvec}{A character value containing labels for the items.
@@ -49,22 +50,17 @@
   character vector of length M_i.
   Default is NULL, and option numbers are used.}
   \item{nbin}{The number of bins containing proportions of choices.}
-  \item{NumBasis}{The number of spline basis functions to use for 
-  surprisal values.  Defaults to 7.}
-  \item{Sfd}{A functional data object to be used for representing
-  surprisal curves.  May be NULL in which case the spline  
-  basis has NumBasis basis functions and is of order 5.}
+  \item{sumscr_rng}{A vector of length 2 indicating the initial and final
+  sum score values.  Default is NULL the whole sum score
+  is used.}
   \item{jitterwrd}{A logical object indicating whether a small jittering
   perturbation should be used to break up ties.  
   Defaults to TRUE.}
   \item{PcntMarkers}{A vector of percentages inside of [0,100] that appear
   in plots.  Defaults to c(5, 25, 50, 75, 95).
   Extra displays are provided.  Defaults to FALSE.}
-  \item{noption}{A numeric vector of length \code{n} containing the 
-  number of options for each item.}
   \item{itdisp}{Display results for function \code{theta_fun}.}
   \item{verbose}{Extra displays are provided.  Defaults to FALSE.}
-  \item{ncycle}{The number of cycles in the analysis.  Defaults to 10.}
   \item{cyclechoice}{A number within 1 to 10 indicating which cycle will be 
   used to represent the TestGardener results.  
   Defaults to ncycle.}
