@@ -10,10 +10,11 @@ mu <- function(index, SfdList, scoreList){
     SListi <- SfdList[[item]]
     Sfdi   <- SListi$Sfd
     Mi     <- SListi$M
+    Zmati  <- SListi$Zmat
     if (Mi == 1){
       stop("Mi = 1.  Binary data should use Mi = 2.")
     } else {
-      Smati <- eval.surp(index, Sfdi)
+      Smati <- eval.surp(index, Sfdi, Zmati)
       Pmati <- exp(-Smati*log(Mi))
       scri  <- matrix(scoreList[[item]], N, Mi, byrow=TRUE)
       muvec <- muvec + apply(scri*Pmati,1,sum)

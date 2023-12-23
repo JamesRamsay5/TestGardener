@@ -19,20 +19,22 @@ Fcurve <- function(SfdList, chcevec, nderiv=0) {
   Ffine <- matrix(0,101,1)
   for (item in 1:nitem) {
     # print(item)
-    chceij <- chcevec[,item]
-    if (!is.null(chceij)) {
-      SListi    <- SfdList[[item]]
-      if (nderiv == 0) {
-        Smati <- SListi$Smatfine
-        Ffine <- Ffine + Smati[,chceij]
-      }
-      if (nderiv == 1) {
-        DSmati <- SListi$DSmatfine
-        Ffine  <- Ffine + DSmati[,chceij]
-      }
-      if (nderiv == 2) {
-        D2Smati <- SListi$D2Smatfine
-        Ffine   <- Ffine + D2Smati[,chceij]
+    chceij <- chcevec[1,item]
+    if (!(is.null(chceij))) {
+      SListi <- SfdList[[item]]
+      Smati  <- SListi$Smatfine
+      if (chceij <= ncol(Smati)) {
+        if (nderiv == 0) {
+          Ffine <- Ffine + Smati[,chceij]
+        }
+        if (nderiv == 1) {
+          DSmati <- SListi$DSmatfine
+          Ffine  <- Ffine + DSmati[,chceij]
+        }
+        if (nderiv == 2) {
+          D2Smati <- SListi$D2Smatfine
+          Ffine   <- Ffine + D2Smati[,chceij]
+        }
       }
     }
   }

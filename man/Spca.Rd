@@ -10,7 +10,7 @@ Functional principal components analysis of information curve
   can be fixed by using functional principal components analysis.
 }
 \usage{
-  Spca(SfdList, Sdim=NULL, nharm=2, rotate=TRUE)
+  Spca(SfdList, nharm=2, Sdim=NULL, rotate=TRUE)
 }
 \arguments{
   \item{SfdList}{A numbered list object produced by a TestGardener analysis 
@@ -45,9 +45,11 @@ information-based psychometrics. Psych, 2, 347-360.
 #  Example 1.  Display the test information curve for the 
 #  short SweSAT multiple choice test with 24 items and 1000 examinees
 #  plot a two-dimension version of manifold curve
+Sdim     <- Quant_13B_problem_dataList$Sdim
 SfdList  <- Quant_13B_problem_parmList$SfdList
 index    <- Quant_13B_problem_parmList$index
 infoSurp <- Quant_13B_problem_parmList$infoSurp 
+#      <- Quant_13B_problem_dataList$Sdim
 oldpar <- par(no.readonly=TRUE)
 on.exit(oldpar)
 Results <- Spca(SfdList, nharm=2, rotate=FALSE)

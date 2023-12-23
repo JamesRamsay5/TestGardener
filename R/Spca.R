@@ -1,4 +1,4 @@
-Spca <- function(SfdList, Sdim=NULL, nharm=2, rotate=TRUE) {
+Spca <- function(SfdList, nharm=2, Sdim=NULL, rotate=TRUE) {
   
   #  Last modified 12 December 2023 by Jim Ramsay
   
@@ -29,10 +29,11 @@ Spca <- function(SfdList, Sdim=NULL, nharm=2, rotate=TRUE) {
     SListi <- SfdList[[item]]
     Sfdi   <- SListi$Sfd
     Mi     <- SListi$M
+    Zmati  <- SListi$Zmat
     m1 <- m2 +  1
     m2 <- m2 + Mi
-    Smat_full[,m1:m2]  <- eval.surp(indfine, Sfdi)
-    DSmat_full[,m1:m2] <- eval.surp(indfine, Sfdi,1)
+    Smat_full[,m1:m2]  <- eval.surp(indfine, Sfdi, Zmati)
+    DSmat_full[,m1:m2] <- eval.surp(indfine, Sfdi, Zmati, 1)
     Pmat_full[,m1:m2]  <- Mi^(Smat_full[,m1:m2])
   }
   
@@ -41,16 +42,16 @@ Spca <- function(SfdList, Sdim=NULL, nharm=2, rotate=TRUE) {
   Snbasis <- 7
   Snorder <- 4
   Sbasis  <- fda::create.bspline.basis(c(0,100), Snbasis, Snorder) 
-  Sfd     <- fda::fd(matrix(0,Snbasis,1),Sbasis)
+  SfdPar  <- fda::fdPar(fd(matrix(0,Snbasis,1),Sbasis))
   
   #  smooth all Sdim surprisal curves to get best fitting fd curves
   
-  Sfd <- fda::smooth.basis(indfine, Smat_full, Sfd)
+  Sfd <- fda::smooth.basis(indfine, Smat_full, SfdPar)$fd
   
   #  functional PCA of the fd versions of surprisal curves
   #  the output is nharm principal component functions
   
-  pcaList <- fda::pca.fd(Sfd, nharm, Sfd, FALSE)
+  pcaList <- fda::pca.fd(Sfd, nharm, SfdPar, FALSE)
   
   #  set up the unrotated harmonic functional data object
   

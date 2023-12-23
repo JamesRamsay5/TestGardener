@@ -157,7 +157,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     # # adjusted marker score index values are computed by interpolation
     Qvec <- pracma::interp1(denscdf, indcdf, markers)
     
-    density_plot(index, c(0,100), Qvec, xlabstr="Score index",
+    density_plot(indexdens, c(0,100), Qvec, xlabstr="Score index",
                  titlestr=paste("Current index density, cycle",icycle),
                  scrnbasis=11, nfine=101)
     

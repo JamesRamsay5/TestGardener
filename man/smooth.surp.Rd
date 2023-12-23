@@ -99,12 +99,12 @@ information-based psychometrics.  Psych, 2, 347-360.
   cmat <- matrix(0,7,1)
   #  set up a fd object for suprisal smoothing
   Sfd <- fd(cmat, sbasis)
-  Zmat <- fda::zerobasis(M)
+  Zmat <- matrix(c(1,-1),2,1)
   #  smooth the noisy data
   result <- smooth.surp(x, mnormdata, cmat, Sfd, Zmat)
   #  plot the data and the fits of the two surprisal curves
   xfine <- seq(-2,2,len=51)
-  sfine <- eval.surp(xfine, result$Sfd)
+  sfine <- eval.surp(xfine, result$Sfd, Zmat)
   matplot(xfine, sfine, type="l", lty=c(1,1), col=c(1,1))
   points(x, mnormdata[,1])
   points(x, mnormdata[,2])
