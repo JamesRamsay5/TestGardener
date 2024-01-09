@@ -83,7 +83,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     #  After score index values are computed, bin boundaries and 
     #  and centres are adjusted in Step 4.
     
-    SfdResult <- Sbinsmth(index, dataList, SfdList, indexQnt)
+    SfdResult <- Sbinsmth(index, dataList)
     binctr    <- SfdResult$binctr
     bdry      <- SfdResult$bdry
     freq      <- SfdResult$freq

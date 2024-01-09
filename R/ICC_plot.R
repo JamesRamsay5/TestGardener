@@ -75,7 +75,7 @@ ICC_plot <- function(scrfine, SfdList, dataList, Qvec,
   # lgdlab=NULL
   # lgdpos="bottom"
   
-  # Last modified 1 November 2023 by Jim Ramsay
+  # Last modified 8 January 2024 by Jim Ramsay
   
   n <- length(SfdList)
 
@@ -217,7 +217,8 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
   
   #  obtain option labels
   
-  # print("in plotCore")
+  # print("in plotCore, key is")
+  # print(dataList$key)
   # print(data_point)
   optionList <- dataList$optList 
   
@@ -278,6 +279,9 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
   } else {
     keyi <- dataList$key[iplot]
   }
+  # print(dataList$key)
+  # print(iplot)
+  # print(paste("keyi is set in plotcore to",keyi))  
   
   # ------------------  assemble the title for this item  ----------------------
   
@@ -377,6 +381,7 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
                                 ttlsz, axisttl, axistxt,
                                 lgdlab, lgdpos)
     } else if (plotType[itype] == "S") {
+      # print(paste("keyi is",keyi))
       # surprisal
       # print("invoke plotICC with surprisal")
       ylabel <- paste("Surprisal (",Mi,"-bits)",sep="")
@@ -412,8 +417,7 @@ plotCore <- function(iplot, scrfine, SfdList, dataList, Qvec,
 #. ----------------------------------------------------------------------------
 
 plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi, 
-                      binctr, bin1, StdErr, 
-                      range, intercept, 
+                      binctr, bin1, StdErr, yrng, intercept, 
                       ttllab, xlab, ylab, optVec,
                       plotrange, shaderange, 
                       ttlsz, axisttl, axistxt,
@@ -421,6 +425,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
 {
   # plot a single ICC plot
   # print("in plotICC")
+  # print(paste("keyi is",keyi))
   # Last modified 27 April 2023 by Juan Li
   value    <- 0
   variable <- 0
@@ -444,8 +449,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
   ymax_r <- NULL
   
   if (!is.null(keyi)) {
-    # print("key is not null")
-    # print(keyi)
+    # print(paste("keyi is",keyi))
     #  ---------------------------------------------------------------------
     #       Plot probability curve(s) for multiple choice test items
     #  ---------------------------------------------------------------------
@@ -462,17 +466,19 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
       ggplot2::geom_vline(xintercept = Qvec, color="black", linetype = "dashed")
     
     # plot the curve of wrong options
+    
     dffine_w <- data.frame(scrfine=scrfine, fitfinei_w= fitfinei[,indS])
+    
     names(dffine_w)[2:ncol(dffine_w)] <- optVec[indS]
     dffine_w <- tidyr::gather(dffine_w, key = "variable", value = "value", -scrfine)
-    
+
     pp <- pp +
-      ggplot2::geom_line(data = dffine_w, ggplot2::aes(scrfine,value,color=variable), 
+      ggplot2::geom_line(data = dffine_w, ggplot2::aes(scrfine,value,color=variable),
                          linewidth=linesize, na.rm = TRUE) +
       ggplot2::scale_colour_hue(name="Srong")
     
   } else {
-    # print("key null")
+    # print("keyi is NULL")
     #  ---------------------------------------------------------------------
     #             Plot probability curves for scale items
     #  ---------------------------------------------------------------------
@@ -481,6 +487,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
     names(dffine)[2:ncol(dffine)]<- optVec[ind]
     dffine <-   tidyr::gather(dffine, key = "variable", value = "value", -scrfine)
     
+    print("pp step 1")
     pp <- ggplot2::ggplot(dffine, ggplot2::aes(scrfine,value,color=variable)) +
       ggplot2::geom_line(linewidth=linesize, na.rm = TRUE) +
       ggplot2::scale_linetype('Right') +
@@ -522,6 +529,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
       #       Plot probability points for scale items
       #  ---------------------------------------------------------------------
       
+      print("pp step 2: probability points for scale items")
       dfpts <- data.frame(binctr=binctr,
                           bin1= bin1[,ind]) 
       names(dfpts)[2:ncol(dfpts)]<- optVec[ind]
@@ -606,16 +614,16 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
     for (ishade in 1:length(shaderange))
     {
       pp <- pp + ggplot2::annotate("rect", xmin=shaderange[[ishade]][1], xmax=shaderange[[ishade]][2], 
-                                   ymin=range[1], ymax=range[2],
+                                   ymin=yrng[1], ymax=yrng[2],
                                    alpha = rectAlpha)
     }
   }
   
+  # print("pp step 3: set limits and labels")
   pp <- pp +
-    ggplot2::ylim(range[1], range[2]) +
+    ggplot2::ylim(yrng[1], yrng[2]) +
     ggplot2::xlim(plotrange[1], plotrange[2]) +
-    ggplot2::labs(x = xlab, 
-                  y = ylab)
+    ggplot2::labs(x = xlab, y = ylab)
   
   if (!is.null(ttllab)) {
     pp <- pp +
@@ -626,6 +634,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
   default_size1=12
   default_size2=10
   
+  # print("print step 4: theme settings")
   pp <- pp + ggplot2::theme(legend.position = lgdpos,
                             legend.title=ggplot2::element_blank(),
                             plot.title  = ggplot2::element_text(size = ifelse(is.null(ttlsz),  default_size,ttlsz)),

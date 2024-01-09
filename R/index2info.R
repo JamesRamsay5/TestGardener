@@ -41,7 +41,7 @@ index2info <- function(index, Qvec, SfdList, binctr, itemindex=1:n,
     # SDIM          ... The dimension of the over space containing the 
     #                   surprisal curves.
     
-    #  Last modified 12 December 2023
+    #  Last modified 5 January 2024
     
     #  ------------------------------------------------------------------------
     #                              check inputs  
@@ -78,8 +78,8 @@ index2info <- function(index, Qvec, SfdList, binctr, itemindex=1:n,
         stop("Argument plotrng is not of length 2.")
     }
     
-    if (min(itemindex) < 1 || max(itemindex) > n) {
-        stop("Values in itemindex are < 1 or > n.")
+    if (min(itemindex) < 1 || max(itemindex) > n+1) {
+        stop("Values in itemindex are < 1 or > n+1.")
     }
     
     #  ------------------------------------------------------------------------

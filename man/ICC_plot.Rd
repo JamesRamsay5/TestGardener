@@ -74,6 +74,7 @@ option characteristic curves.
 }
 \author{Juan Li and James Ramsay}
 \seealso{
+  \code{\link{ICC}},
   \code{\link{Sensitivity_plot}},
   \code{\link{Power_plot}},
   \code{\link{Entropy_plot}},

@@ -1,7 +1,7 @@
 index_fun <- function(index, SfdList, chcemat, 
                      itermax = 20, crit = 1e-3, itdisp=FALSE) {
   
-# Last modified 2 November 23 by Jim Ramsay
+# Last modified 5 January 2024 by Jim Ramsay
 
   if (!inherits(SfdList,"list"))
     stop("Arguments SfdList is not list object.")
@@ -16,9 +16,6 @@ index_fun <- function(index, SfdList, chcemat,
   
   if (any(index < 0) || any(index > 100)) 
     stop('Values of index out of bounds.')
-  
-  if (length(SfdList) != n)
-    stop("Length of SfdList not equal to ncol(chcemat).")
   
   # Initial function, first and second derivative values wrt index
   

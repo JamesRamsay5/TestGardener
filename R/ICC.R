@@ -3,13 +3,16 @@ ICC <- function(x) {
   UseMethod("ICC")
 }
 
-ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine, 
+ICC <- function(x, M, Sfd, Zmat, Pbin, Sbin, 
+                Pmatfine, Smatfine, DSmatfine, D2Smatfine,
                 PStdErr, SStdErr, ItemArcLen, itemStr=NULL, optStr=NULL) {
   # ICC is the container of information required for an item and 
   # the options within it.
   # Arguments:
   # Item.      ...  The index of the item within the sequence 1,...,n
   # M          ...  Length of probability and surprisal vector
+  # Zmat       ...  An M by M-1 matrix for mapping B to X.
+  #                 Zmat'Zmat = I and Zmat'1 = 0
   # Sfd        ...  A functional data object whose curves satisfy the 
   #                 surprisal constraints.
   # Pbin       ...  An nbin by M matrix of probabilities, summing to one 
@@ -30,13 +33,14 @@ ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine,
   # itemStr    ...  Item label string
   # optStr     ...  List vector containing option label strings
   
-  #  Last modified 31 October 2023 by Jim Ramsay
+  #  Last modified 8 January 2024 by Jim Ramsay
   
   #  Set up default binary ICC if there are no arguments
   
   if (nargs()==0) { 
     Item   <-  1
     M      <-  2
+    Zmat   <-  matrix(c(1,-1),2,1)
     nbin   <- 11
     nbasis <-  3
     norder <-  3
@@ -51,12 +55,19 @@ ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine,
     ItemArcLen <- 0
     itemStr    <- NULL
     optStr     <- NULL
-    ICCList <- list(Item=Item,         Sfd=Sfd, 
-                    Pbin=Pbin,         Sbin=Sbin, 
-                    Pmatfine=Pmatfine, Sarrayfine=Sarrayfine,
-                    PStdErr=PStdErr,   PStdErr=PStdErr,
-                    ItemArcLen=ItemArcLen, 
-                    itemStr=itemStr,  optStr=optStr)
+    ICCList <- list(Item       = Item, 
+                    M          = M,
+                    Zmat       = Zmat,
+                    Sfd        = Sfd, 
+                    Pbin       = Pbin,         
+                    Sbin       = Sbin, 
+                    Pmatfine   = Pmatfine, 
+                    Sarrayfine = Sarrayfine,
+                    PStdErr    = PStdErr,   
+                    PStdErr    = PStdErr,
+                    itemStr    = itemStr,   
+                    optStr     = optStr,
+                    ItemArcLen = ItemArcLen) 
     class(ICC) <- "ICC"
     return(ICC)
   }
@@ -76,6 +87,10 @@ ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine,
   
   if (!is.integer(M)) stop("M is not an integer.")
   if (!(M > 1)) stop("M is not greater than 1.")
+  
+  #  create Zmat
+  
+  Zmat = fda::zerobasis(M)
   
   # check if Sfd is an fd object and has a bspline basis
   
@@ -130,12 +145,19 @@ ICC <- function(Item, M, Sfd, Pbin, Sbin, Pmatfine, Sarrayfine,
   if (!is.numeric(ItemArcLen)) stop("ItemArcLen is not numeric.")
   if (ItemArcLen < 0) stop("ItemArcLen is negative.")
   
-  ICCList <- list(Item=Item,        Sfd=Sfd, 
-                  Pbin=Pbin,         Sbin=Sbin, 
-                  Pmatfine=Pmatfine, Sarrayfine=Sarrayfine,
-                  PStdErr=PStdErr,   PStdErr=PStdErr,
-                  ItemArcLen=ItemArcLen, 
-                  itemStr=itemStr,  optStr=optStr)
+  ICCList <- list(Item.      = Item,     
+                  M          = M,
+                  Zmat       = Zmat,
+                  Sfd        = Sfd, 
+                  Pbin       = Pbin,         
+                  Sbin       = Sbin, 
+                  Pmatfine   = Pmatfine, 
+                  Sarrayfine = Sarrayfine,
+                  PStdErr    = PStdErr,   
+                  PStdErr    = PStdErr,
+                  itemStr    = itemStr,  
+                  optStr     = optStr,
+                  ItemArcLen = ItemArcLen) 
   
   class(ICC) <- "ICC"
   
@@ -165,4 +187,3 @@ summary.ICC <- function(x, ...) {
   print(paste("optStr:  list vector of option strings."))
 }
 
-  
