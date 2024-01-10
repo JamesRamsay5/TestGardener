@@ -11,7 +11,7 @@ question.  Bin probabilities and surprisal values can also be plotted.}
   \item{M}{The number of options for this item, including an option for missing or 
   illegal values if required.}
   \item{Sfd}{A functional surprisal curve object defined by \code{K} B-spline 
-  basis functions and a \code{K} by {M-1} matrix of coefficients.}
+  basis functions and a \code{K} by \code{M-1} matrix of coefficients.}
   \item{Zmat}{An \code{M} by \code{M-1} matrix satisfying the conditions
   \code{t(Zmat) Zmat} = \code{I} and columns sum to zero.}
   \item{Pbin}{A \code{nbin} by \code{M} matrix of probabilities that a given

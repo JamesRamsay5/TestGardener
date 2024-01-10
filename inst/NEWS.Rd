@@ -102,3 +102,17 @@
     }
   }
 }
+\section{Changes in TestGardener version 3.1.1 (2024-09-01)}{
+\itemize{
+  \item{A major clean-up and re-organization of the code was required to
+  deal with the fact that a plot of the last item was drastically and 
+  unbelievably distorted for all data analyses.  
+  
+  As a part of the cleanup I experimented with adding a new item designed to 
+  track  item choices constructed to deal with running out of time or having 
+  no clue to what answer was correct.  This experiment meant there were n + 1 
+  items technically, even if only the first n were regular choices.  In the 
+  end, it didn't seem that this added anything, but this codestill remains  
+  because it may prove useful later.}
+  }
+}
