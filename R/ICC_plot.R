@@ -487,7 +487,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
     names(dffine)[2:ncol(dffine)]<- optVec[ind]
     dffine <-   tidyr::gather(dffine, key = "variable", value = "value", -scrfine)
     
-    print("pp step 1")
+    # print("pp step 1")
     pp <- ggplot2::ggplot(dffine, ggplot2::aes(scrfine,value,color=variable)) +
       ggplot2::geom_line(linewidth=linesize, na.rm = TRUE) +
       ggplot2::scale_linetype('Right') +
@@ -529,7 +529,7 @@ plotICC   <- function(Mi, scrfine, fitfinei, Qvec, keyi,
       #       Plot probability points for scale items
       #  ---------------------------------------------------------------------
       
-      print("pp step 2: probability points for scale items")
+      # print("pp step 2: probability points for scale items")
       dfpts <- data.frame(binctr=binctr,
                           bin1= bin1[,ind]) 
       names(dfpts)[2:ncol(dfpts)]<- optVec[ind]

@@ -138,7 +138,7 @@ make_dataList <- function(chcemat, scoreList, noption, sumscr_rng=NULL,
   # check optlabList
   #
   if (!is.null(optlabList)) {
-    if (length(optlabList) != n )
+    if (length(optlabList) != n &&  length(optlabList) != nitem)
       stop("Number of option label sets is not n.")
     for (i in 1:n) {
       for (m in 1:noption[i])
@@ -473,7 +473,11 @@ Sbinsmth.init <- function(percntrnk, nbin, Sbasis, key, grbgvec,
         Pbin[k,1] <- Pbin[k,1] + sum(indk & indi1)
         indi3 <- chceveci != keyi & chceveci == 3
         Pbin[k,2] <- Pbin[k,2] + sum(indk & indi3)
-        indix <- chceveci != keyi & chceveci != 1 & chceveci != 3
+        # probability conditional on not choosing right answer
+        # as well as not 1 or 3
+        # indix <- chceveci != keyi & chceveci != 1 & chceveci != 3
+        # probability conditional on not choosing 1 or 3
+        indix <- chceveci != 1 & chceveci != 3
         Pbin[k,3] <- Pbin[k,3] + sum(indk & indix)
       }
       Pbinsumk <- sum(Pbin[k,])
@@ -556,7 +560,7 @@ Sbinsmth.init <- function(percntrnk, nbin, Sbasis, key, grbgvec,
   )
   SfdList[[nitem]] = SListi
   
-  print(paste("length SfdList =", length(SfdList)))
+  # print(paste("length SfdList =", length(SfdList)))
   
   return(SfdList)
   

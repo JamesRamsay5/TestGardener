@@ -18,6 +18,7 @@ smooth.ICC <- function(x, item, index, dataList,
   # Last modified 3 November 2023 by Jim Ramsay
 
   ICC <- x
+  Zmat <- ICC$Zmat
   
   #  -----------------------------------------------------------------------------
   #  Step 1.       Set up  objects required for subsequent steps
@@ -175,7 +176,7 @@ smooth.ICC <- function(x, item, index, dataList,
     #  --------------------------------------------------------------------
      
     Sarray <- array(0, c(101,M,3))
-    Sarray[,,1]   <- eval.surp(indfine, Sfd)
+    Sarray[,,1]   <- eval.surp(indfine, Sfd, Zmat)
     Sarray[,,2]  <- eval.surp(indfine, Sfd, 1)
     if (Wnbasis > 2) {
       Sarray[,,3] <- eval.surp(indfine, Sfd, 2)

@@ -1,7 +1,7 @@
 index_fun <- function(index, SfdList, chcemat, 
                      itermax = 20, crit = 1e-3, itdisp=FALSE) {
   
-# Last modified 5 January 2024 by Jim Ramsay
+# Last modified 16 January 2024 by Jim Ramsay
 
   if (!inherits(SfdList,"list"))
     stop("Arguments SfdList is not list object.")
@@ -38,7 +38,7 @@ index_fun <- function(index, SfdList, chcemat,
     for (j in 1:length(jneg))
     {
       jind        <- jneg[j]
-      chcematj          <- matrix(chcemat[jind,], 1)[rep(1,ngrid), ]
+      chcematj    <- matrix(chcemat[jind,], 1)[rep(1,ngrid), ]
       Ftry        <- Ffun(indextry, SfdList, chcematj)
       Fmin        <- min(Ftry)
       kmin        <- which(Ftry == Fmin)
@@ -108,7 +108,7 @@ index_fun <- function(index, SfdList, chcemat,
     #  step through the iteration while any(Fval(active) - Fa < -1e-2)
     #  up to a maximum number of 10 step halvings
     indexanew     <- index[active]
-    chcematanew         <- as.matrix(chcemat[active,])
+    chcematanew   <- as.matrix(chcemat[active,])
     Fanew         <- Fval[active]
     fac           <- 1
     stepiter      <- 0

@@ -13,7 +13,7 @@ Sbinsmth <- function(index, dataList,
   #  conv     ... Convergence criterion for iterations
   #  dbglev   ... Amoount of printed history of optimizations. None if zero
   
-  # Last modified 3 January 2024 by Jim Ramsay
+  # Last modified 15 January 2024 by Jim Ramsay
 
   #  -----------------------------------------------------------------------------
   #  Step 1.       Set up  objects required for subsequent steps
@@ -63,13 +63,13 @@ Sbinsmth <- function(index, dataList,
   indfine <- seq(0,100,len=101)
   
   #  -----------------------------------------------------------------------------
-  #  Step 3.  Loop through the items to define the negative-surprisal S-curves
+  #  Step 3A.  Loop through the items to define the negative-surprisal S-curves
   #           for each question.
   #  -----------------------------------------------------------------------------
   
   for (item in 1:n) {
-    # print(item)
-    SListi <- SfdList[[item]]
+
+        SListi <- SfdList[[item]]
     Mi     <- SListi$M
     logMi  <- log(Mi)
     Sfdi   <- SListi$Sfd
@@ -77,6 +77,7 @@ Sbinsmth <- function(index, dataList,
     
     #  set up bin probabilities and surprisals
     
+    # print("entering binSP on line 80")
     result   <- binSP(item, index, dataList, bdry) 
     Pbin     <- result$Pbin
     Sbin     <- result$Sbin
@@ -85,6 +86,7 @@ Sbinsmth <- function(index, dataList,
     
     #  Set up SurprisalMax to replace NA's
 
+    # print("entering surp.max on line 88")
     result <- surp.max(item, Mi, logMi, nbin, binctr, Pbin, Sbin, meanfreq, grbgvec)
     Pbin   <- result$Pbin
     Sbin   <- result$Sbin
@@ -94,22 +96,209 @@ Sbinsmth <- function(index, dataList,
       Sbin[indNA,m] <- SurprisalMax
     }
     
+    #  --------------------------------------------------------------------
     #  apply surprisal smoothing
+    #  --------------------------------------------------------------------
     
-    result <- Smth.item(nbin, binctr, Mi, logMi, Zmati, Sfdi, Pbin, Sbin, dbglev)
-    infoSurp   <- result$infoSurp
-    Pbin       <- result$Pbin 
-    Sbin       <- result$Sbin 
-    Pmatfine   <- result$Pmatfine 
-    Smatfine   <- result$Smatfine 
-    DSmatfine  <- result$DSmatfine 
-    D2Smatfine <- result$D2Smatfine
-    PStdErr    <- result$PStdErr 
-    SStdErr    <- result$SStdErr
+    Bmat0   <- Sfdi$coefs
+    Sbasis  <- Sfdi$basis
+    #  suprisal smooth
+    # if (outputwrd) dbglev <- 1 else dbglev <- 0
+    #  optimize fit of smooth surprisal curves
+    # print("entering smooth.surp on line 106")
+    result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, Zmati)
+    #  retrieve results
+    Sfdi    <- result$Sfd
+    Bmati   <- result$Bmat
+    # if (outputwrd) print(round(Zmati %*% t(Bmati),1))
+    SSE     <- result$SSE
+    hmat    <- result$hmat
+    DvecSmatDvecB <- result$DvecSmatDvecB
     
+    #  --------------------------------------------------------------------
+    #  Step 4  Compute S and P values for bin point and each mesh point
+    #  --------------------------------------------------------------------
+    
+    indfine   <- seq(0,100,len=101)
+    # print("calling eval.surp line 120")
+    Smatfine  <- eval.surp(indfine, Sfdi, Zmati)
+    # print("calling eval.surp line 122")
+    DSmatfine <- eval.surp(indfine, Sfdi, Zmati, 1)
+    if (Sbasis$nbasis > 2) {
+      # print("calling eval.surp line 125")
+      D2Smatfine <- eval.surp(indfine, Sfdi, Zmati, 2)
+    } else {
+      D2Smatfine <- NULL
+    }
+    Pmatfine   <- Mi^(-Smatfine)
+    
+    #  ------------------------------------------------------------------------
+    #  Step 5. Compute arc length values for equally spaced index values.  
+    #. Integration is by the trapezoidal rule.
+    #  ------------------------------------------------------------------------
+    
+    infofine <- pracma::cumtrapz(indfine,sqrt(apply(DSmatfine^2,1,sum)))
+    infoSurp <- infofine[101]
+    
+    #  --------------------------------------------------------------------
+    #  Step 6 Compute the standard errors of the S values for each 
+    #  option.  These tend only to be used when plotting curves, and this 
+    #  step can be made optional to improve speed.
+    #  --------------------------------------------------------------------
+    
+    #  compute Sdf = trace(data2fitmat)
+    #  SSE is squared errors summed across points and surprisal curves
+    #  It is computed within smooth_surp by function surp_fit
+    
+    SResidVar <- as.numeric(SSE/(nbin*Mi))
+    dataVar   <- DvecSmatDvecB %*% solve(hmat) %*% t(DvecSmatDvecB)
+    SErrVar   <- SResidVar*matrix(diag(dataVar),nbin,Mi)
+    #  compute the vector (binary case) or matrix (multi case) of
+    #  the sampling variances for each bin (and each option)
+    #  set up derivatives of P wrt S
+    PStdErr <- matrix(0,nbin,Mi)
+    SStdErr <- matrix(0,nbin,Mi)
+    Pbinfit <- matrix(0,nbin,Mi)
+    DPbinDS <- matrix(0,nbin,Mi)
+    for (m in 1:Mi) {
+      Pbinfit[,m] <- pracma::interp1(as.numeric(indfine), as.numeric(Pmatfine[,m]), 
+                                     as.numeric(binctr))
+    }
+    #  compute derivatives for all options (except for diagonal)
+    DPbinDS <- logMi*Pbinfit
+    PStdErr <- sqrt(DPbinDS^2*SErrVar)
+    SStdErr <- sqrt(SErrVar)  
+
     #  --------------------------------------------------------------------
     #  Step 7a assemble list vector SList that contains results
     #  of step 4 for this single item.  SfdList[[item]] <- SListi
+    #  --------------------------------------------------------------------
+    
+    SListi  <- list(
+      M          = Mi,         # the number of options
+      Sfd        = Sfdi,       # functional data object for surprisal smooth
+      Zmat       = Zmati,
+      Pbin       = Pbin,       # proportions at each bin
+      Sbin       = Sbin,       # negative surprisals at each bin
+      indfine    = indfine,    # 101 equally spaced plotting points
+      Pmatfine   = Pmatfine,   # Probabilities over fine mesh
+      Smatfine   = Smatfine,   # S functions over fine mesh
+      DSmatfine  = DSmatfine,  # 1st derivative of S functions over fine mesh
+      D2Smatfine = D2Smatfine, # 2nd derivative of S functions over fine mesh
+      PStdErr    = PStdErr,    # Std error for probabilities over fine mesh
+      SStdErr    = SStdErr,    # Std error for surprisals    over fine mesh
+      infoSurp   = infoSurp    # arc length of item information curve
+    )
+
+    SfdList[[item]] = SListi
+    
+  }
+  
+  # print("After loop through items")
+  # print(class(SfdList))
+  
+  #  -----------------------------------------------------------------------------
+  #  Step 3B.  Define the negative-surprisal S-curves for the extra question.
+  #  -----------------------------------------------------------------------------
+  
+  if (nitem == n+1) {
+    
+    #  --------------------------------------------------------------------
+    #  Step 3b assemble list vector SList that contains results
+    #  of step 4 for this single item.  SfdList[[nitem]] <- SListi
+    #  --------------------------------------------------------------------
+    
+    SListi <- SfdList[[nitem]]
+    Mi    <- 3
+    logMi <- 1.098612
+    Sfdi  <- SListi$Sfd
+    Zmati <- t(matrix(c( 0.7071068,  0.4082483, 0.0, 
+                         -0.8164966, -0.7071068, 0.4082483),2,3))
+    
+    Pbin  <- matrix(0,nbin,Mi)  #  probabilities
+    Sbin  <- matrix(0,nbin,Mi)  #  transformation of probability
+    
+    for (k in 1:nbin) {
+      if (k == 1) {
+        indk <- index <= bdry[2] 
+      } else {
+        indk <- index > bdry[k] & index <= bdry[k+1]
+      }
+      for (item in 1:n) {
+        keyi <- key[item]
+        chceveci <- as.numeric(chcemat[,item])
+        indi1 <- chceveci != keyi & chceveci == 1
+        Pbin[k,1] <- Pbin[k,1] + sum(indk & indi1)
+        indi3 <- chceveci != keyi & chceveci == 3
+        Pbin[k,2] <- Pbin[k,2] + sum(indk & indi3)
+        # probability conditional on not choosing right answer
+        # as well as not 1 or 3
+        # indix <- chceveci != keyi & chceveci != 1 & chceveci != 3
+        # probability conditional on not choosing 1 or 3
+        indix <- chceveci != 1 & chceveci != 3
+        Pbin[k,3] <- Pbin[k,3] + sum(indk & indix)
+      }
+      Pbinsumk <- sum(Pbin[k,])
+      Pbin[k,] <- Pbin[k,]/Pbinsumk
+      Sbin[k,] <- -log(Pbin[k,])/logMi
+    }
+    for (m in 1:Mi) {
+      indInf <- is.infinite(Sbin[,m])
+      Sbin[indInf,m] <- SurprisalMax
+    }
+    
+    Bmat0   <- Sfdi$coefs
+    Sbasis  <- Sfdi$basis
+    #  suprisal smooth
+    # if (outputwrd) dbglev <- 1 else dbglev <- 0
+    #  optimize fit of smooth surprisal curves
+    result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, Zmati)
+    #  retrieve results
+    Sfdi    <- result$Sfd
+    Bmati   <- result$Bmat
+    # if (outputwrd) print(round(Zmati %*% t(Bmati),1))
+    SSE     <- result$SSE
+    hmat    <- result$hmat
+    DvecSmatDvecB <- result$DvecSmatDvecB
+    
+    indfine   <- seq(0,100,len=101)
+    # print("calling eval.surp line 262")
+    Smatfine  <- eval.surp(indfine, Sfdi, Zmati)
+    # print("calling eval.surp line 264")
+    DSmatfine <- eval.surp(indfine, Sfdi, Zmati, 1)
+    if (Sbasis$nbasis > 2) {
+      # print("calling eval.surp line 267")
+      D2Smatfine <- eval.surp(indfine, Sfdi, Zmati, 2)
+    } else {
+      D2Smatfine <- NULL
+    }
+    Pmatfine   <- Mi^(-Smatfine)
+    
+    infofine <- pracma::cumtrapz(indfine,sqrt(apply(DSmatfine^2,1,sum)))
+    infoSurp <- infofine[101]
+    
+    SResidVar <- as.numeric(SSE/(nbin*Mi))
+    dataVar   <- DvecSmatDvecB %*% solve(hmat) %*% t(DvecSmatDvecB)
+    SErrVar   <- SResidVar*matrix(diag(dataVar),nbin,Mi)
+    #  compute the vector (binary case) or matrix (multi case) of
+    #  the sampling variances for each bin (and each option)
+    #  set up derivatives of P wrt S
+    PStdErr <- matrix(0,nbin,Mi)
+    SStdErr <- matrix(0,nbin,Mi)
+    Pbinfit <- matrix(0,nbin,Mi)
+    DPbinDS <- matrix(0,nbin,Mi)
+    for (m in 1:Mi) {
+      Pbinfit[,m] <- pracma::interp1(as.numeric(indfine), as.numeric(Pmatfine[,m]), 
+                                     as.numeric(binctr))
+    }
+    #  compute derivatives for all options (except for diagonal)
+    DPbinDS <- logMi*Pbinfit
+    PStdErr <- sqrt(DPbinDS^2*SErrVar)
+    SStdErr <- sqrt(SErrVar)  
+    
+    #  --------------------------------------------------------------------
+    #  Step 7 assemble list vector SList that contains results
+    #  of step 4 for this single item.  SfdList[[ntem]] <- SListi
     #  --------------------------------------------------------------------
     
     SListi  <- list(
@@ -127,91 +316,15 @@ Sbinsmth <- function(index, dataList,
       SStdErr    = SStdErr,    # S functions over fine mesh
       infoSurp   = infoSurp    # arc length of item information curve
     )
-
-    SfdList[[item]] = SListi
+    
+    SfdList[[nitem]] = SListi
+    
+    # print("After extra item")
+    # print(class(SfdList))
     
   }
   
-  if (nitem == n+1) {
-  #  --------------------------------------------------------------------
-  #  Step 7b assemble list vector SList that contains results
-  #  of step 4 for this single item.  SfdList[[nitem]] <- SListi
-  #  --------------------------------------------------------------------
-  
-  SListi <- SfdList[[nitem]]
-  Mi    <- 3
-  logMi <- 1.098612
-  Sfdi  <- SListi$Sfd
-  Zmati <- t(matrix(c( 0.7071068,  0.4082483, 0.0, 
-                      -0.8164966, -0.7071068, 0.4082483),2,3))
-  
-  Pbin  <- matrix(0,nbin,Mi)  #  probabilities
-  Sbin  <- matrix(0,nbin,Mi)  #  transformation of probability
-  
-  for (k in 1:nbin) {
-    if (k == 1) {
-      indk <- index <= bdry[2] 
-    } else {
-      indk <- index > bdry[k] & index <= bdry[k+1]
-    }
-    for (item in 1:n) {
-      keyi <- key[item]
-      chceveci <- as.numeric(chcemat[,item])
-      indi1 <- chceveci != keyi & chceveci == 1
-      Pbin[k,1] <- Pbin[k,1] + sum(indk & indi1)
-      indi3 <- chceveci != keyi & chceveci == 3
-      Pbin[k,2] <- Pbin[k,2] + sum(indk & indi3)
-      indix <- chceveci != keyi & chceveci != 1 & chceveci != 3
-      Pbin[k,3] <- Pbin[k,3] + sum(indk & indix)
-    }
-    Pbinsumk <- sum(Pbin[k,])
-    Pbin[k,] <- Pbin[k,]/Pbinsumk
-    Sbin[k,] <- -log(Pbin[k,])/logMi
-  }
-  for (m in 1:Mi) {
-    indInf <- is.infinite(Sbin[,m])
-    Sbin[indInf,m] <- SurprisalMax
-  }
-  # print(round(Sbin,1))
-  
-  #  apply surprisal smoothing
-  
-  result <- Smth.item(nbin, binctr, Mi, logMi, Zmati, Sfdi, Pbin, Sbin, dbglev)
-  infoSurp   <- result$infoSurp
-  Pmatfine   <- result$Pmatfine 
-  Smatfine   <- result$Smatfine 
-  DSmatfine  <- result$DSmatfine 
-  D2Smatfine <- result$D2Smatfine
-  PStdErr    <- result$PStdErr 
-  SStdErr    <- result$SStdErr
-  
-  #  --------------------------------------------------------------------
-  #  Step 7 assemble list vector SList that contains results
-  #  of step 4 for this single item.  SfdList[[ntem]] <- SListi
-  #  --------------------------------------------------------------------
-  
-  SListi  <- list(
-    M          = Mi,         # the number of options
-    Sfd        = Sfdi,       # functional data object for surprisal smooth
-    Zmat       = Zmati,
-    Pbin       = Pbin,       # proportions at each bin
-    Sbin       = Sbin,       # negative surprisals at each bin
-    indfine    = indfine,    # 101 equally spaced plotting points
-    Pmatfine   = Pmatfine,   # Probabilities over fine mesh
-    Smatfine   = Smatfine,   # S functions over fine mesh
-    DSmatfine  = DSmatfine,  # 1st derivative of S functions over fine mesh
-    D2Smatfine = D2Smatfine, # 2nd derivative of S functions over fine mesh
-    PStdErr    = PStdErr,    # Probabilities over fine mesh
-    SStdErr    = SStdErr,    # S functions over fine mesh
-    infoSurp   = infoSurp    # arc length of item information curve
-  )
-  
-  SfdList[[nitem]] = SListi
-  
-  }
-  
   return(list(SfdList=SfdList, binctr=binctr, bdry=bdry, freq=freq))
-
 }
 
 #. ----------------------------------------------------------------------------
@@ -288,84 +401,6 @@ binSP <- function(item, index, dataList, bdry) {
   } # end of bin loop
   
   return(list(Pbin=Pbin, Sbin=Sbin, freq=freq))
-}
-
-#. ----------------------------------------------------------------------------
-
-Smth.item <- function(nbin, binctr, Mi, logMi, Zmati, Sfdi, Pbin, Sbin, dbglev) {
-  #  apply surprisal smoothing
-  
-  Bmat0   <- Sfdi$coefs
-  Sbasis  <- Sfdi$basis
-  #  suprisal smooth
-  # if (outputwrd) dbglev <- 1 else dbglev <- 0
-  #  optimize fit of smooth surprisal curves
-  result  <- smooth.surp(binctr, Sbin, Bmat0, Sfdi, Zmati, dbglev=dbglev)
-  #  retrieve results
-  Sfdi    <- result$Sfd
-  Bmati   <- result$Bmat
-  # if (outputwrd) print(round(Zmati %*% t(Bmati),1))
-  SSE     <- result$SSE
-  hmat    <- result$hmat
-  DvecSmatDvecB <- result$DvecSmatDvecB
-  
-  #  --------------------------------------------------------------------
-  #  Step 4  Compute S and P values for bin point and each mesh point
-  #  --------------------------------------------------------------------
-  
-  indfine   <- seq(0,100,len=101)
-  Sbin      <- eval.surp(binctr, Sfdi, Zmati)
-  Pbin      <- Mi^(-Sbin)
-  Smatfine  <- eval.surp(indfine, Sfdi, Zmati)
-  DSmatfine <- eval.surp(indfine, Sfdi, Zmati, 1)
-  if (Sbasis$nbasis > 2) {
-    D2Smatfine <- eval.surp(indfine, Sfdi, Zmati, 2)
-  } else {
-    D2Smatfine <- NULL
-  }
-  Pmatfine   <- Mi^(-Smatfine)
-  
-  #  ------------------------------------------------------------------------
-  #  Step 5. Compute arc length values for equally spaced index values.  
-  #. Integration is by the trapezoidal rule.
-  #  ------------------------------------------------------------------------
-  
-  infofine <- pracma::cumtrapz(indfine,sqrt(apply(DSmatfine^2,1,sum)))
-  infoSurp <- infofine[101]
-  
-  #  --------------------------------------------------------------------
-  #  Step 6 Compute the standard errors of the S values for each 
-  #  option.  These tend only to be used when plotting curves, and this 
-  #  step can be made optional to improve speed.
-  #  --------------------------------------------------------------------
-  
-  #  compute Sdf = trace(data2fitmat)
-  #  SSE is squared errors summed across points and surprisal curves
-  #  It is computed within smooth_surp by function surp_fit
-  
-  SResidVar <- as.numeric(SSE/(nbin*Mi))
-  dataVar   <- DvecSmatDvecB %*% solve(hmat) %*% t(DvecSmatDvecB)
-  SErrVar   <- SResidVar*matrix(diag(dataVar),nbin,Mi)
-  #  compute the vector (binary case) or matrix (multi case) of
-  #  the sampling variances for each bin (and each option)
-  #  set up derivatives of P wrt S
-  PStdErr <- matrix(0,nbin,Mi)
-  SStdErr <- matrix(0,nbin,Mi)
-  Pbinfit <- matrix(0,nbin,Mi)
-  DPbinDS <- matrix(0,nbin,Mi)
-  for (m in 1:Mi) {
-    Pbinfit[,m] <- pracma::interp1(as.numeric(indfine), as.numeric(Pmatfine[,m]), 
-                                   as.numeric(binctr))
-  }
-  #  compute derivatives for all options (except for diagonal)
-  DPbinDS <- logMi*Pbinfit
-  PStdErr <- sqrt(DPbinDS^2*SErrVar)
-  SStdErr <- sqrt(SErrVar)  
-  
-  return(list(infoSurp=infoSurp, Pmatfine=Pmatfine, Pbin=Pbin, Sbin=Sbin,
-              Smatfine=Smatfine, DSmatfine=DSmatfine, D2Smatfine=D2Smatfine,
-              PStdErr=PStdErr, SStdErr=SStdErr))
-  
 }
 
 #. ----------------------------------------------------------------------------

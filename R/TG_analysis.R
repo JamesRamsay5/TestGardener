@@ -62,17 +62,15 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
   
   # print(paste("Number of basis functions =",NumBasis))
   
-  print("enterng make_dataList")
+  # print("enterng make_dataList")
   
   dataList <- make_dataList(chcemat, scoreList, noption, sumscr_rng=sumscr_rng,
                             titlestr=titlestr, itemlabvec=itemlabvec, 
                             optlabList=optlabList,
                             nbin, NumBasis=NumBasis, 
                             jitterwrd=jitterwrd, PcntMarkers=PcntMarkers)
-  
-  
 
-  print("dataList completed")
+  # print("dataList completed")
   
   #  ----------------------------------------------------------------------------
   #  compute the initial option surprisal curves using the 
@@ -86,12 +84,11 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
   #                      Proceed through the cycles
   #  ----------------------------------------------------------------------------
   
-  print("entering Analyze")
   analysisListvec <- Analyze(index, indexQnt, dataList,   
                              ncycle=ncycle, itdisp=itdisp, verbose=verbose) 
   
-  print("Analyze complete")
-  readline(prompt = "Analysis complete, press return to continue ")
+  # print("Analyze complete")
+  # readline(prompt = "Analysis complete, press return to continue ")
   
   #  ----------------------------------------------------------------------------
   #              Plot the average H value, meanHsave, over cycles

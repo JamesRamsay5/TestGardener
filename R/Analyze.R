@@ -23,7 +23,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   #. verbose  ... A logical value that determines whether severalresults  
   #               within each cycle are displayed. 
 
-    # Last modified 12 December 2023 by Jim Ramsay
+  # Last modified 17 January 2024 by Jim Ramsay
 
   nbin    <- dataList$nbin            # number of bins
   markers <- dataList$PcntMarkers/100 # marker probabilities
@@ -84,10 +84,10 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     #  and centres are adjusted in Step 4.
     
     SfdResult <- Sbinsmth(index, dataList)
+    SfdList   <- SfdResult$SfdList
     binctr    <- SfdResult$binctr
     bdry      <- SfdResult$bdry
     freq      <- SfdResult$freq
-    SfdList   <- SfdResult$SfdList
     
     # print("Step 1 finished")
     
@@ -102,7 +102,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     
     # print("step 2")
     
-    # if (verbose) print("Compute mean examinee fits")
+    if (verbose) print("Compute mean examinee fits")
     
     Fvec  <- Ffun(index, SfdList, chcemat)
     meanF <- mean(Fvec)
@@ -176,8 +176,8 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     # indexQnt[innerindex] <- innerQnt
     
     #. bin centres
-    plot(indcdf, denscdf, type="b", xlim=c(0,100), ylim=c(0,1))
-    for (i in seq(1,2*nbin+1,2)) lines(c(indexQnt[i],indexQnt[i]), c(0,1))
+    # plot(indcdf, denscdf, type="b", xlim=c(0,100), ylim=c(0,1))
+    # for (i in seq(1,2*nbin+1,2)) lines(c(indexQnt[i],indexQnt[i]), c(0,1))
     binctr <- indexQnt[seq(2,2*nbin,  2)]
     #. bin boundaries
     bdry   <- indexQnt[seq(1,2*nbin+1,2)]

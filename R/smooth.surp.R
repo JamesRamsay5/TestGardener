@@ -1,5 +1,5 @@
 smooth.surp <- function(argvals, y, Bmat0, Sfd, Zmat, wtvec=NULL, conv=1e-4,
-                       iterlim=50, dbglev=0) {
+                        iterlim=50, dbglev=0) {
   #  Smooths the relationship of Y to ARGVALS using weights in STVEC by fitting 
   #     surprisal functions to a set of surprisal transforms of choice 
   #     probabilities, where the surprisal transformation of each probability is 
@@ -157,58 +157,80 @@ smooth.surp <- function(argvals, y, Bmat0, Sfd, Zmat, wtvec=NULL, conv=1e-4,
   
   #  -------  Begin iterations  -----------
   
-  STEPMAX <- 10
+  STEPMAX <- 1
   
   iternum <- 0
   for (iter in 1:iterlim) {
+    # print(iter)
     iternum <- iternum + 1
     #  take optimal stepsize
-    lnsrch_result <- 
-      fda::lnsrch(Bvecold, fold, gvec, pvec, surp.fit, surpList, STEPMAX)
-    Bvec     <- lnsrch_result$x
-    check <- lnsrch_result$check
-    if (check) stop("lnsrch failure")
-    #  set up new Bmat and evaluate function, gradient and hessian
-    Bmatnew <- matrix(Bvec,Snbasis,M-1)
-    func_result <- surp.fit(Bmatnew, surpList)
-    f     <- func_result[[1]]
-    gvec  <- func_result[[2]]
-    hmat  <- func_result[[3]]
-    SSE   <- func_result[[4]]
-    DSSE  <- func_result[[5]]
-    D2SSE <- func_result[[6]]
-    #  set up list object for current fit
-    Flist$f    <- f
-    Flist$grad <- gvec
-    Flist$norm <- sqrt(mean(gvec^2))
-    #  store current values for next iteration
-    Bvecold <- Bvec
-    fold    <- f
-    #  display results at this iteration if dbglev > 0
-    status <- c(iternum, Flist$f, Flist$norm)
-    if (dbglev > 0) {
-      cat("\n")
-      cat(iternum)
-      cat("        ")
-      cat(round(status[2],4))
-      cat("      ")
-      cat(round(status[3],4))
-    }
-    #  test for convergence
-    if (abs(Flist$f - Foldlist$f) < conv) {
+    # print("entering lnsrch on line 166")
+    # psum = as.numeric(pvec)
+    # print(round(psum*100,2))
+    if (any(is.na(pvec))) {
+      FList <- Foldlist
+      Bvec  <- Bvecold
+      Bmatnew <- matrix(Bvec,Snbasis,M-1)
+      func_result <- surp.fit(Bmatnew, surpList)
+      f     <- func_result[[1]]
+      gvec  <- func_result[[2]]
+      hmat  <- func_result[[3]]
+      SSE   <- func_result[[4]]
+      DSSE  <- func_result[[5]]
+      D2SSE <- func_result[[6]]
+      #  set up list object for current fit
+      Flist$f    <- f
+      Flist$grad <- gvec
+      Flist$norm <- sqrt(mean(gvec^2))
       break
+    } else {
+      lnsrch_result <- 
+        fda::lnsrch(Bvecold, fold, gvec, pvec, surp.fit, surpList, STEPMAX)
+      Bvec     <- lnsrch_result$x
+      check <- lnsrch_result$check
+      if (check) stop("lnsrch failure")
+      #  set up new Bmat and evaluate function, gradient and hessian
+      Bmatnew <- matrix(Bvec,Snbasis,M-1)
+      func_result <- surp.fit(Bmatnew, surpList)
+      f     <- func_result[[1]]
+      gvec  <- func_result[[2]]
+      hmat  <- func_result[[3]]
+      SSE   <- func_result[[4]]
+      DSSE  <- func_result[[5]]
+      D2SSE <- func_result[[6]]
+      #  set up list object for current fit
+      Flist$f    <- f
+      Flist$grad <- gvec
+      Flist$norm <- sqrt(mean(gvec^2))
+      #  store current values for next iteration
+      Bvecold <- Bvec
+      fold    <- f
+      #  display results at this iteration if dbglev > 0
+      status <- c(iternum, Flist$f, Flist$norm)
+      if (dbglev > 0) {
+        cat("\n")
+        cat(iternum)
+        cat("        ")
+        cat(round(status[2],4))
+        cat("      ")
+        cat(round(status[3],4))
+      }
+      #  test for convergence
+      if (abs(Flist$f - Foldlist$f) < conv) {
+        break
+      }
+      #  also terminate iterations if new fit is worse than old
+      if (Flist$f >= Foldlist$f) break
+      #  set up objects for new iteration
+      #  evaluate the update vector using Newton Raphson direction
+      pvec <- -solve(hmat,gvec)
+      cosangle  <- -sum(gvec*pvec)/sqrt(sum(gvec^2)*sum(pvec^2))
+      if (cosangle < 0) {
+        if (dbglev > 1) print("cos(angle) negative")
+        pvec <- -gvec
+      }
+      Foldlist <- Flist
     }
-    #  also terminate iterations if new fit is worse than old
-    if (Flist$f >= Foldlist$f) break
-    #  set up objects for new iteration
-    #  evaluate the update vector using Newton Raphson direction
-    pvec <- -solve(hmat,gvec)
-    cosangle  <- -sum(gvec*pvec)/sqrt(sum(gvec^2)*sum(pvec^2))
-    if (cosangle < 0) {
-      if (dbglev > 1) print("cos(angle) negative")
-      pvec <- -gvec
-    }
-    Foldlist <- Flist
   }
   if (dbglev > 0) cat("\n")
   

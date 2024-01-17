@@ -1,6 +1,6 @@
 Ffun <- function(index, SfdList, chcemat) {
 	
-# Last modified 19 December 2023 by Jim Ramsay
+# Last modified 16 January 2024 by Jim Ramsay
 
   if (is.null(ncol(chcemat))) {
     N <- 1
@@ -58,7 +58,7 @@ Ffun <- function(index, SfdList, chcemat) {
           }
         }
         # update fit values
-        F <-  + Sveci
+        F <- F + Sveci
       } else {
         stop("Mi not greater than 1. Binary data should use Mi = 2.")
       }
