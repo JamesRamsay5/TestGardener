@@ -1,0 +1,52 @@
+export(Analyze, 
+  chcemat_simulate, 
+  dataSimulation, 
+  density_plot, 
+  DFfun, 
+  entropies,
+  Entropy_plot, 
+  eval.surp, 
+  Fcurve, 
+  Ffun, 
+  Ffuns_plot, 
+  ICC_plot,
+  index_distn, 
+  index2info, 
+  index_fun, 
+  index_search, 
+  make_dataList,
+  mu,
+  mu_plot, 
+  Power_plot, 
+  Sbinsmth, 
+  Sbinsmth_nom,
+  Scope_plot, 
+  scoreDensity, 
+  scorePerformance, 
+  Sensitivity_plot, 
+  smooth.surp, 
+  Spca,
+  Spca_plot, 
+  TestInfo_svd, 
+  TG_analysis,
+  TG_density.fd)
+
+import(fda)
+import(splines)
+import(knitr)
+import(rmarkdown)
+import(dplyr)
+import(stringr)
+import(ggplot2, except = c(last_plot, select))
+import(ggpubr)
+import(tidyr)
+import(utf8)
+import(rgl)
+import(plotly)
+
+importFrom("grDevices", "dev.off", "rainbow", "tiff", "pdf", "png", "rgb")
+importFrom("graphics", "lines", "par", "text", "title", "legend", "points")
+importFrom("stats", "coef", "rmultinom", "approx", "lsfit", "rnorm", "var")
+importFrom("tidyr", "gather")
+importFrom("pracma", "interp1", "cumtrapz")
+
