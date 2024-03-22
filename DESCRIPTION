@@ -1,6 +1,6 @@
 Package: TestGardener
-Version: 3.3.1
-Date: 2024-01-09
+Version: 3.3.3
+Date: 2024-03-20
 Type: Package
 Title: Information Analysis for Test and Rating Scale Data
 Authors@R: c(person("James", "Ramsay", role=c("aut","cre"),

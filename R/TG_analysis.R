@@ -1,8 +1,8 @@
-TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,  
+TG_analysis <- function(chcemat, scoreList, noption, sumscr_rng=NULL, 
                         titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-                        nbin=nbinDefault(N), sumscr_rng=NULL,
+                        nbin=nbinDefault(N), NumBasis=7, NumDensBasis=7,
                         jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-                        cyclechoice=ncycle, itdisp=FALSE, verbose=FALSE) {
+                        ncycle=10, itdisp=FALSE, verbose=FALSE) {
   
   #. Arguments:
   #. chcemat     ... An N by n matrix.  Column i must contain the integers 
@@ -31,9 +31,9 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
   #.                 Although this object might seem redundant, it is needed
   #.                 for checking the consistencies among other objects and
   #.                 as an aid for detecting missing and illegal choices.
-  #. NumBasis    ... The number of spline basis functions to use for 
-  #.                 surprisal values.  Defaults to 7.
-  #. ncycle      ... The number of cycles in the analysis.  Defaults to 10.
+  #. sumscr_rng  ... A vector of length 2 indicating the initial and final
+  #.                 sum score values.  Default is NULL the whole sum score
+  #.                 is used.
   #. titlestr    ... A title string for the data and their analyses.
   #.                 Default is NULL.
   #. itemlabvec  ... A character value containing labels for the items.
@@ -42,27 +42,26 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
   #.                 character vector of length M_i.
   #.                 Default is NULL, and option numbers are used.
   #. nbin        ... The number of bins containing proportions of choices.
-  #. sumscr_rng  ... A vector of length 2 indicating the initial and final
-  #.                 sum score values.  Default is NULL the whole sum score
-  #.                 is used.
+  #. NumBasis    ... The number of spline basis functions to use for 
+  #.                 surprisal values.  Defaults to 7.
+  #  NumDensBasis... Number of basis functions for distribution of scores
   #. jitterwrd   ... A logical object indicating whether a small jittering
   #.                 perturbation should be used to break up ties.  
   #                  Defaults to TRUE.
   #. PcntMarkers ... A vector of percentages inside of [0,100] that appear
   #                  in plots.  Defaults to c(5, 25, 50, 75, 95).
   #. verbose     ... Extra displays are provided.  Defaults to FALSE.
+  #. ncycle      ... The number of cycles in the analysis.  Defaults to 10.
   #. choicecycle ... A number within 1 to 10 indicating which cycle will be 
   #.                 used to represent the TestGardener results.  
   #.                 Defaults to ncycle.
 
-  #  Last modified 19 December 2023 by Jim Ramsay
+  #  Last modified 18 March 2024 by Jim Ramsay
   
   N <- nrow(chcemat)
   n <- ncol(chcemat)
   
-  # print(paste("Number of basis functions =",NumBasis))
-  
-  # print("enterng make_dataList")
+  print(paste("Number of basis functions =",NumBasis))
   
   dataList <- make_dataList(chcemat, scoreList, noption, sumscr_rng=sumscr_rng,
                             titlestr=titlestr, itemlabvec=itemlabvec, 
@@ -70,8 +69,6 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
                             nbin, NumBasis=NumBasis, 
                             jitterwrd=jitterwrd, PcntMarkers=PcntMarkers)
 
-  # print("dataList completed")
-  
   #  ----------------------------------------------------------------------------
   #  compute the initial option surprisal curves using the 
   #  percentage ranks as initial estimates of index
@@ -84,60 +81,19 @@ TG_analysis <- function(chcemat, scoreList, noption, NumBasis=7, ncycle=10,
   #                      Proceed through the cycles
   #  ----------------------------------------------------------------------------
   
-  analysisListvec <- Analyze(index, indexQnt, dataList,   
-                             ncycle=ncycle, itdisp=itdisp, verbose=verbose) 
+  AnalyzeResult <- Analyze(index, indexQnt, dataList, ncycle=ncycle,   
+                             NumDensBasis, itdisp=itdisp, verbose=verbose) 
+  parmListvec <- AnalyzeResult$parmListvec
+  pdffinemat  <- AnalyzeResult$pdffinemat
+  Qvecmat     <- AnalyzeResult$Qvecmat
+  HALmat      <- AnalyzeResult$HALmat
   
   # print("Analyze complete")
   # readline(prompt = "Analysis complete, press return to continue ")
   
-  #  ----------------------------------------------------------------------------
-  #              Plot the average H value, meanHsave, over cycles
-  #  ----------------------------------------------------------------------------
+  return(list(dataList=dataList, parmListvec=parmListvec, HALmat=HALmat,
+              pdffinemat=pdffinemat, Qvecmat=Qvecmat))
   
-  # print(ncycle)
-  HALsave <- matrix(0,ncycle,2)
-  for (icycle in 1:ncycle) {
-    HALsave[icycle,1] <- analysisListvec[[icycle]]$meanF
-    HALsave[icycle,2] <- analysisListvec[[icycle]]$infoSurp
-  }
-  
-  par(mfrow=c(2,1))
-
-  plot(1:ncycle, HALsave[,1], type="b", lwd=2,
-       xlab="Cycle Number",ylab="Mean H")
-  plot(1:ncycle, HALsave[,2], type="b", lwd=2,
-       xlab="Cycle Number", ylab="Arc Length")
-  
-  # print("cycle plotting complete")
-  
-  #  ----------------------------------------------------------------------------
-  #             Select cycle for results in parmList cnd define it
-  #  ----------------------------------------------------------------------------
-  
-  parmList  <- analysisListvec[[cyclechoice]]
-  
-  #  set up estimated objects after iterations
-  
-  SfdList   <- parmList$SfdList
-  Qvec      <- parmList$Qvec
-  binctr    <- parmList$binctr
-  index     <- parmList$index
-  infoSurp  <- parmList$infoSurp
-  
-  # print("transfer from parmList complete")
-  
-  #  ----------------------------------------------------------------------------
-  #   Compute the arc length or information measure and objects it needs for 
-  #   plotting results as a function of arc length
-  #  ----------------------------------------------------------------------------
-  
-  # print("entering index2info")
-  infoList <- index2info(index, Qvec, SfdList, binctr)
-  # print("index2info complete")
-
-  return(list(dataList=dataList, parmList=parmList, infoList=infoList,
-              HALsave=HALsave))
-
 }
 
 #  ---------------------------------------------------------------

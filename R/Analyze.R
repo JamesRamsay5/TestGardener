@@ -1,4 +1,4 @@
-Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE, 
+Analyze <- function(index, indexQnt, dataList, NumDensBasis = 7, ncycle = 10, itdisp = FALSE, 
                     verbose = FALSE) {
   
   #' This function analyses a set of data by cycling ncycle numbers of 
@@ -7,23 +7,24 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   #' The information about the data is stored in the list object dataStr.
   
   #. Arguments:
-  #. index    ... A vector of length N that contains the initial estimates
-  #.              of the score index values for the persons.  Usually, 
-  #               the initial vector is a set of N equally spaced values
-  #               spanning the interval [0,100].
-  #. indexQnt ... The bin boundaries separated by the bin centers over [0,100].
-  #.              The boundaries are chosen so that the numbers of persons
-  #               in the bins are roughly equal.
-  #. dataList ... A named list object containing all the information about
-  #               the data that is required for analysis and subsequent 
-  #               displays and tables.
-  #. ncycle   ... The number of cycles in the analysis.
-  #. itdisp   ... A logical value that determines whether the sequence of
-  #               iteratiOns in the person scores is display in each cycle.
-  #. verbose  ... A logical value that determines whether severalresults  
-  #               within each cycle are displayed. 
+  #. index        ... A vector of length N that contains the initial estimates
+  #.                  of the score index values for the persons.  Usually, 
+  #                   the initial vector is a set of N equally spaced values
+  #                   spanning the interval [0,100].
+  #. indexQnt     ... The bin boundaries separated by the bin centers over [0,100].
+  #.                  The boundaries are chosen so that the numbers of persons
+  #                   in the bins are roughly equal.
+  #. dataList     ... A named list object containing all the information about
+  #                   the data that is required for analysis and subsequent 
+  #                   displays and tables.
+  #  NumDensBasis ... Number of basis functions for distribution of scores
+  #. ncycle       ... The number of cycles in the analysis.
+  #. itdisp       ... A logical value that determines whether the sequence of
+  #                   iteratiOns in the person scores is display in each cycle.
+  #. verbose      ... A logical value that determines whether severalresults  
+  #                   within each cycle are displayed. 
 
-  # Last modified 17 January 2024 by Jim Ramsay
+  # Last modified 19 March 2024 by Jim Ramsay
 
   nbin    <- dataList$nbin            # number of bins
   markers <- dataList$PcntMarkers/100 # marker probabilities
@@ -32,10 +33,12 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   #  set up list vector to contain all results for each cycle
   
   parmListvec <- vector("list",ncycle)  
+  pdffinemat  <- matrix(0,101,ncycle)
+  Qvecmat     <- matrix(0,  5,ncycle)
   
   #  define the spline basis for representing the log density function
   
-  logdensbasis <- fda::create.bspline.basis(c(0,100), 15)
+  logdensbasis <- fda::create.bspline.basis(c(0,100), NumDensBasis)
   
   #  extract information about surprisal smoothing for each item
   
@@ -59,6 +62,10 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   
   indfine   <- seq(0,100,len=101)
   
+  # output meanF and infoSurf for later plotting
+  
+  HALmat <- matrix(0,ncycle,2)
+  
   #  ----------------------------------------------------------
   #                       main cycle loop
   #  ----------------------------------------------------------
@@ -73,7 +80,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     
     # print("step 1")
     
-    if (verbose) print("Optimize surprisal curves:")
+    # if (verbose) print("Optimize surprisal curves:")
     
     #  Sbinsmth uses bin boundaries and centres in argument indexQnt
     #  to allocate score indices to bins, compute proportions their
@@ -102,10 +109,11 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     
     # print("step 2")
     
-    if (verbose) print("Compute mean examinee fits")
+    # if (verbose) print("Compute mean examinee fits")
     
     Fvec  <- Ffun(index, SfdList, chcemat)
     meanF <- mean(Fvec)
+    HALmat[icycle,1] <- meanF
     
     if (verbose) print(paste('Mean data fit = ', round(meanF,3)))
     
@@ -122,6 +130,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     # optimize score index values
     
     indexfunList <- index_fun(index, SfdList, chcemat, 20, 1e-3, itdisp=itdisp)
+    # print(class(SfdList))
     
     # extract information
     
@@ -142,55 +151,58 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     #  Step 4 is not taken if this is the final cycle.
     #  ----------------------------------------------------------
     
-    if (icycle < ncycle) {
-    # print("step 4")
-    
-    # if (verbose) print("Compute score index density")
-    
-    # use only interior score index values
-    indexdens <- index[0 < index & index < 100]
-    # estimate the cumulative density denscdf over values indcdf
-    index_distnList <- index_distn(indexdens, logdensbasis)
-    denscdf         <- as.numeric(index_distnList$denscdf)
-    indcdf          <- as.numeric(index_distnList$indcdf)
-    
-    # # adjusted marker score index values are computed by interpolation
-    Qvec <- pracma::interp1(denscdf, indcdf, markers)
-    
-    density_plot(indexdens, c(0,100), Qvec, xlabstr="Score index",
-                 titlestr=paste("Current index density, cycle",icycle),
-                 scrnbasis=11, nfine=101)
-    
-    # This interpolation adjusts bin boundaries and centres to define
-    # a new vector indexQnt
-    # print(round(denscdf,3))
-    # print(round(indcdf,3))
-    
-    #. compute 2*nbin - 1 inner boundary/center pair locations by interpolation
-    
-    # innerindex <- seq(2,2*nbin,1)
-    # innerQnt   <- indexQnt[innerindex]
-    # innerQnt   <- pracma::interp1(as.numeric(denscdf), as.numeric(indcdf/100),
-    #                             innerQnt/100)*100
-    # #. define new version of complete indexQnt
-    # indexQnt[innerindex] <- innerQnt
-    
-    #. bin centres
-    # plot(indcdf, denscdf, type="b", xlim=c(0,100), ylim=c(0,1))
-    # for (i in seq(1,2*nbin+1,2)) lines(c(indexQnt[i],indexQnt[i]), c(0,1))
-    binctr <- indexQnt[seq(2,2*nbin,  2)]
-    #. bin boundaries
-    bdry   <- indexQnt[seq(1,2*nbin+1,2)]
-    # print("Bin boundaries")
-    # print(round(bdry,1))
-    # print("Bin centres")
-    # print(round(binctr,1))
-
-    # readline(prompt = "Enter to continue:")
-
-    # print("Step 4 finished")
+    # if (icycle < ncycle) {
+      # print("step 4")
       
-    }
+      # if (verbose) print("Compute score index density")
+      
+      # use only interior score index values
+      indexdens <- index[0 < index & index < 100]
+      # estimate the cumulative density denscdf over values indcdf
+      index_distnList <- index_distn(indexdens, logdensbasis)
+      pdffine         <- index_distnList$pdffine
+      denscdf         <- as.numeric(index_distnList$denscdf)
+      indcdf          <- as.numeric(index_distnList$indcdf)
+      
+      # # adjusted marker score index values are computed by interpolation
+      Qvec <- pracma::interp1(denscdf, indcdf, markers)
+      
+      pdffinemat[,icycle] <- pdffine
+      Qvecmat[,icycle]    <- Qvec
+      # density_plot(indexdens, c(0,100), Qvec, xlabstr="Score index",
+      #              titlestr=paste("Current index density, cycle",icycle),
+      #              scrnbasis=11, nfine=101)
+      
+      # This interpolation adjusts bin boundaries and centres to define
+      # a new vector indexQnt
+      # print(round(denscdf,3))
+      # print(round(indcdf,3))
+      
+      #. compute 2*nbin - 1 inner boundary/center pair locations by interpolation
+      
+      # innerindex <- seq(2,2*nbin,1)
+      # innerQnt   <- indexQnt[innerindex]
+      # innerQnt   <- pracma::interp1(as.numeric(denscdf), as.numeric(indcdf/100),
+      #                             innerQnt/100)*100
+      # #. define new version of complete indexQnt
+      # indexQnt[innerindex] <- innerQnt
+      
+      #. bin centres
+      # plot(indcdf, denscdf, type="b", xlim=c(0,100), ylim=c(0,1))
+      # for (i in seq(1,2*nbin+1,2)) lines(c(indexQnt[i],indexQnt[i]), c(0,1))
+      binctr <- indexQnt[seq(2,2*nbin,  2)]
+      #. bin boundaries
+      bdry   <- indexQnt[seq(1,2*nbin+1,2)]
+      # print("Bin boundaries")
+      # print(round(bdry,1))
+      # print("Bin centres")
+      # print(round(binctr,1))
+      
+      # readline(prompt = "Enter to continue:")
+      
+      # print("Step 4 finished")
+      
+    # }
     
     #  ----------------------------------------------------------
     #  Step 5.  Compute arc length of the surprisal space curve
@@ -209,6 +221,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     }
     indfine  <- seq(0,100,len=101)
     infoSurp <- max(pracma::cumtrapz(indfine, sqrt(apply(DSfine^2,1,sum))))
+    HALmat[icycle,2] <- infoSurp
     
     if (verbose)  print(paste('infoSurp in bits = ',round(infoSurp,1)))
     
@@ -221,7 +234,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
     # print("step 6")
     
     Result <- index_search(SfdList, dataList$chcemat, index, 
-                             Fval, DFval, D2Fval)
+                           Fval, DFval, D2Fval)
     index  <- Result$index
     Fval   <- Result$Fval
     DFval  <- Result$DFval
@@ -235,7 +248,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
 
     # print("step 7")
     
-    parmListi <- list(
+    parmList_icycle <- list(
       index      = index,
       indexQnt   = indexQnt,
       SfdList    = SfdList,
@@ -251,7 +264,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
       infoSurp   = infoSurp
     )
     
-    parmListvec[[icycle]] <- parmListi
+    parmListvec[[icycle]] <- parmList_icycle
     
     # print("Step 7 finished")
     
@@ -262,6 +275,7 @@ Analyze <- function(index, indexQnt, dataList, ncycle = 10, itdisp = FALSE,
   #. return the list object parmListvec of length ncycle
   #. containing parameter results for each cycle
   
-  return(parmListvec=parmListvec)
+  return(list(parmListvec=parmListvec, pdffinemat=pdffinemat, Qvecmat=Qvecmat,
+              HALmat=HALmat))
   
 }

@@ -9,11 +9,11 @@
   values.
 }
 \usage{
-  TG_analysis(chcemat, scoreList, noption, NumBasis=7, ncycle=10,  
+  TG_analysis(chcemat, scoreList, noption, sumscr_rng=NULL, 
               titlestr=NULL, itemlabvec=NULL, optlabList=NULL,
-              nbin=nbinDefault(N), sumscr_rng=NULL,
+              nbin=nbinDefault(N), NumBasis=7, NumDensBasis=7,
               jitterwrd=TRUE, PcntMarkers=c( 5, 25, 50, 75, 95),
-              cyclechoice=ncycle, itdisp=FALSE, verbose=FALSE)
+              ncycle=10, itdisp=FALSE, verbose=FALSE)
 }
 \arguments{
   \item{chcemat}{An N by n matrix.  Column i must contain the integers 
@@ -39,9 +39,9 @@
   person scores for the surprisal curve estimation process.}
   \item{noption}{A numeric vector of length \code{n} containing the 
   number of options for each item.}
-  \item{NumBasis}{The number of spline basis functions to use for 
-  surprisal values.  Defaults to 7.}
-  \item{ncycle}{The number of cycles in the analysis.  Defaults to 10.}
+  \item{sumscr_rng}{A vector of length 2 indicating the initial and final
+  sum score values.  Default is NULL the whole sum score
+  is used.}
   \item{titlestr}{A title string for the data and their analyses.
   Default is NULL.}
   \item{itemlabvec}{A character value containing labels for the items.
@@ -50,20 +50,19 @@
   character vector of length M_i.
   Default is NULL, and option numbers are used.}
   \item{nbin}{The number of bins containing proportions of choices.}
-  \item{sumscr_rng}{A vector of length 2 indicating the initial and final
-  sum score values.  Default is NULL the whole sum score
-  is used.}
+  \item{NumBasis}{The number of spline basis functions to use for 
+  surprisal values.  Defaults to 7.}
+  \item{NumDensBasis}{The number of spline basis functions to use for 
+  score probability density function.  Defaults to 7.}
   \item{jitterwrd}{A logical object indicating whether a small jittering
   perturbation should be used to break up ties.  
   Defaults to TRUE.}
   \item{PcntMarkers}{A vector of percentages inside of [0,100] that appear
   in plots.  Defaults to c(5, 25, 50, 75, 95).
   Extra displays are provided.  Defaults to FALSE.}
+  \item{ncycle}{The number of cycles in the analysis.  Defaults to 10.}
   \item{itdisp}{Display results for function \code{theta_fun}.}
   \item{verbose}{Extra displays are provided.  Defaults to FALSE.}
-  \item{cyclechoice}{A number within 1 to 10 indicating which cycle will be 
-  used to represent the TestGardener results.  
-  Defaults to ncycle.}
 }
 \details{
   This function in package TestGardener processes at a mininum two objects:  
@@ -116,8 +115,10 @@ displays, tables and other results:
       on the scale information continuum of the bin centres.}
     }
   \item{HALsave}{A \code{ncycle} by 2 matrix containing in the first column
-  the data fit values and in the second column the infoSurp or arclength
-  values.}
+    the data fit values and in the second column the infoSurp or arclength
+    values.}
+  \item{analysisListvec}{A list of length \code{ncycle} containing the 
+    \code{parmList} object for each cycle.}
 }
 \references{
   Ramsay, J. O., Li J. and Wiberg, M. (2020) Full information optimal scoring. 

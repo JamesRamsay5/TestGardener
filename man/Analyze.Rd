@@ -12,7 +12,8 @@
    length of the \code{parmList} list vector.
 }
 \usage{
-  Analyze(index, indexQnt, dataList, ncycle=10, itdisp=FALSE, verbose=FALSE) 
+  Analyze(index, indexQnt, dataList, NumDensBasis=7, ncycle=10, itdisp=FALSE, 
+          verbose=FALSE) 
 }
 \arguments{
   \item{index}{A vector of \code{N} score index values for the examinees or respondents.
@@ -50,7 +51,8 @@
       \item{PcntMarkers:}{The marker percentages for plotting: 5, 25, 50, 75 and 95.}
     }
   }
-  \item{ncycle}{The number of cycles executed by \code{Analyze}.}
+  \item{NumDensBasis}{The number of basis functions for representing the score density.}
+  \item{ncycle}{The number of cycles executed by function \code{Analyze()}.}
   \item{itdisp}{If TRUE, the progress of the iterations within each cycle for estimating
   	index are reported.}
   \item{verbose}{If TRUE, the stages of analysis within each cycle for estimating
